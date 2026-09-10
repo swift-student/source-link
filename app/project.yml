@@ -19,12 +19,13 @@ targets:
     info:
       path: Info.plist
       properties:
-        CFBundleDisplayName: xed-link
+        CFBundleDisplayName: Source Link
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: com.shawngee.XedLink.xed
             CFBundleURLSchemes:
               - xed
+              - source-link
         LSUIElement: true
     sources:
       - Sources/XedLinkApp
@@ -34,9 +35,10 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.shawngee.XedLink
-        PRODUCT_NAME: xed-link
+        PRODUCT_NAME: source-link
         SWIFT_VERSION: 6.0
       configs:
         Debug:
           CODE_SIGN_STYLE: Automatic
           ENABLE_HARDENED_RUNTIME: NO
+

@@ -21,7 +21,8 @@ lint:
 	swiftlint lint --strict --config .swiftlint.yml
 
 run: build
-	open .build/xcode/Build/Products/Debug/xed-link.app
+	open .build/xcode/Build/Products/Debug/source-link.app
 
 test:
 	swift test
+

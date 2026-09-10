@@ -1,4 +1,3 @@
-import CustomDump
 import Foundation
 import Testing
 @testable import XedLinkCore
@@ -17,42 +16,33 @@ struct XedURLTests {
       )
     )
 
-    expectNoDifference(
-      source.fileURL,
-      URL(fileURLWithPath: "/tmp/Xed Link/App.swift")
-    )
-    expectNoDifference(source.line, 42)
-    expectNoDifference(
-      source.projectURL,
-      URL(fileURLWithPath: "/tmp/Xed Link/XedLink.xcworkspace")
-    )
-    expectNoDifference(
-      source.xedArguments,
-      [
+    #expect(source.fileURL == URL(fileURLWithPath: "/tmp/Xed Link/App.swift"))
+    #expect(source.line == 42)
+    #expect(source.projectURL == URL(fileURLWithPath: "/tmp/Xed Link/XedLink.xcworkspace"))
+    #expect(source.xedArguments == [
         "--project",
         "/tmp/Xed Link/XedLink.xcworkspace",
         "--line",
         "42",
         "/tmp/Xed Link/App.swift"
-      ]
-    )
+      ])
   }
 
   @Test
   func fileOnly() throws {
     let source = try XedURL(#require(URL(string: "xed:///tmp/App.swift")))
 
-    expectNoDifference(source.fileURL, URL(fileURLWithPath: "/tmp/App.swift"))
-    expectNoDifference(source.line, nil)
-    expectNoDifference(source.projectURL, nil)
-    expectNoDifference(source.xedArguments, ["/tmp/App.swift"])
+    #expect(source.fileURL == URL(fileURLWithPath: "/tmp/App.swift"))
+    #expect(source.line == nil)
+    #expect(source.projectURL == nil)
+    #expect(source.xedArguments == ["/tmp/App.swift"])
   }
 
   @Test
   func schemeIsCaseInsensitive() throws {
     let source = try XedURL(#require(URL(string: "XED:///tmp/App.swift")))
 
-    expectNoDifference(source.fileURL, URL(fileURLWithPath: "/tmp/App.swift"))
+    #expect(source.fileURL == URL(fileURLWithPath: "/tmp/App.swift"))
   }
 
   @Test
