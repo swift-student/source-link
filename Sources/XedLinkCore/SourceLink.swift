@@ -129,7 +129,7 @@ public struct SourceSettings: Codable, Equatable, Sendable {
 
   public func command(for link: SourceLink) throws -> EditorCommand? {
     guard let checkout = checkout(for: link.repository) else { return nil }
-    let file = try link.resolve(root: URL(fileURLWithPath: checkout.path))
+    let file = try link.resolve(root: URL(fileURLWithPath: ConfigurationPaths.expand(checkout.path)))
     let editor = editor(for: file)
     return EditorCommand(editor: editor, executable: executablePaths[editor.rawValue],
                          file: file, line: link.line, column: link.column)
@@ -141,7 +141,9 @@ public struct EditorCommand: Equatable, Sendable {
   public let arguments: [String]
 
   public init(editor: Editor, executable: String? = nil, file: URL, line: Int?, column: Int?) {
-    self.executable = executable.flatMap { $0.isEmpty ? nil : $0 } ?? editor.defaultExecutable
+    self.executable = ConfigurationPaths.expand(
+      executable.flatMap { $0.isEmpty ? nil : $0 } ?? editor.defaultExecutable
+    )
     switch editor {
     case .xcode:
       arguments = (line.map { ["--line", String($0)] } ?? []) + [file.path]

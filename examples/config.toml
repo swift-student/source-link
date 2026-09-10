@@ -1,0 +1,27 @@
+# Source Link configuration, schema version 1.
+version = 1
+default_editor = "cursor"
+
+# Optional overrides; omit this table to use built-in executable paths.
+[executables]
+cursor = "/Applications/Cursor.app/Contents/Resources/app/bin/cursor"
+
+# Repository names match the host in source-link://source-link/path/to/file.
+[[checkouts]]
+name = "source-link"
+path = "~/workspace/source-link"
+default = true
+
+# Multiple entries with the same name represent worktrees.
+[[checkouts]]
+name = "source-link"
+path = "~/workspace/source-link-feature"
+
+# First matching rule wins. Extensions ignore case and a leading dot.
+[[rules]]
+extension = "swift"
+editor = "xcode"
+
+[[rules]]
+extension = "md"
+editor = "cursor"

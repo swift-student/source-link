@@ -23,7 +23,8 @@ Settings open automatically on the first unconfigured launch.
 - Built-in launch profiles support Xcode, VS Code, Cursor, and Zed. Install the editor separately and
   adjust its executable path when installed outside the default location.
 - An unknown repository prompts for a folder and editor, saves the mapping and extension rule, and opens the file.
-- Settings are stored in `~/Library/Application Support/SourceLink/settings.json`.
+- Settings and first-link setup share `~/.config/source-link/config.toml` with external editors and agents.
+  Settings uses **Apply** and **Revert**; uncommitted drafts do not affect link handling.
 
 Xcode uses `/usr/bin/xed --line` and does not receive a column. VS Code and Cursor use `--goto`;
 Zed uses `file:line:column`. Editor arguments are passed directly to `Process`, without shell interpolation.
@@ -34,9 +35,98 @@ The app remains a menu-bar accessory with no Dock icon. Settings and setup windo
 Legacy `xed:///absolute/path?line=42&project=/absolute/project.xcworkspace` links remain supported.
 Internal package/project names still use XedLink to preserve the imported build structure.
 
+## TOML configuration and dotfiles
+
+Start with [examples/config.toml](examples/config.toml). The file uses TOML 1.0:
+
+```toml
+version = 1
+default_editor = "cursor"
+
+[[checkouts]]
+name = "my-repo"
+path = "~/code/my-repo"
+default = true
+
+[[rules]]
+extension = "swift"
+editor = "xcode"
+```
+
+| Setting | Required / default | Meaning |
+| --- | --- | --- |
+| `version` | Required, integer `1` | Configuration schema version. |
+| `default_editor` | `"xcode"` | `xcode`, `vscode`, `cursor`, or `zed`. |
+| `[executables]` | Optional | Editor names mapped to executable path overrides. |
+| `[[checkouts]]` | Optional, empty | Each entry requires `name` and `path`; `default` defaults to `false`. |
+| `[[rules]]` | Optional, empty | Each entry requires `extension` and `editor`; document order matters. |
+
+Unknown keys, incorrect types, unsupported versions, and multiple defaults for the same
+repository are errors. Names and extensions must not be empty. Paths must be absolute or
+start with `~/`; `~` expands to the current user's home directory only when used. Shell
+variables and commands are not expanded. Missing directories or executables do not invalidate
+the configuration; availability is checked when opening a link. UI row IDs are never stored.
+
+The location is `$XDG_CONFIG_HOME/source-link/config.toml` when `XDG_CONFIG_HOME` is an
+absolute path, otherwise `~/.config/source-link/config.toml`. A GUI app launched from Finder
+usually does not inherit shell startup variables. **Settings displays the actual path**; use
+that path when validating if your shell has a different environment. The default location is
+recommended for a shared GUI/terminal workflow.
+
+You can symlink the file or its parent directory into a dotfiles repository. Saves follow the
+current symlink destination, preserve the symlink and file permissions, and atomically replace
+the target. A dangling symlink is an error, not an invitation to create a replacement file.
+New files use owner-only permissions.
+
+External changes are checked every second and before handling links, including files replaced
+atomically by editors and symlinks replaced by dotfiles tools. Valid settings become active
+automatically. Invalid edits leave the last valid settings in memory and display an error in
+Settings. At startup, invalid TOML opens Settings with the error and blocks first-link setup
+from overwriting it. Restore a removed file to resume editing.
+
+**Apply** merges a draft with the latest file. Independent changes to the default editor,
+individual executable overrides, and separate collections can merge. Concurrent edits to the
+same field or collection produce a conflict and retain your draft. **Revert** discards the
+draft and loads the file. File creation/deletion or symlink retargeting during a draft also
+requires Revert. First-link setup uses the same save mechanism.
+
+Value edits preserve surrounding text, comments, and key spelling. Adding/removing collection
+rows can reformat that collection; existing comments remain, but may no longer sit next to
+the same row. Saves recheck disk contents before replacement. This is optimistic concurrency,
+not a lock on arbitrary external editors: avoid simultaneous writes during the final filesystem
+replacement.
+
+On startup, if TOML is absent, the app imports the old
+`~/Library/Application Support/SourceLink/settings.json`. The original JSON remains untouched
+as a backup. Existing or invalid TOML is never replaced by migration. Invalid legacy settings
+are reported for correction instead of silently discarded. Deleting TOML and restarting the
+app can import the legacy backup again; normal live reloads never do so.
+
+### Agent workflow and CLI
+
+The package includes a separate `source-link` command-line executable:
+
+```sh
+swift run source-link config path
+swift run source-link config validate
+swift run source-link config validate /path/to/proposed-config.toml
+```
+
+`config path` prints the resolved configuration location. `config validate` reads and checks
+the file without opening the app, writing settings, or migrating JSON. It exits `0` for valid
+configuration, `1` for configuration/read errors, and `2` for usage errors. Diagnostics include
+the path and, when available, the TOML line, column, and setting key. A missing file is a
+validation error. Validation does not require editors or checkout directories to exist.
+
+An agent should read the latest file, make the smallest necessary edit, and validate it.
+Preserve unrelated settings and comments. No `config set` API or UI automation is required.
+For a standalone CLI binary, build with `swift build -c release --product source-link`;
+`swift build -c release --show-bin-path` prints its containing directory.
+
 ## Development
 
-Requires Swift 6.2+, Xcode, XcodeGen, and SwiftLint. Tests use native Swift Testing without external dependencies.
+Requires Swift 6.2+, Xcode, XcodeGen, and SwiftLint. Tests use native Swift Testing. The MIT-licensed toml++ 3.4.0 parser is vendored in
+`Sources/CTOML/vendor`; both build paths work without fetching dependencies.
 
 ```sh
 make check
@@ -46,7 +136,8 @@ make run
 Open `XedLink.xcworkspace`, or the generated `app/XedLink.xcodeproj`.
 
 For an Apple Silicon build without Xcode workspace services, run `bash scripts/build-direct.sh`.
-The ad-hoc signed app is written to `.build/direct/source-link.app`. This does not install or launch it.
+The ad-hoc signed app is written to `.build/direct/source-link.app`, and the separate CLI to
+`.build/direct/source-link`. This does not install or launch either executable.
 
 ## Manual verification
 
@@ -55,13 +146,17 @@ The ad-hoc signed app is written to `.build/direct/source-link.app`. This does n
 3. Choose the repository root and Xcode; verify the requested file and line in Xcode.
 4. Install VS Code and select it for `md`; open a Markdown link with a line and column.
 5. Add a second worktree with the same name and clear defaults; verify the chooser and saved default.
-6. Restart the app and verify that mappings and editor rules persist.
+6. Apply Settings, restart the app, and verify that mappings and editor rules persist in TOML.
 7. Try an absent file, an escaping symlink, and an invalid line; verify a visible error and no editor launch.
 8. Try a legacy `xed:` link, including its optional project parameter.
 
-Unit tests cover parsing, invalid inputs, path containment, worktree decisions, settings round-trips,
-file-type routing, and editor arguments. Real editor navigation requires the manual checks above.
+9. Edit TOML externally and verify the app reloads within a second; repeat with an atomic file replacement.
+10. Keep a UI draft open while changing an unrelated setting externally, then Apply and verify both survive.
+11. Change the same setting externally and in a draft; verify Apply reports a conflict and retains the draft.
+12. Introduce invalid TOML; verify the error is visible and existing links use the last valid settings.
+13. Symlink the config into dotfiles, Apply a change, and verify the symlink and comments remain intact.
+14. With no TOML file, launch with an existing legacy JSON file and verify migration preserves the backup.
 
-## Planned follow-up
-
-Polish the Settings interface and add TOML dotfile configuration. This version stores settings in JSON.
+Unit tests cover URL and TOML parsing, schema validation, source-preserving edits, conflicts,
+symlink saves, migration, path containment, worktree decisions, file-type routing, and editor
+arguments. Real editor navigation requires the manual checks above.

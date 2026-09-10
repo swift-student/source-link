@@ -7,6 +7,25 @@ struct SettingsView: View {
 
   var body: some View {
     Form {
+      Section("Configuration file") {
+        Text(store.repository.file.path).font(.caption).textSelection(.enabled)
+        Text("External changes reload automatically. Apply saves your draft; Revert loads the file.")
+          .font(.caption).foregroundStyle(.secondary)
+        if let message = store.errorMessage {
+          Text(message).foregroundStyle(.red).textSelection(.enabled)
+        }
+        if let message = store.saveError {
+          Text(message).foregroundStyle(.red).textSelection(.enabled)
+        }
+        HStack {
+          Button("Reveal File") {
+            NSWorkspace.shared.activateFileViewerSelecting([store.repository.file])
+          }
+          Spacer()
+          Button("Revert") { store.revert() }
+          Button("Apply") { store.save() }.disabled(!store.canApply || !store.isDirty)
+        }
+      }
       Section("Repositories and worktrees") {
         Text("Use the same name for multiple worktrees. Select one default per repository.")
           .font(.caption).foregroundStyle(.secondary)
@@ -40,10 +59,14 @@ struct SettingsView: View {
           ForEach(Editor.allCases) { Text($0.title).tag($0) }
         }
         ForEach(Editor.allCases) { editor in
-          TextField(editor.title + " executable", text: Binding(
-            get: { store.settings.executablePaths[editor.rawValue] ?? editor.defaultExecutable },
-            set: { store.settings.executablePaths[editor.rawValue] = $0 }
-          ))
+          HStack {
+            TextField(editor.title + " executable", text: Binding(
+              get: { store.settings.executablePaths[editor.rawValue] ?? editor.defaultExecutable },
+              set: { store.settings.executablePaths[editor.rawValue] = $0 }
+            ))
+            Button("Reset") { store.settings.executablePaths[editor.rawValue] = nil }
+              .disabled(store.settings.executablePaths[editor.rawValue] == nil)
+          }
         }
         Text("Install an editor before selecting it. Xcode supports lines; other editors also use columns.")
           .font(.caption).foregroundStyle(.secondary)
@@ -63,6 +86,5 @@ struct SettingsView: View {
     }
     .formStyle(.grouped)
     .frame(minWidth: 640, minHeight: 480)
-    .onChange(of: store.settings) { store.save() }
   }
 }
