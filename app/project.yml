@@ -25,9 +25,8 @@ targets:
         CFBundleDisplayName: Source Link
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
-            CFBundleURLName: com.shawngee.XedLink.xed
+            CFBundleURLName: com.shawngee.XedLink.source-link
             CFBundleURLSchemes:
-              - xed
               - source-link
         LSUIElement: true
     sources:

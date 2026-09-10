@@ -48,7 +48,7 @@ See the [VS Code CLI](https://code.visualstudio.com/docs/configure/command-line)
 [Zed CLI](https://zed.dev/docs/reference/cli) documentation.
 
 The app remains a menu-bar accessory with no Dock icon. Settings and setup windows appear on request.
-Legacy `xed:///absolute/path?line=42&project=/absolute/project.xcworkspace` links remain supported.
+Only `source-link:` URLs are supported.
 Internal package/project names still use XedLink to preserve the imported build structure.
 
 ## Development
@@ -99,7 +99,6 @@ The ad-hoc signed app is written to `.build/direct/source-link.app`. This does n
 6. Switch among all three Settings pages, reorder competing extension rules, and verify the first rule wins.
 7. Restart the app and verify that mappings and editor rules persist.
 8. Try an absent file, an escaping symlink, and an invalid line; verify a visible error and no editor launch.
-9. Try a legacy `xed:` link, including its optional project parameter.
 
 Unit tests cover parsing, invalid inputs, path containment, worktree decisions, settings round-trips,
 file-type routing, and editor arguments. Real editor navigation requires the manual checks above.

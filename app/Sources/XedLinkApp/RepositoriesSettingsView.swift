@@ -80,7 +80,7 @@ struct RepositoriesSettingsView: View {
           .font(.callout).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
           .textSelection(.enabled).help(checkout.path)
       }
-      Spacer(minLength: 12)
+      Spacer(minLength: SettingsStyle.Spacing.medium)
       Group {
         if checkout.isDefault { DefaultBadge() } else {
           Button("Make Default") { store.settings.setDefaultCheckout(checkout.id) }.buttonStyle(.link)

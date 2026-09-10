@@ -50,10 +50,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   func application(_ application: NSApplication, open urls: [URL]) {
     for url in urls {
       do {
-        if url.scheme?.lowercased() == "xed" {
-          try XedURL(url).openInXcode()
-          continue
-        }
         let link = try SourceLink(url)
         if store.settings.checkout(for: link.repository) == nil {
           guard configure(link) else { continue }
