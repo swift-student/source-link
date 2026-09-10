@@ -1,0 +1,114 @@
+{
+  "clickRevision": "934813e4d421071a1b3db3973c02fe2721359a6e",
+  "anchors": {
+    "receive": {
+      "repository": "source-link",
+      "path": "app/Sources/XedLinkApp/App.swift",
+      "match": "func application(_ application: NSApplication, open urls: [URL])",
+      "line": 50
+    },
+    "parse": {
+      "repository": "source-link",
+      "path": "Sources/XedLinkCore/SourceLink.swift",
+      "match": "public init(_ url: URL) throws",
+      "line": 9
+    },
+    "checkout": {
+      "repository": "source-link",
+      "path": "Sources/XedLinkCore/SourceLink.swift",
+      "match": "public func checkout(for name: String)",
+      "line": 116
+    },
+    "setup": {
+      "repository": "source-link",
+      "path": "app/Sources/XedLinkApp/App.swift",
+      "match": "private func configure(_ link: SourceLink)",
+      "line": 65
+    },
+    "resolve": {
+      "repository": "source-link",
+      "path": "Sources/XedLinkCore/SourceLink.swift",
+      "match": "public func resolve(root: URL)",
+      "line": 43
+    },
+    "command": {
+      "repository": "source-link",
+      "path": "Sources/XedLinkCore/SourceLink.swift",
+      "match": "public func command(for link: SourceLink)",
+      "line": 130
+    },
+    "run": {
+      "repository": "source-link",
+      "path": "Sources/XedLinkCore/SourceLink.swift",
+      "match": "public func run() throws",
+      "line": 155
+    },
+    "click.main": {
+      "repository": "click",
+      "path": "src/click/core.py",
+      "symbol": "BaseCommand.main",
+      "line": 1014
+    },
+    "click.context": {
+      "repository": "click",
+      "path": "src/click/core.py",
+      "symbol": "BaseCommand.make_context",
+      "line": 910
+    },
+    "click.dispatch": {
+      "repository": "click",
+      "path": "src/click/core.py",
+      "symbol": "MultiCommand.invoke",
+      "line": 1663
+    },
+    "click.resolve": {
+      "repository": "click",
+      "path": "src/click/core.py",
+      "symbol": "MultiCommand.resolve_command",
+      "line": 1731
+    },
+    "click.callback": {
+      "repository": "click",
+      "path": "src/click/core.py",
+      "symbol": "Command.invoke",
+      "line": 1432
+    },
+    "click.invoke": {
+      "repository": "click",
+      "path": "src/click/core.py",
+      "symbol": "Context.invoke",
+      "line": 737
+    },
+    "click.parse": {
+      "repository": "click",
+      "path": "src/click/core.py",
+      "symbol": "Command.parse_args",
+      "line": 1408
+    },
+    "click.handle": {
+      "repository": "click",
+      "path": "src/click/core.py",
+      "symbol": "Parameter.handle_parse_result",
+      "line": 2395
+    },
+    "click.consume": {
+      "repository": "click",
+      "path": "src/click/core.py",
+      "symbol": "Parameter.consume_value",
+      "line": 2278
+    },
+    "click.process": {
+      "repository": "click",
+      "path": "src/click/core.py",
+      "symbol": "Parameter.process_value",
+      "line": 2358
+    },
+    "click.tokens": {
+      "repository": "click",
+      "path": "src/click/parser.py",
+      "symbol": "OptionParser.parse_args",
+      "line": 328
+    }
+  },
+  "sourceLinkRevision": "545ea4d3826b2471f2919044a823b4535c59c11b"
+}
