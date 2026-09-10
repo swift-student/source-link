@@ -8,7 +8,7 @@ struct SourceLinkApp: App {
 
   var body: some Scene {
     MenuBarExtra("Source Link", systemImage: "chevron.left.forwardslash.chevron.right") {
-      Button("Settings…") { appDelegate.showSettings() }
+      Button("Settings…") { appDelegate.showSettings() }.keyboardShortcut(",")
       Divider()
       Button("Quit") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
     }
@@ -25,12 +25,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
-    if store.activeSettings.checkouts.isEmpty || store.errorMessage != nil { showSettings() }
+    if store.activeSettings.checkouts.isEmpty || store.errorMessage != nil
+      || CommandLine.arguments.contains("--settings") { showSettings() }
+  }
+
+  func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+    showSettings()
+    return true
   }
 
   func showSettings() {
     if settingsWindow == nil {
-      let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 740, height: 580),
+      let window = NSWindow(contentRect: NSRect(origin: .zero, size: SettingsStyle.Layout.window),
                             styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
       window.title = "Source Link Settings"
       window.isReleasedWhenClosed = false
@@ -46,10 +52,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     store.reload()
     for url in urls {
       do {
-        if url.scheme?.lowercased() == "xed" {
-          try XedURL(url).openInXcode()
-          continue
-        }
         let link = try SourceLink(url)
         if store.activeSettings.checkout(for: link.repository) == nil {
           guard configure(link) else { continue }

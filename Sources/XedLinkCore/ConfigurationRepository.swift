@@ -34,6 +34,7 @@ public struct ConfigurationRepository: Sendable {
     guard !snapshot.exists, try exists(legacyFile) else { return snapshot }
     do {
       var settings = try JSONDecoder().decode(SourceSettings.self, from: Data(contentsOf: legacyFile))
+      settings.normalizeDefaults()
       // Empty overrides used to mean the built-in executable.
       settings.executablePaths = settings.executablePaths.filter { !$0.value.isEmpty }
       let document = try ConfigurationDocument.initial(settings)

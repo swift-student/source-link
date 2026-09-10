@@ -17,7 +17,19 @@ final class SettingsStore: ObservableObject {
   var canApply: Bool { base != nil && errorMessage == nil }
   var setupSnapshot: ConfigurationSnapshot? { active }
 
-  init(repository: ConfigurationRepository = ConfigurationRepository()) {
+  private static func defaultRepository() -> ConfigurationRepository {
+    #if DEBUG
+    if let path = ProcessInfo.processInfo.environment["SOURCE_LINK_TEST_SETTINGS_PATH"] {
+      let file = URL(fileURLWithPath: path)
+      return ConfigurationRepository(file: file,
+        legacyFile: file.deletingLastPathComponent().appendingPathComponent("legacy.json"))
+    }
+    #endif
+    return ConfigurationRepository()
+  }
+
+  init(repository: ConfigurationRepository? = nil) {
+    let repository = repository ?? Self.defaultRepository()
     self.repository = repository
     do { accept(try repository.loadOrMigrate(), discardDraft: true) } catch {
       errorMessage = error.localizedDescription
