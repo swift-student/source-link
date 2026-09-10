@@ -16,46 +16,6 @@ struct SourceLinkApp: App {
 }
 
 @MainActor
-final class SettingsStore: ObservableObject {
-  @Published var settings = SourceSettings()
-  private let storage: URL
-
-  init() {
-    #if DEBUG
-    if let path = ProcessInfo.processInfo.environment["SOURCE_LINK_TEST_SETTINGS_PATH"] {
-      storage = URL(fileURLWithPath: path)
-    } else {
-      storage = URL.applicationSupportDirectory.appendingPathComponent("SourceLink/settings.json")
-    }
-    #else
-    storage = URL.applicationSupportDirectory.appendingPathComponent("SourceLink/settings.json")
-    #endif
-    do {
-      if FileManager.default.fileExists(atPath: storage.path) {
-        settings = try JSONDecoder().decode(SourceSettings.self, from: Data(contentsOf: storage))
-        let previous = settings
-        settings.normalizeDefaults()
-        if settings != previous { save() }
-      }
-    } catch { Self.show(error) }
-  }
-
-  func save() {
-    do {
-      try FileManager.default.createDirectory(at: storage.deletingLastPathComponent(),
-                                             withIntermediateDirectories: true)
-      try JSONEncoder().encode(settings).write(to: storage, options: .atomic)
-    } catch { Self.show(error) }
-  }
-
-  static func show(_ error: Error) {
-    let alert = NSAlert(error: error)
-    NSApp.activate(ignoringOtherApps: true)
-    alert.runModal()
-  }
-}
-
-@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private let store = SettingsStore()
   private var settingsWindow: NSWindow?
@@ -75,7 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   func showSettings() {
     if settingsWindow == nil {
-      let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1100, height: 680),
+      let window = NSWindow(contentRect: NSRect(origin: .zero, size: SettingsStyle.Layout.window),
                             styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
       window.title = "Source Link Settings"
       window.isReleasedWhenClosed = false

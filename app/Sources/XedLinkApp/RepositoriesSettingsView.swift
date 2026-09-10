@@ -8,7 +8,7 @@ struct RepositoriesSettingsView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 24) {
+      VStack(alignment: .leading, spacing: SettingsStyle.Spacing.section) {
         SettingsHeading(title: "Repositories", subtitle: "Choose where source links open on this Mac.") {
           Button("Add Repository", systemImage: "plus") { addRepository() }
         }
@@ -31,7 +31,7 @@ struct RepositoriesSettingsView: View {
         Text("Shared links use the repository’s root folder name and open in its default checkout.")
           .font(.callout).foregroundStyle(.secondary)
       }
-      .padding(32)
+      .padding(SettingsStyle.Spacing.page)
     }
   }
 
@@ -51,10 +51,10 @@ struct RepositoriesSettingsView: View {
             .buttonStyle(.link)
           Spacer()
         }
-        .padding(.leading, 32).padding(.vertical, 16)
+        .padding(.leading, SettingsStyle.Spacing.page).padding(.vertical, SettingsStyle.Spacing.large)
       }
     } label: {
-      HStack(spacing: 12) {
+      HStack(spacing: SettingsStyle.Spacing.medium) {
         Image(systemName: "folder").font(.title3).foregroundStyle(.secondary)
         Text(name).font(.headline).lineLimit(1).help(name)
         Spacer()
@@ -66,15 +66,15 @@ struct RepositoriesSettingsView: View {
           Button("Remove Repository", role: .destructive) { store.settings.removeRepository(name) }
         }
       }
-      .padding(.vertical, 16)
+      .padding(.vertical, SettingsStyle.Spacing.large)
     }
-    .padding(.horizontal, 18)
+    .padding(.horizontal, SettingsStyle.Spacing.large)
   }
 
   private func checkoutRow(_ checkout: Checkout) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: SettingsStyle.Spacing.medium) {
       Image(systemName: "arrow.turn.down.right").foregroundStyle(.tertiary).frame(width: 20)
-      VStack(alignment: .leading, spacing: 6) {
+      VStack(alignment: .leading, spacing: SettingsStyle.Spacing.small) {
         Text(checkout.folderName).fontWeight(.medium).lineLimit(1)
         Text((checkout.path as NSString).abbreviatingWithTildeInPath)
           .font(.callout).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
@@ -86,7 +86,7 @@ struct RepositoriesSettingsView: View {
           Button("Make Default") { store.settings.setDefaultCheckout(checkout.id) }.buttonStyle(.link)
         }
       }
-      .frame(width: 100)
+      .frame(width: SettingsStyle.Layout.checkoutStatus)
       SettingsActions(label: "Actions for checkout \(checkout.folderName)") {
         Button("Show in Finder") { NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: checkout.path) }
         Button("Change Folder…") { changeFolder(checkout) }
@@ -94,7 +94,7 @@ struct RepositoriesSettingsView: View {
         Button("Remove Checkout", role: .destructive) { store.settings.removeCheckout(checkout.id) }
       }
     }
-    .padding(.leading, 12).padding(.vertical, 17)
+    .padding(.leading, SettingsStyle.Spacing.medium).padding(.vertical, SettingsStyle.Spacing.large)
   }
 
   private func addRepository() {

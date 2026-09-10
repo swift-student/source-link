@@ -8,7 +8,7 @@ struct EditorsSettingsView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 24) {
+      VStack(alignment: .leading, spacing: SettingsStyle.Spacing.section) {
         SettingsHeading(title: "Editors", subtitle: "Set a default, then configure only the editors you use.") {}
         HStack {
           Text("Default editor").fontWeight(.medium)
@@ -16,9 +16,9 @@ struct EditorsSettingsView: View {
           Picker("Default editor", selection: $store.settings.defaultEditor) {
             ForEach(Editor.allCases) { Text($0.title).tag($0) }
           }
-          .labelsHidden().frame(width: 200)
+          .labelsHidden().frame(width: SettingsStyle.Layout.editorPicker)
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, SettingsStyle.Spacing.medium)
         Divider()
         SettingsCard {
           ForEach(Editor.allCases) { editor in
@@ -34,21 +34,21 @@ struct EditorsSettingsView: View {
                 Spacer()
                 if editor == store.settings.defaultEditor { DefaultBadge() }
               }
-              .padding(.vertical, 16)
+              .padding(.vertical, SettingsStyle.Spacing.large)
             }
-            .padding(.horizontal, 18)
+            .padding(.horizontal, SettingsStyle.Spacing.large)
           }
         }
       }
-      .padding(32)
+      .padding(SettingsStyle.Spacing.page)
     }
     .onAppear { expanded.insert(store.settings.defaultEditor) }
   }
 
   private func editorConfiguration(_ editor: Editor) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: SettingsStyle.Spacing.medium) {
       Text("Executable").fontWeight(.medium)
-      HStack(spacing: 12) {
+      HStack(spacing: SettingsStyle.Spacing.medium) {
         TextField("Executable path", text: Binding(
           get: { store.settings.executablePaths[editor.rawValue] ?? editor.defaultExecutable },
           set: { store.settings.executablePaths[editor.rawValue] = $0 }
@@ -65,7 +65,7 @@ struct EditorsSettingsView: View {
           .buttonStyle(.link)
       }
     }
-    .padding(.leading, 16).padding(.bottom, 20)
+    .padding(.leading, SettingsStyle.Spacing.large).padding(.bottom, SettingsStyle.Spacing.extraLarge)
   }
 
   private func chooseExecutable(_ editor: Editor) {

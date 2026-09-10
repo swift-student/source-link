@@ -60,6 +60,11 @@ make check
 make run
 ```
 
+Settings UI tokens live in `app/Sources/XedLinkApp/SettingsStyle.swift`: use the shared
+spacing scale for padding and gaps, and layout tokens for aligned columns and window sizes.
+`SettingsComponents.swift` contains shared headings, cards, badges, and action menus.
+Keep native control styles and semantic macOS colors so appearance follows system settings.
+
 Run Settings UI automation in a logged-in macOS desktop session:
 
 ```sh
