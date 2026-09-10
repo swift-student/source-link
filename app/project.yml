@@ -1,0 +1,42 @@
+name: XedLink
+options:
+  bundleIdPrefix: com.shawngee
+packages:
+  XedLinkPackage:
+    path: ..
+schemes:
+  XedLink:
+    build:
+      targets:
+        XedLink: all
+    run:
+      config: Debug
+targets:
+  XedLink:
+    type: application
+    platform: macOS
+    deploymentTarget: "15.0"
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: xed-link
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.shawngee.XedLink.xed
+            CFBundleURLSchemes:
+              - xed
+        LSUIElement: true
+    sources:
+      - Sources/XedLinkApp
+    dependencies:
+      - package: XedLinkPackage
+        product: XedLinkCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shawngee.XedLink
+        PRODUCT_NAME: xed-link
+        SWIFT_VERSION: 6.0
+      configs:
+        Debug:
+          CODE_SIGN_STYLE: Automatic
+          ENABLE_HARDENED_RUNTIME: NO
