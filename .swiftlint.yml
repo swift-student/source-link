@@ -2,5 +2,6 @@ included:
   - Sources
   - Tests
   - app/Sources
+  - app/Tests
 
 strict: true

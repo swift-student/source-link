@@ -8,7 +8,7 @@ struct SourceLinkApp: App {
 
   var body: some Scene {
     MenuBarExtra("Source Link", systemImage: "chevron.left.forwardslash.chevron.right") {
-      Button("Settings…") { appDelegate.showSettings() }
+      Button("Settings…") { appDelegate.showSettings() }.keyboardShortcut(",")
       Divider()
       Button("Quit") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
     }
@@ -21,10 +21,21 @@ final class SettingsStore: ObservableObject {
   private let storage: URL
 
   init() {
+    #if DEBUG
+    if let path = ProcessInfo.processInfo.environment["SOURCE_LINK_TEST_SETTINGS_PATH"] {
+      storage = URL(fileURLWithPath: path)
+    } else {
+      storage = URL.applicationSupportDirectory.appendingPathComponent("SourceLink/settings.json")
+    }
+    #else
     storage = URL.applicationSupportDirectory.appendingPathComponent("SourceLink/settings.json")
+    #endif
     do {
       if FileManager.default.fileExists(atPath: storage.path) {
         settings = try JSONDecoder().decode(SourceSettings.self, from: Data(contentsOf: storage))
+        let previous = settings
+        settings.normalizeDefaults()
+        if settings != previous { save() }
       }
     } catch { Self.show(error) }
   }
@@ -54,12 +65,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
-    if store.settings.checkouts.isEmpty { showSettings() }
+    if store.settings.checkouts.isEmpty || CommandLine.arguments.contains("--settings") { showSettings() }
+  }
+
+  func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+    showSettings()
+    return true
   }
 
   func showSettings() {
     if settingsWindow == nil {
-      let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 740, height: 580),
+      let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1100, height: 680),
                             styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
       window.title = "Source Link Settings"
       window.isReleasedWhenClosed = false

@@ -9,6 +9,9 @@ schemes:
     build:
       targets:
         XedLink: all
+    test:
+      targets:
+        - XedLinkUITests
     run:
       config: Debug
 targets:
@@ -42,3 +45,18 @@ targets:
           CODE_SIGN_STYLE: Automatic
           ENABLE_HARDENED_RUNTIME: NO
 
+  XedLinkUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - Tests/XedLinkUITests
+    dependencies:
+      - target: XedLink
+    settings:
+      base:
+        SWIFT_VERSION: 6.0
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        TEST_TARGET_NAME: XedLink
