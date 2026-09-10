@@ -28,8 +28,8 @@ info = {
     'LSUIElement': True,
     'CFBundleURLTypes': [{
         'CFBundleTypeRole': 'Editor',
-        'CFBundleURLName': 'com.shawngee.XedLink.xed',
-        'CFBundleURLSchemes': ['xed', 'source-link'],
+        'CFBundleURLName': 'com.shawngee.XedLink.source-link',
+        'CFBundleURLSchemes': ['source-link'],
     }],
 }
 Path(sys.argv[1]).write_bytes(plistlib.dumps(info))

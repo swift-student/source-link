@@ -1,68 +1,53 @@
-import AppKit
 import SwiftUI
-import XedLinkCore
+
+enum SettingsPage: String, CaseIterable, Identifiable {
+  case repositories = "Repositories", editors = "Editors", rules = "File Rules"
+  var id: String { rawValue }
+  var symbol: String {
+    switch self {
+    case .repositories: "folder"
+    case .editors: "chevron.left.forwardslash.chevron.right"
+    case .rules: "doc.text"
+    }
+  }
+}
 
 struct SettingsView: View {
   @ObservedObject var store: SettingsStore
+  @State private var selection: SettingsPage? = .repositories
 
   var body: some View {
-    Form {
-      Section("Repositories and worktrees") {
-        Text("Use the same name for multiple worktrees. Select one default per repository.")
-          .font(.caption).foregroundStyle(.secondary)
-        ForEach($store.settings.checkouts) { $checkout in
-          VStack(alignment: .leading) {
-            HStack {
-              TextField("Repository name", text: $checkout.name)
-              Toggle("Default", isOn: $checkout.isDefault)
-              Button("Remove", role: .destructive) {
-                store.settings.checkouts.removeAll { $0.id == checkout.id }
-              }
-            }
-            HStack {
-              Text(checkout.path.isEmpty ? "Choose a repository root" : checkout.path)
-                .font(.caption).lineLimit(2).textSelection(.enabled)
-              Spacer()
-              Button("Choose Folder…") {
-                let panel = NSOpenPanel()
-                panel.canChooseDirectories = true
-                panel.canChooseFiles = false
-                panel.allowsMultipleSelection = false
-                if panel.runModal() == .OK, let url = panel.url { checkout.path = url.path }
-              }
-            }
-          }
+    NavigationSplitView {
+      VStack(alignment: .leading, spacing: SettingsStyle.Spacing.extraLarge) {
+        VStack(alignment: .leading, spacing: SettingsStyle.Spacing.extraSmall) {
+          Text("Source Link").font(.title3.weight(.semibold))
+          Text("Settings").foregroundStyle(.secondary)
         }
-        Button("Add Checkout") { store.settings.checkouts.append(Checkout()) }
+        .padding(.horizontal, SettingsStyle.Spacing.extraLarge).padding(.top, SettingsStyle.Spacing.section)
+        List(SettingsPage.allCases, selection: $selection) { page in
+          Label(page.rawValue, systemImage: page.symbol)
+            .padding(.vertical, SettingsStyle.Spacing.small).tag(page)
+            .accessibilityIdentifier("settings.page.\(page.id)")
+        }
+        .listStyle(.sidebar)
       }
-      Section("Editors") {
-        Picker("Default editor", selection: $store.settings.defaultEditor) {
-          ForEach(Editor.allCases) { Text($0.title).tag($0) }
+      .navigationSplitViewColumnWidth(
+        min: SettingsStyle.Layout.sidebarMinimum, ideal: SettingsStyle.Layout.sidebarIdeal,
+        max: SettingsStyle.Layout.sidebarMaximum)
+    } detail: {
+      Group {
+        switch selection ?? .repositories {
+        case .repositories: RepositoriesSettingsView(store: store)
+        case .editors: EditorsSettingsView(store: store)
+        case .rules: ScrollView { FileRulesSettingsView(store: store) }
         }
-        ForEach(Editor.allCases) { editor in
-          TextField(editor.title + " executable", text: Binding(
-            get: { store.settings.executablePaths[editor.rawValue] ?? editor.defaultExecutable },
-            set: { store.settings.executablePaths[editor.rawValue] = $0 }
-          ))
-        }
-        Text("Install an editor before selecting it. Xcode supports lines; other editors also use columns.")
-          .font(.caption).foregroundStyle(.secondary)
       }
-      Section("File-type rules (first match wins)") {
-        ForEach($store.settings.rules) { $rule in
-          HStack {
-            TextField("Extension", text: $rule.fileExtension)
-            Picker("Editor", selection: $rule.editor) {
-              ForEach(Editor.allCases) { Text($0.title).tag($0) }
-            }
-            Button("Remove", role: .destructive) { store.settings.rules.removeAll { $0.id == rule.id } }
-          }
-        }
-        Button("Add Rule") { store.settings.rules.append(FileRule()) }
-      }
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      .background(SettingsStyle.pageBackground)
     }
-    .formStyle(.grouped)
-    .frame(minWidth: 640, minHeight: 480)
+    .navigationSplitViewStyle(.balanced)
+    .frame(minWidth: SettingsStyle.Layout.minimumWindow.width,
+           minHeight: SettingsStyle.Layout.minimumWindow.height)
     .onChange(of: store.settings) { store.save() }
   }
 }

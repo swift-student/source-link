@@ -8,39 +8,10 @@ struct SourceLinkApp: App {
 
   var body: some Scene {
     MenuBarExtra("Source Link", systemImage: "chevron.left.forwardslash.chevron.right") {
-      Button("Settings…") { appDelegate.showSettings() }
+      Button("Settings…") { appDelegate.showSettings() }.keyboardShortcut(",")
       Divider()
       Button("Quit") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
     }
-  }
-}
-
-@MainActor
-final class SettingsStore: ObservableObject {
-  @Published var settings = SourceSettings()
-  private let storage: URL
-
-  init() {
-    storage = URL.applicationSupportDirectory.appendingPathComponent("SourceLink/settings.json")
-    do {
-      if FileManager.default.fileExists(atPath: storage.path) {
-        settings = try JSONDecoder().decode(SourceSettings.self, from: Data(contentsOf: storage))
-      }
-    } catch { Self.show(error) }
-  }
-
-  func save() {
-    do {
-      try FileManager.default.createDirectory(at: storage.deletingLastPathComponent(),
-                                             withIntermediateDirectories: true)
-      try JSONEncoder().encode(settings).write(to: storage, options: .atomic)
-    } catch { Self.show(error) }
-  }
-
-  static func show(_ error: Error) {
-    let alert = NSAlert(error: error)
-    NSApp.activate(ignoringOtherApps: true)
-    alert.runModal()
   }
 }
 
@@ -54,12 +25,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
-    if store.settings.checkouts.isEmpty { showSettings() }
+    if store.settings.checkouts.isEmpty || CommandLine.arguments.contains("--settings") { showSettings() }
+  }
+
+  func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+    showSettings()
+    return true
   }
 
   func showSettings() {
     if settingsWindow == nil {
-      let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 740, height: 580),
+      let window = NSWindow(contentRect: NSRect(origin: .zero, size: SettingsStyle.Layout.window),
                             styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
       window.title = "Source Link Settings"
       window.isReleasedWhenClosed = false
@@ -74,10 +50,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   func application(_ application: NSApplication, open urls: [URL]) {
     for url in urls {
       do {
-        if url.scheme?.lowercased() == "xed" {
-          try XedURL(url).openInXcode()
-          continue
-        }
         let link = try SourceLink(url)
         if store.settings.checkout(for: link.repository) == nil {
           guard configure(link) else { continue }
