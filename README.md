@@ -196,3 +196,9 @@ The ad-hoc signed app is written to `.build/direct/source-link.app`, and the sep
 Unit tests cover URL and JSON parsing, schema validation, JSON round-trips, conflicts,
 symlink saves, path containment, worktree decisions, file-type routing, and editor
 arguments. Real editor navigation requires the manual checks above.
+
+## Source-linked diagrams
+
+The reusable [Source Link Diagrams skill](skills/source-link-diagrams/SKILL.md) creates D2 diagrams with portable code links and a render-and-review workflow. Copy the `skills/source-link-diagrams` directory into your agent's skills directory to install it (for Codex, `~/.codex/skills/`). It requires a D2 renderer; clicking links also requires Source Link with a repository mapping.
+
+See the [example diagrams](examples/diagrams/README.md) for Source Link's URL flow and Click's command dispatch and parameter processing. Editable D2, rendered SVGs, source anchors, and a render script are included. Source line refresh remains agent-driven; no automatic resolver is bundled.

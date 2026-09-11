@@ -1,0 +1,42 @@
+# Click 8.1.8: conceptual parameter pipeline, repeated for each parameter. Option.consume_value additionally handles prompts.
+direction: down
+classes: {
+  step: {style: {fill: "#EFF6FF"; stroke: "#4F6D92"; border-radius: 9}; width: 260}
+  choice: {shape: diamond; style: {fill: "#FFF4DC"; stroke: "#AC8230"}}
+  finish: {style: {fill: "#E7F5EE"; stroke: "#418465"; border-radius: 9}; width: 260}
+}
+context: "Create command context" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=910"
+}
+parse: "Parse command arguments" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=1408"
+}
+tokens: "Tokenize options + arguments" {
+  class: step
+  link: "source-link://click/src/click/parser.py?line=328"
+}
+handle: "Process each parameter" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=2395"
+}
+consume: "Read CLI / env / defaults" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=2278"
+}
+process: "Convert + validate + callback" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=2358"
+}
+store: "Store exposed values in ctx.params" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=2395"
+}
+context -> parse -> tokens -> handle -> consume -> process -> store
+
+title: "Click 8.1.8 / Parameter processing" {
+ shape: text
+ near: top-center
+ style.font-size: 24
+}

@@ -1,0 +1,83 @@
+# Click 8.1.8: group dispatch with subcommands present. Omits help, completion, errors, and invoke_without_command.
+direction: down
+classes: {
+  step: {style: {fill: "#EFF6FF"; stroke: "#4F6D92"; border-radius: 9}; width: 260}
+  choice: {shape: diamond; style: {fill: "#FFF4DC"; stroke: "#AC8230"}}
+  finish: {style: {fill: "#E7F5EE"; stroke: "#418465"; border-radius: 9}; width: 260}
+}
+main: "01  /  Enter Command.main" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=1014"
+}
+context: "Build context + parse group args" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=910"
+}
+mode: "Group chain mode?" {
+  class: choice
+  link: "source-link://click/src/click/core.py?line=1663"
+}
+single: "02A / Single" {
+ style.fill: "#F7FAFE"
+ label.near: top-left
+ style.font-size: 16
+resolve: "Resolve command name" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=1731"
+}
+group: "Invoke group callback" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=1432"
+}
+context: "Build + parse child context" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=910"
+}
+invoke: "Invoke child command" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=1432"
+}
+resolve -> group -> context -> invoke
+}
+chain: "02B / Chain" {
+ style.fill: "#F7FAFE"
+ label.near: top-left
+ style.font-size: 16
+group: "Invoke group callback" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=1432"
+}
+resolve: "Resolve each command" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=1731"
+}
+context: "Build all child contexts" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=1663"
+}
+invoke: "Invoke children in order" {
+  class: step
+  link: "source-link://click/src/click/core.py?line=1663"
+}
+group -> resolve -> context -> invoke
+}
+result: "03  /  Apply optional result callback" {
+  class: finish
+  link: "source-link://click/src/click/core.py?line=1663"
+}
+exit: "Return result or exit" {
+  class: finish
+  link: "source-link://click/src/click/core.py?line=1014"
+}
+main -> context -> mode
+mode -> single.resolve: false
+mode -> chain.group: true
+single.invoke -> result: scalar result
+chain.invoke -> result: result list
+result -> exit
+
+title: "Click 8.1.8 / Group dispatch" {
+ shape: text
+ near: top-center
+ style.font-size: 24
+}
