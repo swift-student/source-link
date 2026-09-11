@@ -20,8 +20,6 @@ schemes:
       targets:
         XedLink: all
     test:
-      environmentVariables:
-        SOURCE_LINK_RECORD_SNAPSHOTS: "$(SOURCE_LINK_RECORD_SNAPSHOTS)"
       targets:
         - XedLinkUITests
     run:
@@ -85,12 +83,7 @@ targets:
     platform: macOS
     deploymentTarget: "15.0"
     sources:
-      - path: Tests/XedLinkUITests
-        excludes:
-          - Snapshots
-      - path: Tests/XedLinkUITests/Snapshots
-        type: folder
-        buildPhase: resources
+      - Tests/XedLinkUITests
     dependencies:
       - target: XedLink
       - package: XedLinkPackage

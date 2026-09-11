@@ -12,18 +12,25 @@ struct SettingsSnapshotTests {
     try await snapshot(page: page, dark: dark, size: SettingsStyle.Layout.window)
   }
 
+  @Test(arguments: SettingsPage.allCases, [false, true])
+  func populatedSettingsWindow(page: SettingsPage, dark: Bool) async throws {
+    try await snapshot(page: page, dark: dark, size: SettingsStyle.Layout.window, populated: true)
+  }
+
   @Test(arguments: [false, true])
   func minimumWindow(dark: Bool) async throws {
     try await snapshot(page: .rules, dark: dark, size: SettingsStyle.Layout.minimumWindow)
   }
 
-  private func snapshot(page: SettingsPage, dark: Bool, size: CGSize) async throws {
+  private func snapshot(page: SettingsPage, dark: Bool, size: CGSize, populated: Bool = false) async throws {
     // Never read or write the user's real configuration, or launch the menu-bar app.
-    let directory = URL(fileURLWithPath: "/tmp/source-link-snapshot-tests", isDirectory: true)
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: directory) }
-    let store = SettingsStore(repository: ConfigurationRepository(
-      file: directory.appendingPathComponent("settings.json")))
+    let file = directory.appendingPathComponent("settings.json")
+    if populated { try writePopulatedFixture(to: file) }
+    let store = SettingsStore(repository: ConfigurationRepository(file: file))
+    #expect(store.errorMessage == nil)
     NSApplication.shared.setActivationPolicy(.regular)
     NSApplication.shared.activate(ignoringOtherApps: true)
     let window = SettingsWindow(store: store, page: page)
@@ -56,8 +63,27 @@ struct SettingsSnapshotTests {
     let cgImage = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: configuration)
     let image = NSImage(cgImage: cgImage, size: size)
     let name = "\(page.id)-\(dark ? "dark" : "light")-\(Int(size.width))"
-    withSnapshotTesting(record: ProcessInfo.processInfo.environment["RECORD_SNAPSHOTS"] == "1" ? .all : .missing) {
-      assertSnapshot(of: image, as: .image, named: name, testName: "settingsWindow")
+    let snapshotName = populated ? "\(name)-populated" : name
+    withSnapshotTesting(record: ProcessInfo.processInfo.environment["RECORD_SNAPSHOTS"] == "1" ? .all : .never) {
+      assertSnapshot(of: image, as: .image, named: snapshotName, testName: "settingsWindow")
     }
+  }
+
+  private func writePopulatedFixture(to file: URL) throws {
+    let fixture = """
+    {
+      "version": 1,
+      "checkouts": [
+        {"name": "source-link", "path": "/workspace/source-link"},
+        {"name": "source-link", "path": "/worktrees/settings", "default": true}
+      ],
+      "executables": {"xcode": "/tmp/custom-xed"},
+      "rules": [
+        {"extension": "swift", "editor": "xcode"},
+        {"extension": "md", "editor": "vscode"}
+      ]
+    }
+    """
+    try Data(fixture.utf8).write(to: file)
   }
 }

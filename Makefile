@@ -45,10 +45,9 @@ ui-test: generate
 		-destination 'platform=macOS' \
 		-derivedDataPath .build/xcode \
 		CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
-		SOURCE_LINK_RECORD_SNAPSHOTS=$(SOURCE_LINK_RECORD_SNAPSHOTS) \
-		$(RESULT_BUNDLE_ARGS) test
+		test
 
 # Explicit opt-in: review baseline changes before committing.
 .PHONY: record-snapshots
 record-snapshots:
-	python3 scripts/record-snapshots.py
+	TEST_RUNNER_RECORD_SNAPSHOTS=1 $(MAKE) snapshot-test
