@@ -39,9 +39,10 @@ struct SettingsSnapshotTests {
     window.displayIfNeeded()
     let close = try #require(window.standardWindowButton(.closeButton))
     let controlFrame = close.convert(close.bounds, to: nil)
-    let cornerCenter = SettingsStyle.Spacing.small + SettingsStyle.Layout.sidebarRadius
-    #expect(abs(controlFrame.midX - cornerCenter) < 1)
-    #expect(abs(window.frame.height - controlFrame.midY - cornerCenter) < 1)
+    // Native chrome owns the insets; controls must remain inside the window after resizing.
+    #expect(controlFrame.minX > 0)
+    #expect(controlFrame.maxY < window.frame.height)
+    #expect(controlFrame.minY > window.frame.height - 60)
     // Capture the composited window: cacheDisplay omits layer-backed SwiftUI scroll views.
     // currentProcess limits capture to our own windows without Screen Recording permission.
     let content = try await SCShareableContent.currentProcess

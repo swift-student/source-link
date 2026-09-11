@@ -17,7 +17,12 @@ xcrun swiftc -swift-version 6 -target arm64-apple-macos15.0 \
   -module-cache-path "$output_dir/cache" -I "$output_dir/modules" -L "$output_dir/modules" \
   -lXedLinkCore \
   Sources/SourceLinkCLI/main.swift -o "$output_dir/source-link"
-python3 - "$output_dir/source-link.app/Contents/Info.plist" <<'PY'
+mkdir -p "$output_dir/source-link.app/Contents/Resources"
+xcrun actool app/Sources/XedLinkApp/Assets.xcassets \
+  --compile "$output_dir/source-link.app/Contents/Resources" \
+  --platform macosx --minimum-deployment-target 15.0 --target-device mac \
+  --app-icon AppIcon --output-partial-info-plist "$output_dir/asset-info.plist"
+python3 - "$output_dir/source-link.app/Contents/Info.plist" "$output_dir/asset-info.plist" <<'PY'
 import plistlib
 import sys
 from pathlib import Path
@@ -37,6 +42,7 @@ info = {
         'CFBundleURLSchemes': ['source-link'],
     }],
 }
+info.update(plistlib.loads(Path(sys.argv[2]).read_bytes()))
 Path(sys.argv[1]).write_bytes(plistlib.dumps(info))
 PY
 codesign --force --sign - "$output_dir/source-link.app"

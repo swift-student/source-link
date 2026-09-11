@@ -7,10 +7,14 @@ struct SourceLinkApp: App {
   @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
   var body: some Scene {
-    MenuBarExtra("Source Link", systemImage: "chevron.left.forwardslash.chevron.right") {
+    MenuBarExtra {
       Button("Settings…") { appDelegate.showSettings() }.keyboardShortcut(",")
       Divider()
       Button("Quit") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
+    } label: {
+      Image("SourceLinkMenu")
+        .renderingMode(.template)
+        .accessibilityLabel("Source Link")
     }
   }
 }

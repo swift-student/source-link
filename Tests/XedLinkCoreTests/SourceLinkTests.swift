@@ -77,6 +77,25 @@ struct SourceLinkTests {
     #expect(EditorCommand(editor: .zed, file: file, line: 12, column: nil).arguments == [file.path + ":12:1"])
   }
 
+  @Test(arguments: [nil, 42] as [Int?])
+  func xcodeUsesXedWithoutForcingAnotherWorkspace(line: Int?) throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let file = root.appendingPathComponent("My File.swift")
+    try Data().write(to: file)
+    let query = line.map { "?line=\($0)&column=3" } ?? ""
+    let link = try SourceLink(#require(URL(string: "source-link://repo/My%20File.swift\(query)")))
+    var settings = SourceSettings()
+    settings.checkouts = [Checkout(name: "repo", path: root.path)]
+
+    let command = try #require(try settings.command(for: link))
+
+    #expect(command.executable == "/usr/bin/xed")
+    #expect(command.arguments == (line.map { ["--line", String($0)] } ?? [])
+      + [file.resolvingSymlinksInPath().path])
+  }
+
   @Test func rejectsMissingExecutable() {
     let command = EditorCommand(editor: .vscode, executable: "/nonexistent/editor",
                                 file: URL(fileURLWithPath: "/tmp/file"), line: nil, column: nil)

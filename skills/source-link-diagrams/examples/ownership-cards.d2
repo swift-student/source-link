@@ -1,0 +1,71 @@
+direction: down
+classes: {
+  value: {
+    shape: rectangle
+    style.fill: "#edf7f1"
+    style.stroke: "#537d65"
+    style.border-radius: 8
+    style.font-size: 16
+  }
+  note: {
+    shape: rectangle
+    style.fill: "#fff5db"
+    style.stroke: "#b78b35"
+    style.border-radius: 8
+    style.font-size: 16
+  }
+}
+settings: |md
+### SourceSettings
+*Struct · routing configuration*
+
+Owns checkout and file-rule arrays.  
+Stores a default editor and executable overrides.
+| {
+  class: value
+  link: "source-link://source-link/Sources/XedLinkCore/SourceLink.swift?line=109"
+}
+checkout: |md
+### Checkout
+*Struct · local repository mapping*
+
+`name` · `path` · `isDefault`  
+A mapping value, not ownership of files on disk.
+| {
+  class: value
+  link: "source-link://source-link/Sources/XedLinkCore/SourceLink.swift?line=69"
+}
+rule: |md
+### FileRule
+*Struct · extension-specific routing*
+
+`fileExtension` + `editor`  
+Array order determines the first matching rule.
+| {
+  class: value
+  link: "source-link://source-link/Sources/XedLinkCore/SourceLink.swift?line=102"
+}
+editor: |md
+### Editor
+*Enum · built-in launch profile*
+
+Xcode, VS Code, Cursor, or Zed.  
+A selection value, not a running editor process.
+| {
+  class: value
+  link: "source-link://source-link/Sources/XedLinkCore/SourceLink.swift?line=81"
+}
+settings -> checkout: owns 0..*
+settings -> rule: owns 0..*
+rule -> editor: stores enum value
+settings -> editor: defaultEditor
+note: |md
+**Structure, not execution order**
+
+Green cards are stored Swift values.  
+Solid arrows describe stored containment.  
+The source links open each type's implementation.
+| {
+  class: note
+}
+editor -> note: {style.opacity: 0}

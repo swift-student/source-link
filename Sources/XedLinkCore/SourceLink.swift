@@ -129,10 +129,13 @@ public struct SourceSettings: Codable, Equatable, Sendable {
 
   public func command(for link: SourceLink) throws -> EditorCommand? {
     guard let checkout = checkout(for: link.repository) else { return nil }
-    let file = try link.resolve(root: URL(fileURLWithPath: ConfigurationPaths.expand(checkout.path)))
+    let root = URL(fileURLWithPath: ConfigurationPaths.expand(checkout.path))
+    let file = try link.resolve(root: root)
     let editor = editor(for: file)
     return EditorCommand(editor: editor, executable: executablePaths[editor.rawValue],
-                         file: file, line: link.line, column: link.column)
+                         file: file, line: link.line, column: link.column,
+                         project: editor == .xcode
+                           ? XcodeProjectDiscovery.project(in: root)?.resolvingSymlinksInPath() : nil)
   }
 }
 
@@ -140,13 +143,17 @@ public struct EditorCommand: Equatable, Sendable {
   public let executable: String
   public let arguments: [String]
 
-  public init(editor: Editor, executable: String? = nil, file: URL, line: Int?, column: Int?) {
+  public init(
+    editor: Editor, executable: String? = nil, file: URL, line: Int?, column: Int?,
+    project: URL? = nil
+  ) {
     self.executable = ConfigurationPaths.expand(
       executable.flatMap { $0.isEmpty ? nil : $0 } ?? editor.defaultExecutable
     )
     switch editor {
     case .xcode:
-      arguments = (line.map { ["--line", String($0)] } ?? []) + [file.path]
+      arguments = (project.map { ["-p", $0.path] } ?? [])
+        + (line.map { ["--line", String($0)] } ?? []) + [file.path]
     case .vscode, .cursor:
       arguments = ["--goto", file.path + (line.map { ":\($0):\(column ?? 1)" } ?? "")]
     case .zed:

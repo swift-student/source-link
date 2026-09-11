@@ -104,19 +104,6 @@ final class SettingsStore: ObservableObject {
     } catch { errorMessage = error.localizedDescription }
   }
 
-  func revert() {
-    autoSave?.cancel()
-    autoSave = nil
-    do {
-      let snapshot = try repository.load()
-      guard snapshot.exists || active?.exists != true else {
-        throw ConfigurationError("Restore the missing configuration file before reverting.")
-      }
-      accept(snapshot, discardDraft: true)
-      saveError = nil
-    } catch { errorMessage = error.localizedDescription }
-  }
-
   private func save() {
     autoSave = nil
     guard canSave, isDirty, let base else { return }

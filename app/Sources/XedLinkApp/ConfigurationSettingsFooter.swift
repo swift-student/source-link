@@ -28,7 +28,6 @@ struct ConfigurationSettingsFooter: View {
         }
         Spacer()
         Button("Reveal File") { NSWorkspace.shared.activateFileViewerSelecting([store.repository.file]) }
-        Button("Revert") { store.revert() }.accessibilityIdentifier("settings.revert")
       }
     }
     .padding(.horizontal, SettingsStyle.Spacing.extraLarge)

@@ -23,7 +23,8 @@ extension ConfigurationDocument {
     guard draft != base else { return disk }
     guard disk == base || disk == draft else {
       throw ConfigurationError("Conflict in \(key): the file changed while you were editing. "
-        + "Your draft is retained. Use Revert to load the file, or edit the file to resolve the conflict.")
+        + "Your draft is retained. Adjust the conflicting setting to match the file, "
+        + "or restart Source Link to discard unsaved changes.")
     }
     return draft
   }

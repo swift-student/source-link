@@ -7,6 +7,20 @@ description: Create or update D2 diagrams with clickable Source Link URLs into l
 
 Deliver editable `.d2` source and a visually reviewed `.svg`. Base nodes and relationships on the relevant code, linking nodes to the implementations that explain them.
 
+## Choose a view and visual hierarchy
+
+Read [STYLE.md](STYLE.md) before creating a diagram or redesigning its presentation.
+It covers diagram selection, Markdown card typography, semantic colors, ownership
+notation, and visual-review checks. Use the editable
+[ownership-card example](examples/ownership-cards.d2) as a starting point; see
+[its README](examples/README.md) and [rendered SVG](examples/ownership-cards.svg).
+These supporting files travel with the skill directory when installed.
+
+Default to short, larger bold headings with regular-weight detail text, optional
+italic type/role subtitles, and inline monospace field names. Avoid uniformly bold
+field dumps. Use flow views for execution and typed ownership cards for structure;
+do not mix their arrow meanings. Split large views rather than shrinking text.
+
 ## Source links
 
 Use repository aliases and paths relative to the repository root:
