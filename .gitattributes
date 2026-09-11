@@ -1,0 +1,1 @@
+app/Tests/XedLinkUITests/Snapshots/*.png filter=lfs diff=lfs merge=lfs -text

@@ -12,21 +12,21 @@ struct ConfigurationSettingsFooter: View {
           .accessibilityIdentifier("settings.configuration.error")
       }
       HStack(spacing: SettingsStyle.Spacing.medium) {
-        VStack(alignment: .leading, spacing: SettingsStyle.Spacing.extraSmall) {
-          Text(store.repository.file.path).font(.caption).lineLimit(1).truncationMode(.middle)
-            .textSelection(.enabled).help(store.repository.file.path)
-          Text(store.isDirty ? "Unsaved changes" : "External changes reload automatically")
-            .font(.caption).foregroundStyle(.secondary)
-        }
+        Text(store.isDirty ? "Unsaved changes" : "All changes saved")
+          .font(.system(size: 12)).foregroundStyle(.secondary)
+          .accessibilityIdentifier("settings.saveStatus")
         Spacer()
-        Button("Reveal File") { NSWorkspace.shared.activateFileViewerSelecting([store.repository.file]) }
-        Button("Revert") { store.revert() }.accessibilityIdentifier("settings.revert")
-        Button("Apply") { store.save() }.disabled(!store.canApply || !store.isDirty)
-          .accessibilityIdentifier("settings.apply")
+        Button("Reveal Configuration") { NSWorkspace.shared.activateFileViewerSelecting([store.repository.file]) }
+          .help(store.repository.file.path)
+        Button("Revert") { store.revert() }.disabled(!store.isDirty)
+          .accessibilityIdentifier("settings.revert")
+
       }
     }
-    .padding(.horizontal, SettingsStyle.Spacing.extraLarge)
-    .padding(.bottom, SettingsStyle.Spacing.medium)
-    .background(.bar)
+    .buttonStyle(.plain)
+    .font(.system(size: 12)).foregroundStyle(.secondary)
+    .padding(.horizontal, 40)
+    .padding(.bottom, 24)
+    .background(SettingsStyle.pageBackground)
   }
 }

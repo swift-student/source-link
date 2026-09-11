@@ -20,8 +20,7 @@ struct SettingsView: View {
     NavigationSplitView {
       VStack(alignment: .leading, spacing: SettingsStyle.Spacing.extraLarge) {
         VStack(alignment: .leading, spacing: SettingsStyle.Spacing.extraSmall) {
-          Text("Source Link").font(.title3.weight(.semibold))
-          Text("Settings").foregroundStyle(.secondary)
+          Text("Source Link").font(.system(size: 13, weight: .semibold))
         }
         .padding(.horizontal, SettingsStyle.Spacing.extraLarge).padding(.top, SettingsStyle.Spacing.section)
         List(SettingsPage.allCases, selection: $selection) { page in
@@ -44,10 +43,11 @@ struct SettingsView: View {
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
       .background(SettingsStyle.pageBackground)
+      .safeAreaInset(edge: .bottom, spacing: 0) { ConfigurationSettingsFooter(store: store) }
     }
     .navigationSplitViewStyle(.balanced)
     .frame(minWidth: SettingsStyle.Layout.minimumWindow.width,
            minHeight: SettingsStyle.Layout.minimumWindow.height)
-    .safeAreaInset(edge: .bottom, spacing: 0) { ConfigurationSettingsFooter(store: store) }
+    .onChange(of: store.settings) { _, _ in store.scheduleSave() }
   }
 }

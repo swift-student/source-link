@@ -29,16 +29,25 @@ final class SettingsUITests: XCTestCase {
     if let directory { try FileManager.default.removeItem(at: directory) }
   }
 
+  func testEmptyRepositoriesSnapshot() {
+    let window = app.windows["Source Link Settings"]
+    XCTAssertTrue(window.waitForExistence(timeout: 10))
+    XCTAssertTrue(window.staticTexts["No repositories yet"].exists)
+    XCTAssertTrue(window.staticTexts["Connect shared source links to folders on this Mac."].exists)
+    XCTAssertEqual(window.buttons.matching(identifier: "repositories.add").count, 1)
+    XCTAssertFalse(window.buttons["settings.apply"].exists)
+    XCTAssertFalse(window.buttons["Save"].exists)
+    XCTAssertTrue(window.buttons["Reveal Configuration"].exists)
+    capture(window, name: "Repositories clean empty state")
+  }
+
   func testSettingsNavigationAndRulePersistence() {
     let window = app.windows["Source Link Settings"]
     XCTAssertTrue(window.waitForExistence(timeout: 10))
     for page in ["Repositories", "Editors", "File Rules"] {
       window.descendants(matching: .any)["settings.page.\(page)"].firstMatch.click()
       XCTAssertTrue(window.staticTexts["settings.heading.\(page)"].waitForExistence(timeout: 5))
-      let snapshot = XCTAttachment(screenshot: app.windows["Source Link Settings"].screenshot())
-      snapshot.name = page
-      snapshot.lifetime = .keepAlways
-      add(snapshot)
+      capture(window, name: page)
     }
     window.buttons["Add Rule"].click()
     let field = window.textFields["Extension"].firstMatch
@@ -47,7 +56,7 @@ final class SettingsUITests: XCTestCase {
     field.typeKey("a", modifierFlags: .command)
     field.typeText("uitest")
     window.descendants(matching: .any)["settings.page.Editors"].firstMatch.click()
-    window.buttons["settings.apply"].click()
+    XCTAssertTrue(window.staticTexts["All changes saved"].waitForExistence(timeout: 5))
     app.terminate()
     app.launch()
     XCTAssertTrue(window.waitForExistence(timeout: 10))
@@ -75,7 +84,7 @@ final class SettingsUITests: XCTestCase {
     app.menuItems["Move Up"].click()
     XCTAssertEqual(window.textFields["File extension for rule 1"].value as? String, "md")
     capture(window, name: "File Rules populated")
-    window.buttons["settings.apply"].click()
+    XCTAssertTrue(window.staticTexts["All changes saved"].waitForExistence(timeout: 5))
     app.terminate()
     app.launch()
     XCTAssertTrue(window.waitForExistence(timeout: 10))
@@ -126,10 +135,8 @@ final class SettingsUITests: XCTestCase {
   }
 
   private func capture(_ window: XCUIElement, name: String) {
-    let snapshot = XCTAttachment(screenshot: window.screenshot())
-    snapshot.name = name
-    snapshot.lifetime = .keepAlways
-    add(snapshot)
+    XCTAssertTrue(window.staticTexts["All changes saved"].waitForExistence(timeout: 5))
+    SettingsSnapshots.verify(window.screenshot(), named: name, in: self)
   }
 
 }

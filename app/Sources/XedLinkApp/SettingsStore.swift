@@ -11,6 +11,7 @@ final class SettingsStore: ObservableObject {
   let repository: ConfigurationRepository
   private var base: ConfigurationSnapshot?
   private var active: ConfigurationSnapshot?
+  private var pendingSave: Task<Void, Never>?
   private var watcher: Task<Void, Never>?
 
   var isDirty: Bool { base.map { !settings.hasSameConfiguration(as: $0.document.settings) } ?? false }
@@ -48,7 +49,7 @@ final class SettingsStore: ObservableObject {
   private func accept(_ snapshot: ConfigurationSnapshot, discardDraft: Bool = false) {
     let dirty = isDirty
     if discardDraft || !dirty {
-      if discardDraft || !settings.hasSameConfiguration(as: snapshot.document.settings) {
+      if !settings.hasSameConfiguration(as: snapshot.document.settings) {
         settings = snapshot.document.settings
       }
       base = snapshot
@@ -81,6 +82,15 @@ final class SettingsStore: ObservableObject {
       accept(snapshot, discardDraft: true)
       saveError = nil
     } catch { errorMessage = error.localizedDescription }
+  }
+
+  func scheduleSave() {
+    pendingSave?.cancel()
+    guard isDirty && canApply else { return }
+    pendingSave = Task { [weak self] in
+      do { try await Task.sleep(for: .milliseconds(400)) } catch { return }
+      self?.save()
+    }
   }
 
   func save() {
