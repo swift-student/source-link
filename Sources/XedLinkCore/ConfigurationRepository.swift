@@ -28,7 +28,7 @@ public struct ConfigurationRepository: Sendable {
     } catch { throw ConfigurationError("\(file.path): \(error.localizedDescription)") }
   }
 
-  /// Only startup migrates. Reloading a deleted TOML file never silently resurrects legacy JSON.
+  /// Only startup migrates. Reloading a deleted configuration file never silently resurrects legacy JSON.
   public func loadOrMigrate() throws -> ConfigurationSnapshot {
     let snapshot = try load()
     guard !snapshot.exists, try exists(legacyFile) else { return snapshot }

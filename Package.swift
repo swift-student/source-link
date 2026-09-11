@@ -12,8 +12,7 @@ let package = Package(
     .executable(name: "source-link", targets: ["SourceLinkCLI"]),
   ],
   targets: [
-    .target(name: "CTOML", publicHeadersPath: "include"),
-    .target(name: "XedLinkCore", dependencies: ["CTOML"]),
+    .target(name: "XedLinkCore"),
     .executableTarget(name: "SourceLinkCLI", dependencies: ["XedLinkCore"]),
     .testTarget(
       name: "XedLinkCoreTests",
@@ -22,6 +21,5 @@ let package = Package(
       ]
     ),
   ],
-  swiftLanguageModes: [.v6],
-  cxxLanguageStandard: .cxx17
+  swiftLanguageModes: [.v6]
 )

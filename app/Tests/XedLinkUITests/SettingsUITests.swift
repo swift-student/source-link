@@ -14,7 +14,7 @@ final class SettingsUITests: XCTestCase {
     app = XCUIApplication(url: appURL)
     app.launchArguments = ["--settings"]
     app.launchEnvironment["SOURCE_LINK_TEST_SETTINGS_PATH"] =
-      directory.appendingPathComponent("config.toml").path
+      directory.appendingPathComponent("config.json").path
     app.launch()
   }
 
@@ -80,7 +80,7 @@ final class SettingsUITests: XCTestCase {
     app.launch()
     XCTAssertTrue(window.waitForExistence(timeout: 10))
     let saved = try ConfigurationDocument(text:
-      String(contentsOf: directory.appendingPathComponent("config.toml"), encoding: .utf8))
+      String(contentsOf: directory.appendingPathComponent("config.json"), encoding: .utf8))
     XCTAssertEqual(saved.settings.checkouts.map(\.isDefault), [false, true])
     window.descendants(matching: .any)["settings.page.Editors"].firstMatch.click()
     XCTAssertTrue(executable.waitForExistence(timeout: 5))
@@ -97,22 +97,32 @@ final class SettingsUITests: XCTestCase {
 
   private func writeFixture() throws {
     let fixture = """
-    version = 1
-    [[checkouts]]
-    name = "source-link"
-    path = "/workspace/source-link"
-    default = true
-    [[checkouts]]
-    name = "source-link"
-    path = "/worktrees/settings"
-    [[rules]]
-    extension = "swift"
-    editor = "xcode"
-    [[rules]]
-    extension = "md"
-    editor = "vscode"
+    {
+      "version": 1,
+      "checkouts": [
+        {
+          "name": "source-link",
+          "path": "/workspace/source-link",
+          "default": true
+        },
+        {
+          "name": "source-link",
+          "path": "/worktrees/settings"
+        }
+      ],
+      "rules": [
+        {
+          "extension": "swift",
+          "editor": "xcode"
+        },
+        {
+          "extension": "md",
+          "editor": "vscode"
+        }
+      ]
+    }
     """
-    try Data(fixture.utf8).write(to: directory.appendingPathComponent("config.toml"))
+    try Data(fixture.utf8).write(to: directory.appendingPathComponent("config.json"))
   }
 
   private func capture(_ window: XCUIElement, name: String) {

@@ -31,7 +31,7 @@ For a direct build, substitute `.build/direct/source-link.app`.
   becomes the shared repository name. Use **Add Checkout** within that repository to pick worktrees manually.
 - Each repository has exactly one default checkout. The first is selected automatically; **Make Default**
   switches it. Removing the default promotes the first remaining checkout. Legacy JSON defaults are
-  normalized during migration. TOML may omit defaults to request the worktree chooser; multiple defaults are errors.
+  normalized during migration. JSON may omit defaults to request the worktree chooser; multiple defaults are errors.
   Existing repository names are preserved so previously shared links continue to work.
 - Checkout labels come from their folder names. The action menus can change a folder, reveal it in Finder,
   or remove its mapping; removing a mapping does not delete files.
@@ -40,7 +40,7 @@ For a direct build, substitute `.build/direct/source-link.app`.
 - Built-in launch profiles support Xcode, VS Code, Cursor, and Zed. Install the editor separately and
   expand an editor in **Editors** to adjust or choose its executable path when installed elsewhere.
 - An unknown repository prompts for a folder and editor, saves the mapping and extension rule, and opens the file.
-- Settings and first-link setup share `~/.config/source-link/config.toml` with external editors and agents.
+- Settings and first-link setup share `~/.config/source-link/config.json` with external editors and agents.
   Settings uses **Apply** and **Revert**; uncommitted drafts do not affect link handling.
 
 Xcode uses `/usr/bin/xed --line` and does not receive a column. VS Code and Cursor use `--goto`;
@@ -52,31 +52,30 @@ The app remains a menu-bar accessory with no Dock icon. Settings and setup windo
 Only `source-link:` URLs are supported.
 Internal package/project names still use XedLink to preserve the imported build structure.
 
-## TOML configuration and dotfiles
+## JSON configuration and dotfiles
 
-Start with [examples/config.toml](examples/config.toml). The file uses TOML 1.0:
+Start with [examples/config.json](examples/config.json). The file uses standard JSON:
 
-```toml
-version = 1
-default_editor = "cursor"
-
-[[checkouts]]
-name = "my-repo"
-path = "~/code/my-repo"
-default = true
-
-[[rules]]
-extension = "swift"
-editor = "xcode"
+```json
+{
+  "version": 1,
+  "default_editor": "cursor",
+  "checkouts": [
+    { "name": "my-repo", "path": "~/code/my-repo", "default": true }
+  ],
+  "rules": [
+    { "extension": "swift", "editor": "xcode" }
+  ]
+}
 ```
 
 | Setting | Required / default | Meaning |
 | --- | --- | --- |
 | `version` | Required, integer `1` | Configuration schema version. |
 | `default_editor` | `"xcode"` | `xcode`, `vscode`, `cursor`, or `zed`. |
-| `[executables]` | Optional | Editor names mapped to executable path overrides. |
-| `[[checkouts]]` | Optional, empty | Each entry requires `name` and `path`; `default` defaults to `false`. |
-| `[[rules]]` | Optional, empty | Each entry requires `extension` and `editor`; document order matters. |
+| `executables` | Optional | Editor names mapped to executable path overrides. |
+| `checkouts` | Optional, empty | Each entry requires `name` and `path`; `default` defaults to `false`. |
+| `rules` | Optional, empty | Each entry requires `extension` and `editor`; document order matters. |
 
 Unknown keys, incorrect types, unsupported versions, and multiple defaults for the same
 repository are errors. Names and extensions must not be empty. Paths must be absolute or
@@ -84,8 +83,8 @@ start with `~/`; `~` expands to the current user's home directory only when used
 variables and commands are not expanded. Missing directories or executables do not invalidate
 the configuration; availability is checked when opening a link. UI row IDs are never stored.
 
-The location is `$XDG_CONFIG_HOME/source-link/config.toml` when `XDG_CONFIG_HOME` is an
-absolute path, otherwise `~/.config/source-link/config.toml`. A GUI app launched from Finder
+The location is `$XDG_CONFIG_HOME/source-link/config.json` when `XDG_CONFIG_HOME` is an
+absolute path, otherwise `~/.config/source-link/config.json`. A GUI app launched from Finder
 usually does not inherit shell startup variables. **Settings displays the actual path**; use
 that path when validating if your shell has a different environment. The default location is
 recommended for a shared GUI/terminal workflow.
@@ -98,7 +97,7 @@ New files use owner-only permissions.
 External changes are checked every second and before handling links, including files replaced
 atomically by editors and symlinks replaced by dotfiles tools. Valid settings become active
 automatically. Invalid edits leave the last valid settings in memory and display an error in
-Settings. At startup, invalid TOML opens Settings with the error and blocks first-link setup
+Settings. At startup, invalid JSON opens Settings with the error and blocks first-link setup
 from overwriting it. Restore a removed file to resume editing.
 
 **Apply** merges a draft with the latest file. Independent changes to the default editor,
@@ -107,17 +106,17 @@ same field or collection produce a conflict and retain your draft. **Revert** di
 draft and loads the file. File creation/deletion or symlink retargeting during a draft also
 requires Revert. First-link setup uses the same save mechanism.
 
-Value edits preserve surrounding text, comments, and key spelling. Adding/removing collection
-rows can reformat that collection; existing comments remain, but may no longer sit next to
-the same row. Saves recheck disk contents before replacement. This is optimistic concurrency,
-not a lock on arbitrary external editors: avoid simultaneous writes during the final filesystem
-replacement.
+Saves rewrite the document as pretty-printed JSON with sorted object keys and preserve array
+order. Comments are not supported. Saves recheck disk contents before replacement. This is
+optimistic concurrency, not a lock on arbitrary external editors: avoid simultaneous writes
+during the final filesystem replacement.
 
-On startup, if TOML is absent, the app imports the old
+On startup, if the new configuration is absent, the app imports the old
 `~/Library/Application Support/SourceLink/settings.json`. The original JSON remains untouched
-as a backup. Existing or invalid TOML is never replaced by migration. Invalid legacy settings
-are reported for correction instead of silently discarded. Deleting TOML and restarting the
-app can import the legacy backup again; normal live reloads never do so.
+as a backup. An existing configuration, even if invalid, is never replaced by migration.
+Invalid legacy settings are reported for correction instead of silently discarded. Deleting
+the new configuration and restarting the app can import the legacy backup again; normal live
+reloads never do so.
 
 ### Agent workflow and CLI
 
@@ -126,24 +125,24 @@ The package includes a separate `source-link` command-line executable:
 ```sh
 swift run source-link config path
 swift run source-link config validate
-swift run source-link config validate /path/to/proposed-config.toml
+swift run source-link config validate /path/to/proposed-config.json
 ```
 
 `config path` prints the resolved configuration location. `config validate` reads and checks
 the file without opening the app, writing settings, or migrating JSON. It exits `0` for valid
 configuration, `1` for configuration/read errors, and `2` for usage errors. Diagnostics include
-the path and, when available, the TOML line, column, and setting key. A missing file is a
-validation error. Validation does not require editors or checkout directories to exist.
+the file path and, for field decoding or validation errors, the setting key when available.
+A missing file is a validation error. Validation does not require editors or checkout directories to exist.
 
 An agent should read the latest file, make the smallest necessary edit, and validate it.
-Preserve unrelated settings and comments. No `config set` API or UI automation is required.
+Preserve unrelated settings. No `config set` API or UI automation is required.
 For a standalone CLI binary, build with `swift build -c release --product source-link`;
 `swift build -c release --show-bin-path` prints its containing directory.
 
 ## Development
 
-Requires Swift 6.2+, Xcode, XcodeGen, and SwiftLint. Tests use native Swift Testing. The MIT-licensed toml++ 3.4.0 parser is vendored in
-`Sources/CTOML/vendor`; both build paths work without fetching dependencies.
+Requires Swift 6.2+, Xcode, XcodeGen, and SwiftLint. Tests use native Swift Testing.
+Configuration uses Foundation's JSON encoder and decoder without external dependencies.
 
 ```sh
 make check
@@ -191,13 +190,13 @@ The ad-hoc signed app is written to `.build/direct/source-link.app`, and the sep
 7. Apply Settings, restart the app and verify that mappings and editor rules persist.
 8. Try an absent file, an escaping symlink, and an invalid line; verify a visible error and no editor launch.
 
-9. Edit TOML externally and verify the app reloads within a second; repeat with an atomic file replacement.
+9. Edit JSON externally and verify the app reloads within a second; repeat with an atomic file replacement.
 10. Keep a UI draft open while changing an unrelated setting externally, then Apply and verify both survive.
 11. Change the same setting externally and in a draft; verify Apply reports a conflict and retains the draft.
-12. Introduce invalid TOML; verify the error is visible and existing links use the last valid settings.
-13. Symlink the config into dotfiles, Apply a change, and verify the symlink and comments remain intact.
-14. With no TOML file, launch with an existing legacy JSON file and verify migration preserves the backup.
+12. Introduce invalid JSON; verify the error is visible and existing links use the last valid settings.
+13. Symlink the config into dotfiles, Apply a change, and verify the symlink remains intact.
+14. With no JSON file, launch with an existing legacy JSON file and verify migration preserves the backup.
 
-Unit tests cover URL and TOML parsing, schema validation, source-preserving edits, conflicts,
+Unit tests cover URL and JSON parsing, schema validation, JSON round-trips, conflicts,
 symlink saves, migration, path containment, worktree decisions, file-type routing, and editor
 arguments. Real editor navigation requires the manual checks above.

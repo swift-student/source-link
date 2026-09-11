@@ -1,0 +1,28 @@
+{
+  "checkouts": [
+    {
+      "default": true,
+      "name": "source-link",
+      "path": "~/workspace/source-link"
+    },
+    {
+      "name": "source-link",
+      "path": "~/workspace/source-link-feature"
+    }
+  ],
+  "default_editor": "cursor",
+  "executables": {
+    "cursor": "/Applications/Cursor.app/Contents/Resources/app/bin/cursor"
+  },
+  "rules": [
+    {
+      "editor": "xcode",
+      "extension": "swift"
+    },
+    {
+      "editor": "cursor",
+      "extension": "md"
+    }
+  ],
+  "version": 1
+}

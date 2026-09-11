@@ -12,7 +12,7 @@ import Testing
 
   @Test func migratesOnceAndKeepsJSONBackup() throws {
     try withDirectory { root in
-      let repository = ConfigurationRepository(file: root.appendingPathComponent("config.toml"),
+      let repository = ConfigurationRepository(file: root.appendingPathComponent("config.json"),
                                                legacyFile: root.appendingPathComponent("settings.json"))
       var legacy = SourceSettings()
       legacy.defaultEditor = .cursor
@@ -25,7 +25,7 @@ import Testing
       #expect(migrated.document.settings.defaultEditor == .cursor)
       #expect(migrated.document.settings.executablePaths.isEmpty)
       #expect(try Data(contentsOf: repository.legacyFile) == json)
-      try Data("version=1\ndefault_editor='zed'".utf8).write(to: repository.file)
+      try Data("{\"version\": 1, \"default_editor\": \"zed\"}".utf8).write(to: repository.file)
       #expect(try repository.loadOrMigrate().document.settings.defaultEditor == .zed)
       try FileManager.default.removeItem(at: repository.file)
       #expect(try !repository.load().exists)
@@ -34,9 +34,9 @@ import Testing
 
   @Test func savesThroughSymlinkAndDetectsRetargeting() throws {
     try withDirectory { root in
-      let target = root.appendingPathComponent("dotfiles.toml")
-      let link = root.appendingPathComponent("config.toml")
-      try Data("# my dotfiles\nversion=1\n".utf8).write(to: target)
+      let target = root.appendingPathComponent("dotfiles.json")
+      let link = root.appendingPathComponent("config.json")
+      try Data("{\"version\": 1}".utf8).write(to: target)
       try FileManager.default.setAttributes([.posixPermissions: 0o640], ofItemAtPath: target.path)
       try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
       let repository = ConfigurationRepository(file: link, legacyFile: root.appendingPathComponent("missing"))
@@ -46,10 +46,9 @@ import Testing
       let saved = try repository.save(base: base, draft: draft)
       #expect(saved.document.settings.defaultEditor == .cursor)
       #expect(try FileManager.default.destinationOfSymbolicLink(atPath: link.path) == target.path)
-      #expect(try String(contentsOf: target, encoding: .utf8).contains("# my dotfiles"))
       #expect(try FileManager.default.attributesOfItem(atPath: target.path)[.posixPermissions] as? Int == 0o640)
-      let other = root.appendingPathComponent("other.toml")
-      try Data("version=1\n".utf8).write(to: other)
+      let other = root.appendingPathComponent("other.json")
+      try Data("{\"version\": 1}".utf8).write(to: other)
       try FileManager.default.removeItem(at: link)
       try FileManager.default.createSymbolicLink(at: link, withDestinationURL: other)
       #expect(throws: ConfigurationError.self) { try repository.save(base: saved, draft: draft) }
@@ -58,20 +57,19 @@ import Testing
 
   @Test func mergesExternalReplacementAndDoesNotOverwriteBrokenOrDeletedFile() throws {
     try withDirectory { root in
-      let repository = ConfigurationRepository(file: root.appendingPathComponent("config.toml"),
+      let repository = ConfigurationRepository(file: root.appendingPathComponent("config.json"),
                                                legacyFile: root.appendingPathComponent("missing"))
       let initial = try repository.load()
       #expect(!initial.exists)
       var draft = initial.document.settings
       draft.defaultEditor = .cursor
       let base = try repository.save(base: initial, draft: draft)
-      try Data("# agent\nversion=1\ndefault_editor='cursor'\n[executables]\nzed='~/zed'\n".utf8)
+      try Data("{\"version\": 1, \"default_editor\": \"cursor\", \"executables\": {\"zed\": \"~/zed\"}}".utf8)
         .write(to: repository.file, options: .atomic)
       draft.defaultEditor = .zed
       let merged = try repository.save(base: base, draft: draft)
       #expect(merged.document.settings.executablePaths["zed"] == "~/zed")
-      #expect(merged.document.text.contains("# agent"))
-      let broken = Data("version = [broken".utf8)
+      let broken = Data("{\"version\": [broken".utf8)
       try broken.write(to: repository.file)
       #expect(throws: ConfigurationError.self) { try repository.save(base: merged, draft: draft) }
       #expect(try Data(contentsOf: repository.file) == broken)
@@ -81,13 +79,13 @@ import Testing
     }
   }
 
-  @Test func brokenTOMLAndDanglingSymlinkNeverTriggerMigration() throws {
+  @Test func brokenJSONAndDanglingSymlinkNeverTriggerMigration() throws {
     try withDirectory { root in
-      let file = root.appendingPathComponent("config.toml")
+      let file = root.appendingPathComponent("config.json")
       let legacy = root.appendingPathComponent("settings.json")
       try JSONEncoder().encode(SourceSettings()).write(to: legacy)
       let repository = ConfigurationRepository(file: file, legacyFile: legacy)
-      try Data("version='bad'".utf8).write(to: file)
+      try Data("{\"version\": \"bad\"}".utf8).write(to: file)
       #expect(throws: ConfigurationError.self) { try repository.loadOrMigrate() }
       try FileManager.default.removeItem(at: file)
       try FileManager.default.createSymbolicLink(at: file, withDestinationURL: root.appendingPathComponent("absent"))
