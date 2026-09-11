@@ -10,25 +10,13 @@ import Testing
     try body(root)
   }
 
-  @Test func migratesOnceAndKeepsJSONBackup() throws {
+  @Test func missingConfigurationUsesDefaultsWithoutCreatingFile() throws {
     try withDirectory { root in
-      let repository = ConfigurationRepository(file: root.appendingPathComponent("config.json"),
-                                               legacyFile: root.appendingPathComponent("settings.json"))
-      var legacy = SourceSettings()
-      legacy.defaultEditor = .cursor
-      legacy.checkouts = [Checkout(name: "a", path: "~/a")]
-      legacy.executablePaths["xcode"] = ""
-      let json = try JSONEncoder().encode(legacy)
-      try json.write(to: repository.legacyFile)
-      let migrated = try repository.loadOrMigrate()
-      #expect(migrated.exists)
-      #expect(migrated.document.settings.defaultEditor == .cursor)
-      #expect(migrated.document.settings.executablePaths.isEmpty)
-      #expect(try Data(contentsOf: repository.legacyFile) == json)
-      try Data("{\"version\": 1, \"default_editor\": \"zed\"}".utf8).write(to: repository.file)
-      #expect(try repository.loadOrMigrate().document.settings.defaultEditor == .zed)
-      try FileManager.default.removeItem(at: repository.file)
-      #expect(try !repository.load().exists)
+      let file = root.appendingPathComponent("config.json")
+      let snapshot = try ConfigurationRepository(file: file).load()
+      #expect(!snapshot.exists)
+      #expect(snapshot.document.settings.hasSameConfiguration(as: SourceSettings()))
+      #expect(!FileManager.default.fileExists(atPath: file.path))
     }
   }
 
@@ -39,7 +27,7 @@ import Testing
       try Data("{\"version\": 1}".utf8).write(to: target)
       try FileManager.default.setAttributes([.posixPermissions: 0o640], ofItemAtPath: target.path)
       try FileManager.default.createSymbolicLink(at: link, withDestinationURL: target)
-      let repository = ConfigurationRepository(file: link, legacyFile: root.appendingPathComponent("missing"))
+      let repository = ConfigurationRepository(file: link)
       let base = try repository.load()
       var draft = base.document.settings
       draft.defaultEditor = .cursor
@@ -57,8 +45,7 @@ import Testing
 
   @Test func mergesExternalReplacementAndDoesNotOverwriteBrokenOrDeletedFile() throws {
     try withDirectory { root in
-      let repository = ConfigurationRepository(file: root.appendingPathComponent("config.json"),
-                                               legacyFile: root.appendingPathComponent("missing"))
+      let repository = ConfigurationRepository(file: root.appendingPathComponent("config.json"))
       let initial = try repository.load()
       #expect(!initial.exists)
       var draft = initial.document.settings
@@ -79,17 +66,15 @@ import Testing
     }
   }
 
-  @Test func brokenJSONAndDanglingSymlinkNeverTriggerMigration() throws {
+  @Test func rejectsBrokenJSONAndDanglingSymlink() throws {
     try withDirectory { root in
       let file = root.appendingPathComponent("config.json")
-      let legacy = root.appendingPathComponent("settings.json")
-      try JSONEncoder().encode(SourceSettings()).write(to: legacy)
-      let repository = ConfigurationRepository(file: file, legacyFile: legacy)
+      let repository = ConfigurationRepository(file: file)
       try Data("{\"version\": \"bad\"}".utf8).write(to: file)
-      #expect(throws: ConfigurationError.self) { try repository.loadOrMigrate() }
+      #expect(throws: ConfigurationError.self) { try repository.load() }
       try FileManager.default.removeItem(at: file)
       try FileManager.default.createSymbolicLink(at: file, withDestinationURL: root.appendingPathComponent("absent"))
-      #expect(throws: ConfigurationError.self) { try repository.loadOrMigrate() }
+      #expect(throws: ConfigurationError.self) { try repository.load() }
       #expect(!FileManager.default.fileExists(atPath: root.appendingPathComponent("absent").path))
     }
   }

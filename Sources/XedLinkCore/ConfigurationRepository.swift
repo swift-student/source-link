@@ -9,12 +9,9 @@ public struct ConfigurationSnapshot: Sendable {
 /// Disk access is independent of AppKit. Reads always follow the current symlink destination.
 public struct ConfigurationRepository: Sendable {
   public let file: URL
-  public let legacyFile: URL
 
-  public init(file: URL = ConfigurationPaths.file(), legacyFile: URL = URL.applicationSupportDirectory
-    .appendingPathComponent("SourceLink/settings.json")) {
+  public init(file: URL = ConfigurationPaths.file()) {
     self.file = file
-    self.legacyFile = legacyFile
   }
 
   public func load() throws -> ConfigurationSnapshot {
@@ -26,20 +23,6 @@ public struct ConfigurationRepository: Sendable {
       }
       return ConfigurationSnapshot(document: try .initial(), target: target, exists: false)
     } catch { throw ConfigurationError("\(file.path): \(error.localizedDescription)") }
-  }
-
-  /// Only startup migrates. Reloading a deleted configuration file never silently resurrects legacy JSON.
-  public func loadOrMigrate() throws -> ConfigurationSnapshot {
-    let snapshot = try load()
-    guard !snapshot.exists, try exists(legacyFile) else { return snapshot }
-    do {
-      var settings = try JSONDecoder().decode(SourceSettings.self, from: Data(contentsOf: legacyFile))
-      settings.normalizeDefaults()
-      // Empty overrides used to mean the built-in executable.
-      settings.executablePaths = settings.executablePaths.filter { !$0.value.isEmpty }
-      let document = try ConfigurationDocument.initial(settings)
-      return try write(document, replacing: snapshot)
-    } catch { throw ConfigurationError("Migration from \(legacyFile.path): \(error.localizedDescription)") }
   }
 
   public func save(base: ConfigurationSnapshot, draft: SourceSettings) throws -> ConfigurationSnapshot {

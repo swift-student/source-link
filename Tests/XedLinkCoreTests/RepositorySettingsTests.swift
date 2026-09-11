@@ -31,7 +31,7 @@ struct RepositorySettingsTests {
     #expect(settings.repositoryNames == ["other"])
   }
 
-  @Test func migrationRepairsDefaultsWithoutRenamingRepositories() throws {
+  @Test func normalizesDefaultsWithoutRenamingRepositories() throws {
     var settings = SourceSettings()
     settings.checkouts = [
       Checkout(name: "ExistingAlias", path: "/one"),

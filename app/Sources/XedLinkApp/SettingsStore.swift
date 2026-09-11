@@ -21,8 +21,7 @@ final class SettingsStore: ObservableObject {
     #if DEBUG
     if let path = ProcessInfo.processInfo.environment["SOURCE_LINK_TEST_SETTINGS_PATH"] {
       let file = URL(fileURLWithPath: path)
-      return ConfigurationRepository(file: file,
-        legacyFile: file.deletingLastPathComponent().appendingPathComponent("legacy.json"))
+      return ConfigurationRepository(file: file)
     }
     #endif
     return ConfigurationRepository()
@@ -31,7 +30,7 @@ final class SettingsStore: ObservableObject {
   init(repository: ConfigurationRepository? = nil) {
     let repository = repository ?? Self.defaultRepository()
     self.repository = repository
-    do { accept(try repository.loadOrMigrate(), discardDraft: true) } catch {
+    do { accept(try repository.load(), discardDraft: true) } catch {
       errorMessage = error.localizedDescription
     }
     // Reopen the path each time: this also catches atomic replacements, parent-directory
@@ -61,7 +60,7 @@ final class SettingsStore: ObservableObject {
 
   func reload() {
     do {
-      let snapshot = try active == nil ? repository.loadOrMigrate() : repository.load()
+      let snapshot = try repository.load()
       if let active, active.exists, !snapshot.exists {
         throw ConfigurationError("\(repository.file.path): configuration was removed. "
           + "The last valid settings remain active. Restore the file to continue editing.")
@@ -75,7 +74,7 @@ final class SettingsStore: ObservableObject {
 
   func revert() {
     do {
-      let snapshot = try active == nil ? repository.loadOrMigrate() : repository.load()
+      let snapshot = try repository.load()
       guard snapshot.exists || active?.exists != true else {
         throw ConfigurationError("Restore the missing configuration file before reverting.")
       }

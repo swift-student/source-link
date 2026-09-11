@@ -30,8 +30,8 @@ For a direct build, substitute `.build/direct/source-link.app`.
 - In **Repositories**, choose **Add Repository** and pick the main root folder. Its folder name
   becomes the shared repository name. Use **Add Checkout** within that repository to pick worktrees manually.
 - Each repository has exactly one default checkout. The first is selected automatically; **Make Default**
-  switches it. Removing the default promotes the first remaining checkout. Legacy JSON defaults are
-  normalized during migration. JSON may omit defaults to request the worktree chooser; multiple defaults are errors.
+  switches it. Removing the default promotes the first remaining checkout. JSON may omit defaults
+  to request the worktree chooser; multiple defaults are errors.
   Existing repository names are preserved so previously shared links continue to work.
 - Checkout labels come from their folder names. The action menus can change a folder, reveal it in Finder,
   or remove its mapping; removing a mapping does not delete files.
@@ -111,12 +111,8 @@ order. Comments are not supported. Saves recheck disk contents before replacemen
 optimistic concurrency, not a lock on arbitrary external editors: avoid simultaneous writes
 during the final filesystem replacement.
 
-On startup, if the new configuration is absent, the app imports the old
-`~/Library/Application Support/SourceLink/settings.json`. The original JSON remains untouched
-as a backup. An existing configuration, even if invalid, is never replaced by migration.
-Invalid legacy settings are reported for correction instead of silently discarded. Deleting
-the new configuration and restarting the app can import the legacy backup again; normal live
-reloads never do so.
+When the configuration file is absent at startup, the app starts with defaults. The file is
+created when you save settings or complete first-link setup.
 
 ### Agent workflow and CLI
 
@@ -129,7 +125,7 @@ swift run source-link config validate /path/to/proposed-config.json
 ```
 
 `config path` prints the resolved configuration location. `config validate` reads and checks
-the file without opening the app, writing settings, or migrating JSON. It exits `0` for valid
+the file without opening the app, or writing settings. It exits `0` for valid
 configuration, `1` for configuration/read errors, and `2` for usage errors. Diagnostics include
 the file path and, for field decoding or validation errors, the setting key when available.
 A missing file is a validation error. Validation does not require editors or checkout directories to exist.
@@ -195,8 +191,8 @@ The ad-hoc signed app is written to `.build/direct/source-link.app`, and the sep
 11. Change the same setting externally and in a draft; verify Apply reports a conflict and retains the draft.
 12. Introduce invalid JSON; verify the error is visible and existing links use the last valid settings.
 13. Symlink the config into dotfiles, Apply a change, and verify the symlink remains intact.
-14. With no JSON file, launch with an existing legacy JSON file and verify migration preserves the backup.
+14. With no configuration file, launch and verify defaults are used; save settings and verify the file is created.
 
 Unit tests cover URL and JSON parsing, schema validation, JSON round-trips, conflicts,
-symlink saves, migration, path containment, worktree decisions, file-type routing, and editor
+symlink saves, path containment, worktree decisions, file-type routing, and editor
 arguments. Real editor navigation requires the manual checks above.
