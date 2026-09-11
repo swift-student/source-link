@@ -88,7 +88,9 @@ struct RepositoriesSettingsView: View {
       }
       .frame(width: SettingsStyle.Layout.checkoutStatus)
       SettingsActions(label: "Actions for checkout \(checkout.folderName)") {
-        Button("Show in Finder") { NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: checkout.path) }
+        Button("Show in Finder") {
+          NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: ConfigurationPaths.expand(checkout.path))
+        }
         Button("Change Folder…") { changeFolder(checkout) }
         Divider()
         Button("Remove Checkout", role: .destructive) { store.settings.removeCheckout(checkout.id) }
@@ -117,7 +119,7 @@ struct RepositoriesSettingsView: View {
       title: "Change Checkout Folder", message: "Choose a replacement folder for \(checkout.name)."
     ), let index = store.settings.checkouts.firstIndex(where: { $0.id == checkout.id }) else { return }
     guard !store.settings.checkouts(for: checkout.name).contains(where: {
-      $0.id != checkout.id && $0.path == root.path
+      $0.id != checkout.id && ConfigurationPaths.expand($0.path) == root.path
     }) else { return }
     store.settings.checkouts[index].path = root.path
   }

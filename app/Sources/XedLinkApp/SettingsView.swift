@@ -48,6 +48,6 @@ struct SettingsView: View {
     .navigationSplitViewStyle(.balanced)
     .frame(minWidth: SettingsStyle.Layout.minimumWindow.width,
            minHeight: SettingsStyle.Layout.minimumWindow.height)
-    .onChange(of: store.settings) { store.save() }
+    .safeAreaInset(edge: .bottom, spacing: 0) { ConfigurationSettingsFooter(store: store) }
   }
 }

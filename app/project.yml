@@ -52,6 +52,8 @@ targets:
       - Tests/XedLinkUITests
     dependencies:
       - target: XedLink
+      - package: XedLinkPackage
+        product: XedLinkCore
     settings:
       base:
         SWIFT_VERSION: 6.0

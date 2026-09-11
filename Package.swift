@@ -9,9 +9,11 @@ let package = Package(
   ],
   products: [
     .library(name: "XedLinkCore", targets: ["XedLinkCore"]),
+    .executable(name: "source-link", targets: ["SourceLinkCLI"]),
   ],
   targets: [
     .target(name: "XedLinkCore"),
+    .executableTarget(name: "SourceLinkCLI", dependencies: ["XedLinkCore"]),
     .testTarget(
       name: "XedLinkCoreTests",
       dependencies: [

@@ -10,8 +10,13 @@ xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
   Sources/XedLinkCore/*.swift -o "$output_dir/modules/libXedLinkCore.a"
 xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
   -module-cache-path "$output_dir/cache" -I "$output_dir/modules" -L "$output_dir/modules" \
-  -lXedLinkCore app/Sources/XedLinkApp/*.swift \
+  -lXedLinkCore \
+  app/Sources/XedLinkApp/*.swift \
   -o "$output_dir/source-link.app/Contents/MacOS/source-link"
+xcrun swiftc -swift-version 6 -target arm64-apple-macos15.0 \
+  -module-cache-path "$output_dir/cache" -I "$output_dir/modules" -L "$output_dir/modules" \
+  -lXedLinkCore \
+  Sources/SourceLinkCLI/main.swift -o "$output_dir/source-link"
 python3 - "$output_dir/source-link.app/Contents/Info.plist" <<'PY'
 import plistlib
 import sys

@@ -25,7 +25,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
-    if store.settings.checkouts.isEmpty || CommandLine.arguments.contains("--settings") { showSettings() }
+    if store.activeSettings.checkouts.isEmpty || store.errorMessage != nil
+      || CommandLine.arguments.contains("--settings") { showSettings() }
   }
 
   func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -48,13 +49,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func application(_ application: NSApplication, open urls: [URL]) {
+    store.reload()
     for url in urls {
       do {
         let link = try SourceLink(url)
-        if store.settings.checkout(for: link.repository) == nil {
+        if store.activeSettings.checkout(for: link.repository) == nil {
           guard configure(link) else { continue }
         }
-        guard let command = try store.settings.command(for: link) else { continue }
+        guard let command = try store.activeSettings.command(for: link) else { continue }
         Task {
           do { try await Task.detached { try command.run() }.value } catch { SettingsStore.show(error) }
         }
@@ -63,6 +65,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func configure(_ link: SourceLink) -> Bool {
+    guard store.errorMessage == nil, let base = store.setupSnapshot else { showSettings(); return false }
+    var settings = base.document.settings
     guard let root = chooseRoot(for: link) else { return false }
     do { _ = try link.resolve(root: root) } catch { SettingsStore.show(error); return false }
     let alert = NSAlert()
@@ -70,39 +74,39 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     alert.informativeText = "Choose the editor for this file type. You can change it in Settings."
     let picker = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 260, height: 28))
     picker.addItems(withTitles: Editor.allCases.map(\.title))
-    let preferred = store.settings.editor(for: root.appendingPathComponent(link.path))
+    let preferred = settings.editor(for: root.appendingPathComponent(link.path))
     picker.selectItem(at: Editor.allCases.firstIndex(of: preferred) ?? 0)
     alert.accessoryView = picker
     alert.addButton(withTitle: "Save and Open")
     alert.addButton(withTitle: "Cancel")
     guard alert.runModal() == .alertFirstButtonReturn else { return false }
     let editor = Editor.allCases[picker.indexOfSelectedItem]
-    for index in store.settings.checkouts.indices where
-      store.settings.checkouts[index].name.caseInsensitiveCompare(link.repository) == .orderedSame {
-      store.settings.checkouts[index].isDefault = false
+    for index in settings.checkouts.indices where
+      settings.checkouts[index].name.caseInsensitiveCompare(link.repository) == .orderedSame {
+      settings.checkouts[index].isDefault = false
     }
-    if let index = store.settings.checkouts.firstIndex(where: {
-      $0.name.caseInsensitiveCompare(link.repository) == .orderedSame && $0.path == root.path
+    if let index = settings.checkouts.firstIndex(where: {
+      $0.name.caseInsensitiveCompare(link.repository) == .orderedSame
+        && ConfigurationPaths.expand($0.path) == root.path
     }) {
-      store.settings.checkouts[index].isDefault = true
+      settings.checkouts[index].isDefault = true
     } else {
-      store.settings.checkouts.append(Checkout(name: link.repository, path: root.path, isDefault: true))
+      settings.checkouts.append(Checkout(name: link.repository, path: root.path, isDefault: true))
     }
     let fileExtension = root.appendingPathComponent(link.path).pathExtension.lowercased()
     if !fileExtension.isEmpty {
-      store.settings.rules.removeAll { $0.fileExtension.lowercased() == fileExtension }
+      settings.rules.removeAll { $0.fileExtension.lowercased() == fileExtension }
       var rule = FileRule()
       rule.fileExtension = fileExtension
       rule.editor = editor
-      store.settings.rules.insert(rule, at: 0)
-    } else { store.settings.defaultEditor = editor }
-    store.save()
-    return true
+      settings.rules.insert(rule, at: 0)
+    } else { settings.defaultEditor = editor }
+    return store.saveSetup(settings, base: base)
   }
 
   private func chooseRoot(for link: SourceLink) -> URL? {
     NSApp.activate(ignoringOtherApps: true)
-    let matches = store.settings.checkouts.filter {
+    let matches = store.activeSettings.checkouts.filter {
       $0.name.caseInsensitiveCompare(link.repository) == .orderedSame
     }
     if !matches.isEmpty {
@@ -117,7 +121,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       alert.addButton(withTitle: "Cancel")
       switch alert.runModal() {
       case .alertFirstButtonReturn:
-        return URL(fileURLWithPath: matches[picker.indexOfSelectedItem].path)
+        return URL(fileURLWithPath: ConfigurationPaths.expand(matches[picker.indexOfSelectedItem].path))
       case .alertSecondButtonReturn: break
       default: return nil
       }

@@ -1,7 +1,7 @@
 import Foundation
 
 extension Checkout {
-  public var folderName: String { URL(fileURLWithPath: path).lastPathComponent }
+  public var folderName: String { URL(fileURLWithPath: ConfigurationPaths.expand(path)).lastPathComponent }
 }
 
 extension SourceSettings {
@@ -19,7 +19,7 @@ extension SourceSettings {
     checkouts.filter { $0.name.caseInsensitiveCompare(repository) == .orderedSame }
   }
 
-  /// Repairs older settings without changing repository identities or folder mappings.
+  /// Ensures each repository has one default after adding or removing checkouts.
   public mutating func normalizeDefaults() {
     for name in repositoryNames {
       let group = checkouts(for: name)
@@ -43,7 +43,7 @@ extension SourceSettings {
     let root = root.standardizedFileURL
     let name = repository ?? root.lastPathComponent
     guard !name.isEmpty, root.path != "/" else { return }
-    guard !checkouts(for: name).contains(where: { $0.path == root.path }) else { return }
+    guard !checkouts(for: name).contains(where: { ConfigurationPaths.expand($0.path) == root.path }) else { return }
     checkouts.append(Checkout(name: name, path: root.path))
     normalizeDefaults()
   }

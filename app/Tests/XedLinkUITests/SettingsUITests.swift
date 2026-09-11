@@ -1,4 +1,5 @@
 import XCTest
+import XedLinkCore
 
 @MainActor
 final class SettingsUITests: XCTestCase {
@@ -13,7 +14,7 @@ final class SettingsUITests: XCTestCase {
     app = XCUIApplication(url: appURL)
     app.launchArguments = ["--settings"]
     app.launchEnvironment["SOURCE_LINK_TEST_SETTINGS_PATH"] =
-      directory.appendingPathComponent("settings.json").path
+      directory.appendingPathComponent("config.json").path
     app.launch()
   }
 
@@ -43,8 +44,10 @@ final class SettingsUITests: XCTestCase {
     let field = window.textFields["Extension"].firstMatch
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.click()
+    field.typeKey("a", modifierFlags: .command)
     field.typeText("uitest")
     window.descendants(matching: .any)["settings.page.Editors"].firstMatch.click()
+    window.buttons["settings.apply"].click()
     app.terminate()
     app.launch()
     XCTAssertTrue(window.waitForExistence(timeout: 10))
@@ -55,18 +58,7 @@ final class SettingsUITests: XCTestCase {
 
   func testPopulatedSettingsActionsAndPersistence() throws {
     app.terminate()
-    let fixture: [String: Any] = [
-      "checkouts": [
-        ["id": UUID().uuidString, "name": "source-link", "path": "/workspace/source-link", "isDefault": true],
-        ["id": UUID().uuidString, "name": "source-link", "path": "/worktrees/settings", "isDefault": false]
-      ],
-      "defaultEditor": "xcode", "executablePaths": [:],
-      "rules": [
-        ["id": UUID().uuidString, "fileExtension": "swift", "editor": "xcode"],
-        ["id": UUID().uuidString, "fileExtension": "md", "editor": "vscode"]
-      ]
-    ]
-    try JSONSerialization.data(withJSONObject: fixture).write(to: directory.appendingPathComponent("settings.json"))
+    try writeFixture()
     app.launch()
     let window = app.windows["Source Link Settings"]
     XCTAssertTrue(window.waitForExistence(timeout: 10))
@@ -83,13 +75,13 @@ final class SettingsUITests: XCTestCase {
     app.menuItems["Move Up"].click()
     XCTAssertEqual(window.textFields["File extension for rule 1"].value as? String, "md")
     capture(window, name: "File Rules populated")
+    window.buttons["settings.apply"].click()
     app.terminate()
     app.launch()
     XCTAssertTrue(window.waitForExistence(timeout: 10))
-    let saved = try XCTUnwrap(JSONSerialization.jsonObject(with:
-      Data(contentsOf: directory.appendingPathComponent("settings.json"))) as? [String: Any])
-    let checkouts = try XCTUnwrap(saved["checkouts"] as? [[String: Any]])
-    XCTAssertEqual(checkouts.map { $0["isDefault"] as? Bool }, [false, true])
+    let saved = try ConfigurationDocument(text:
+      String(contentsOf: directory.appendingPathComponent("config.json"), encoding: .utf8))
+    XCTAssertEqual(saved.settings.checkouts.map(\.isDefault), [false, true])
     window.descendants(matching: .any)["settings.page.Editors"].firstMatch.click()
     XCTAssertTrue(executable.waitForExistence(timeout: 5))
     XCTAssertEqual(executable.value as? String, "/tmp/custom-xed")
@@ -101,6 +93,36 @@ final class SettingsUITests: XCTestCase {
     window.descendants(matching: .any)["Actions for rule 1"].firstMatch.click()
     app.menuItems["Remove Rule"].click()
     XCTAssertEqual(window.textFields["File extension for rule 1"].value as? String, "swift")
+  }
+
+  private func writeFixture() throws {
+    let fixture = """
+    {
+      "version": 1,
+      "checkouts": [
+        {
+          "name": "source-link",
+          "path": "/workspace/source-link",
+          "default": true
+        },
+        {
+          "name": "source-link",
+          "path": "/worktrees/settings"
+        }
+      ],
+      "rules": [
+        {
+          "extension": "swift",
+          "editor": "xcode"
+        },
+        {
+          "extension": "md",
+          "editor": "vscode"
+        }
+      ]
+    }
+    """
+    try Data(fixture.utf8).write(to: directory.appendingPathComponent("config.json"))
   }
 
   private func capture(_ window: XCUIElement, name: String) {

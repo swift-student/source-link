@@ -77,7 +77,8 @@ struct EditorsSettingsView: View {
     panel.allowsMultipleSelection = false
     panel.treatsFilePackagesAsDirectories = true
     panel.directoryURL = URL(fileURLWithPath:
-      store.settings.executablePaths[editor.rawValue] ?? editor.defaultExecutable).deletingLastPathComponent()
+      ConfigurationPaths.expand(store.settings.executablePaths[editor.rawValue] ?? editor.defaultExecutable))
+      .deletingLastPathComponent()
     if panel.runModal() == .OK, let url = panel.url {
       guard FileManager.default.isExecutableFile(atPath: url.path) else {
         SettingsStore.show(SourceLinkError.invalidEditor)
