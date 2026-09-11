@@ -4,18 +4,24 @@ import XedLinkCore
 
 @MainActor
 final class SettingsStore: ObservableObject {
-  @Published var settings = SourceSettings()
+  @Published var settings = SourceSettings() {
+    didSet {
+      guard !isAcceptingSnapshot else { return }
+      scheduleAutoSave()
+    }
+  }
   @Published private(set) var activeSettings = SourceSettings()
   @Published private(set) var errorMessage: String?
   @Published private(set) var saveError: String?
   let repository: ConfigurationRepository
   private var base: ConfigurationSnapshot?
   private var active: ConfigurationSnapshot?
-  private var pendingSave: Task<Void, Never>?
   private var watcher: Task<Void, Never>?
+  private var autoSave: Task<Void, Never>?
+  private var isAcceptingSnapshot = false
 
   var isDirty: Bool { base.map { !settings.hasSameConfiguration(as: $0.document.settings) } ?? false }
-  var canApply: Bool { base != nil && errorMessage == nil }
+  var canSave: Bool { base != nil && errorMessage == nil }
   var setupSnapshot: ConfigurationSnapshot? { active }
 
   private static func defaultRepository() -> ConfigurationRepository {
@@ -44,11 +50,34 @@ final class SettingsStore: ObservableObject {
     }
   }
 
-  deinit { watcher?.cancel() }
+  deinit {
+    watcher?.cancel()
+    autoSave?.cancel()
+  }
+
+  private func scheduleAutoSave() {
+    autoSave?.cancel()
+    autoSave = nil
+    saveError = nil
+    guard isDirty, canSave else { return }
+    autoSave = Task { [weak self] in
+      do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
+      guard !Task.isCancelled else { return }
+      self?.save()
+    }
+  }
 
   private func accept(_ snapshot: ConfigurationSnapshot, discardDraft: Bool = false) {
+    isAcceptingSnapshot = true
+    defer { isAcceptingSnapshot = false }
     let dirty = isDirty
+    if discardDraft {
+      autoSave?.cancel()
+      autoSave = nil
+    }
     if discardDraft || !dirty {
+      // UI-only row IDs are regenerated when configuration is decoded. Keep the
+      // current values after an unchanged save so selection and focus survive.
       if !settings.hasSameConfiguration(as: snapshot.document.settings) {
         settings = snapshot.document.settings
       }
@@ -68,33 +97,25 @@ final class SettingsStore: ObservableObject {
       }
       if errorMessage != nil || snapshot.document.text != active?.document.text || snapshot.target != active?.target
         || snapshot.exists != active?.exists {
+        let wasBlocked = errorMessage != nil
         accept(snapshot)
+        if wasBlocked && isDirty && saveError == nil { scheduleAutoSave() }
       }
     } catch { errorMessage = error.localizedDescription }
   }
 
-  func revert() {
-    do {
-      let snapshot = try repository.load()
-      guard snapshot.exists || active?.exists != true else {
-        throw ConfigurationError("Restore the missing configuration file before reverting.")
+  private func save() {
+    autoSave = nil
+    guard canSave, isDirty, let base else { return }
+    var extensions = Set<String>()
+    for rule in settings.rules {
+      let fileExtension = rule.fileExtension
+        .trimmingCharacters(in: CharacterSet(charactersIn: ". ")).lowercased()
+      guard extensions.insert(fileExtension).inserted else {
+        saveError = "Each file extension can have one rule. Remove the duplicate rule for \(fileExtension)."
+        return
       }
-      accept(snapshot, discardDraft: true)
-      saveError = nil
-    } catch { errorMessage = error.localizedDescription }
-  }
-
-  func scheduleSave() {
-    pendingSave?.cancel()
-    guard isDirty && canApply else { return }
-    pendingSave = Task { [weak self] in
-      do { try await Task.sleep(for: .milliseconds(400)) } catch { return }
-      self?.save()
     }
-  }
-
-  func save() {
-    guard let base else { return }
     do {
       accept(try repository.save(base: base, draft: settings), discardDraft: true)
       saveError = nil

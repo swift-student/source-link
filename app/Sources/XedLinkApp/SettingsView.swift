@@ -14,25 +14,20 @@ enum SettingsPage: String, CaseIterable, Identifiable {
 
 struct SettingsView: View {
   @ObservedObject var store: SettingsStore
-  @State private var selection: SettingsPage? = .repositories
+  @State var selection: SettingsPage? = .repositories
 
   var body: some View {
     NavigationSplitView {
-      VStack(alignment: .leading, spacing: SettingsStyle.Spacing.extraLarge) {
-        VStack(alignment: .leading, spacing: SettingsStyle.Spacing.extraSmall) {
-          Text("Source Link").font(.system(size: 13, weight: .semibold))
-        }
-        .padding(.horizontal, SettingsStyle.Spacing.extraLarge).padding(.top, SettingsStyle.Spacing.section)
-        List(SettingsPage.allCases, selection: $selection) { page in
-          Label(page.rawValue, systemImage: page.symbol)
-            .padding(.vertical, SettingsStyle.Spacing.small).tag(page)
-            .accessibilityIdentifier("settings.page.\(page.id)")
-        }
-        .listStyle(.sidebar)
+      List(SettingsPage.allCases, selection: $selection) { page in
+        Label(page.rawValue, systemImage: page.symbol)
+          .tag(page)
+          .accessibilityIdentifier("settings.page.\(page.id)")
       }
-      .navigationSplitViewColumnWidth(
-        min: SettingsStyle.Layout.sidebarMinimum, ideal: SettingsStyle.Layout.sidebarIdeal,
-        max: SettingsStyle.Layout.sidebarMaximum)
+      .listStyle(.sidebar)
+      .toolbar(removing: .sidebarToggle)
+      .navigationSplitViewColumnWidth(min: SettingsStyle.Layout.sidebarMinimum,
+                                      ideal: SettingsStyle.Layout.sidebarIdeal,
+                                      max: SettingsStyle.Layout.sidebarMaximum)
     } detail: {
       Group {
         switch selection ?? .repositories {
@@ -45,9 +40,7 @@ struct SettingsView: View {
       .background(SettingsStyle.pageBackground)
       .safeAreaInset(edge: .bottom, spacing: 0) { ConfigurationSettingsFooter(store: store) }
     }
-    .navigationSplitViewStyle(.balanced)
     .frame(minWidth: SettingsStyle.Layout.minimumWindow.width,
            minHeight: SettingsStyle.Layout.minimumWindow.height)
-    .onChange(of: store.settings) { _, _ in store.scheduleSave() }
   }
 }

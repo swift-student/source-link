@@ -56,7 +56,11 @@ final class SettingsUITests: XCTestCase {
     field.typeKey("a", modifierFlags: .command)
     field.typeText("uitest")
     window.descendants(matching: .any)["settings.page.Editors"].firstMatch.click()
-    XCTAssertTrue(window.staticTexts["All changes saved"].waitForExistence(timeout: 5))
+    let savedStatus = window.staticTexts["settings.saveStatus"]
+    let saved = NSPredicate(
+      format: "label BEGINSWITH %@ OR value BEGINSWITH %@", "All changes saved", "All changes saved")
+    expectation(for: saved, evaluatedWith: savedStatus)
+    waitForExpectations(timeout: 5)
     app.terminate()
     app.launch()
     XCTAssertTrue(window.waitForExistence(timeout: 10))
@@ -80,11 +84,16 @@ final class SettingsUITests: XCTestCase {
     executable.typeKey("a", modifierFlags: .command)
     executable.typeText("/tmp/custom-xed")
     window.descendants(matching: .any)["settings.page.File Rules"].firstMatch.click()
-    window.descendants(matching: .any)["Actions for rule 2"].firstMatch.click()
-    app.menuItems["Move Up"].click()
-    XCTAssertEqual(window.textFields["File extension for rule 1"].value as? String, "md")
+    XCTAssertFalse(window.buttons["Remove Rule"].isEnabled)
+    window.textFields["File extension for rule 2"].click()
+    XCTAssertTrue(window.buttons["Remove Rule"].isEnabled)
+    XCTAssertEqual(window.textFields["File extension for rule 1"].value as? String, "swift")
     capture(window, name: "File Rules populated")
-    XCTAssertTrue(window.staticTexts["All changes saved"].waitForExistence(timeout: 5))
+    let savedStatus = window.staticTexts["settings.saveStatus"]
+    let savedPredicate = NSPredicate(
+      format: "label BEGINSWITH %@ OR value BEGINSWITH %@", "All changes saved", "All changes saved")
+    expectation(for: savedPredicate, evaluatedWith: savedStatus)
+    waitForExpectations(timeout: 5)
     app.terminate()
     app.launch()
     XCTAssertTrue(window.waitForExistence(timeout: 10))
@@ -98,10 +107,14 @@ final class SettingsUITests: XCTestCase {
     window.descendants(matching: .any)["Use Default Path"].firstMatch.click()
     XCTAssertEqual(executable.value as? String, "/usr/bin/xed")
     window.descendants(matching: .any)["settings.page.File Rules"].firstMatch.click()
-    XCTAssertEqual(window.textFields["File extension for rule 1"].value as? String, "md")
-    window.descendants(matching: .any)["Actions for rule 1"].firstMatch.click()
-    app.menuItems["Remove Rule"].click()
+    XCTAssertEqual(window.textFields["File extension for rule 2"].value as? String, "md")
+    window.textFields["File extension for rule 2"].click()
+    window.buttons["Remove Rule"].click()
     XCTAssertEqual(window.textFields["File extension for rule 1"].value as? String, "swift")
+    window.textFields["File extension for rule 1"].click()
+    window.buttons["Remove Rule"].click()
+    XCTAssertTrue(window.staticTexts["No File Rules"].exists)
+    XCTAssertFalse(window.buttons["Remove Rule"].isEnabled)
   }
 
   private func writeFixture() throws {

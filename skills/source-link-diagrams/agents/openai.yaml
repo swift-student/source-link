@@ -1,0 +1,4 @@
+interface:
+  display_name: "Source Link Diagrams"
+  short_description: "Build and review D2 diagrams linked to source code"
+  default_prompt: "Use $source-link-diagrams to create a D2 diagram of this code with clickable Source Link URLs and visually review the rendered SVG."

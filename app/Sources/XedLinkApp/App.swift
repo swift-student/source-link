@@ -7,10 +7,14 @@ struct SourceLinkApp: App {
   @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
   var body: some Scene {
-    MenuBarExtra("Source Link", systemImage: "chevron.left.forwardslash.chevron.right") {
+    MenuBarExtra {
       Button("Settings…") { appDelegate.showSettings() }.keyboardShortcut(",")
       Divider()
       Button("Quit") { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
+    } label: {
+      Image("SourceLinkMenu")
+        .renderingMode(.template)
+        .accessibilityLabel("Source Link")
     }
   }
 }
@@ -36,11 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   func showSettings() {
     if settingsWindow == nil {
-      let window = NSWindow(contentRect: NSRect(origin: .zero, size: SettingsStyle.Layout.window),
-                            styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
-      window.title = "Source Link Settings"
-      window.isReleasedWhenClosed = false
-      window.contentView = NSHostingView(rootView: SettingsView(store: store))
+      let window = SettingsWindow(store: store)
       window.center()
       settingsWindow = window
     }
@@ -128,7 +128,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     let panel = NSOpenPanel()
     panel.title = "Choose checkout for \(link.repository)"
-    panel.message = "Select the repository root containing \(link.path)."
+    panel.message = "Select the local directory for “\(link.repository)”."
     panel.canChooseDirectories = true
     panel.canChooseFiles = false
     panel.allowsMultipleSelection = false
