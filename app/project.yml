@@ -2,9 +2,19 @@ name: XedLink
 options:
   bundleIdPrefix: com.shawngee
 packages:
+  SnapshotTesting:
+    url: https://github.com/pointfreeco/swift-snapshot-testing
+    from: 1.18.0
   XedLinkPackage:
     path: ..
 schemes:
+  SettingsSnapshots:
+    build:
+      targets:
+        SettingsSnapshotTests: all
+    test:
+      targets:
+        - SettingsSnapshotTests
   XedLink:
     build:
       targets:
@@ -43,6 +53,29 @@ targets:
         Debug:
           CODE_SIGN_STYLE: Automatic
           ENABLE_HARDENED_RUNTIME: NO
+
+  SettingsSnapshotTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: Sources/XedLinkApp
+        excludes:
+          - App.swift
+      - path: Tests/SettingsSnapshotTests
+        excludes:
+          - __Snapshots__
+    dependencies:
+      - package: XedLinkPackage
+        product: XedLinkCore
+      - package: SnapshotTesting
+        product: SnapshotTesting
+    settings:
+      base:
+        SWIFT_VERSION: 6.0
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
 
   XedLinkUITests:
     type: bundle.ui-testing

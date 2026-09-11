@@ -15,6 +15,9 @@ enum SettingsStyle {
   enum Layout {
     static let window = CGSize(width: 1100, height: 680)
     static let minimumWindow = CGSize(width: 860, height: 540)
+    static let windowControlsHeight: CGFloat = 44
+    static let sidebarRadius: CGFloat = 18
+    static let windowControlsCenter = Spacing.small + sidebarRadius
     static let sidebarMinimum: CGFloat = 190
     static let sidebarIdeal: CGFloat = 220
     static let sidebarMaximum: CGFloat = 260
@@ -31,6 +34,7 @@ enum SettingsStyle {
   static let cardRadius: CGFloat = 8
   static let badgeRadius: CGFloat = 4
   static let pageBackground = Color(nsColor: .textBackgroundColor)
+  static let sidebarBackground = Color.primary.opacity(0.045)
   static let cardBackground = Color(nsColor: .controlBackgroundColor)
   static let cardBorder = Color(nsColor: .separatorColor).opacity(0.5)
   static let tableHeaderBackground = Color.primary.opacity(0.03)

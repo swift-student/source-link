@@ -4,6 +4,13 @@ import SwiftUI
 struct ConfigurationSettingsFooter: View {
   @ObservedObject var store: SettingsStore
 
+  private var status: String {
+    if store.isDirty {
+      return store.errorMessage != nil || store.saveError != nil ? "Changes not saved" : "Saving…"
+    }
+    return "All changes saved · External changes reload automatically"
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: SettingsStyle.Spacing.small) {
       Divider()
@@ -15,14 +22,13 @@ struct ConfigurationSettingsFooter: View {
         VStack(alignment: .leading, spacing: SettingsStyle.Spacing.extraSmall) {
           Text(store.repository.file.path).font(.caption).lineLimit(1).truncationMode(.middle)
             .textSelection(.enabled).help(store.repository.file.path)
-          Text(store.isDirty ? "Unsaved changes" : "External changes reload automatically")
+          Text(status)
             .font(.caption).foregroundStyle(.secondary)
+            .accessibilityIdentifier("settings.saveStatus")
         }
         Spacer()
         Button("Reveal File") { NSWorkspace.shared.activateFileViewerSelecting([store.repository.file]) }
         Button("Revert") { store.revert() }.accessibilityIdentifier("settings.revert")
-        Button("Apply") { store.save() }.disabled(!store.canApply || !store.isDirty)
-          .accessibilityIdentifier("settings.apply")
       }
     }
     .padding(.horizontal, SettingsStyle.Spacing.extraLarge)

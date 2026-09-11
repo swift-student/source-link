@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: build check generate lint run test ui-test
+.PHONY: build check generate lint run test ui-test snapshot-test
 
 build: generate
 	xcodebuild \
@@ -26,6 +26,16 @@ run: build
 test:
 	swift test
 
+
+snapshot-test: generate
+	xcodebuild \
+		-workspace XedLink.xcworkspace \
+		-scheme SettingsSnapshots \
+		-configuration Debug \
+		-destination 'platform=macOS' \
+		-derivedDataPath .build/xcode \
+		CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
+		test
 
 ui-test: generate
 	xcodebuild \

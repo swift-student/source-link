@@ -41,7 +41,7 @@ For a direct build, substitute `.build/direct/source-link.app`.
   expand an editor in **Editors** to adjust or choose its executable path when installed elsewhere.
 - An unknown repository prompts for a folder and editor, saves the mapping and extension rule, and opens the file.
 - Settings and first-link setup share `~/.config/source-link/config.json` with external editors and agents.
-  Settings uses **Apply** and **Revert**; uncommitted drafts do not affect link handling.
+  Settings auto-saves after 500 ms without edits; pending or failed changes do not affect link handling.
 
 Xcode uses `/usr/bin/xed --line` and does not receive a column. VS Code and Cursor use `--goto`;
 Zed uses `file:line:column`. Editor arguments are passed directly to `Process`, without shell interpolation.
@@ -100,11 +100,11 @@ automatically. Invalid edits leave the last valid settings in memory and display
 Settings. At startup, invalid JSON opens Settings with the error and blocks first-link setup
 from overwriting it. Restore a removed file to resume editing.
 
-**Apply** merges a draft with the latest file. Independent changes to the default editor,
+Debounced auto-save merges a draft with the latest file. Independent changes to the default editor,
 individual executable overrides, and separate collections can merge. Concurrent edits to the
 same field or collection produce a conflict and retain your draft. **Revert** discards the
 draft and loads the file. File creation/deletion or symlink retargeting during a draft also
-requires Revert. First-link setup uses the same save mechanism.
+requires Revert. First-link setup uses the same save mechanism with explicit confirmation.
 
 Saves rewrite the document as pretty-printed JSON with sorted object keys and preserve array
 order. Comments are not supported. Saves recheck disk contents before replacement. This is
@@ -183,14 +183,14 @@ The ad-hoc signed app is written to `.build/direct/source-link.app`, and the sep
 5. Add a second checkout under the repository, make it default, and verify the same shared link opens there.
    Remove that checkout and verify the remaining checkout becomes default.
 6. Switch among all three Settings pages, reorder competing extension rules, and verify the first rule wins.
-7. Apply Settings, restart the app and verify that mappings and editor rules persist.
+7. Change Settings, wait for “All changes saved”, restart the app and verify that mappings and editor rules persist.
 8. Try an absent file, an escaping symlink, and an invalid line; verify a visible error and no editor launch.
 
 9. Edit JSON externally and verify the app reloads within a second; repeat with an atomic file replacement.
-10. Keep a UI draft open while changing an unrelated setting externally, then Apply and verify both survive.
-11. Change the same setting externally and in a draft; verify Apply reports a conflict and retains the draft.
+10. Keep a UI draft open while changing an unrelated setting externally, then wait for auto-save and verify both survive.
+11. Change the same setting externally and in a draft; verify auto-save reports a conflict and retains the draft.
 12. Introduce invalid JSON; verify the error is visible and existing links use the last valid settings.
-13. Symlink the config into dotfiles, Apply a change, and verify the symlink remains intact.
+13. Symlink the config into dotfiles, auto-save a change, and verify the symlink remains intact.
 14. With no configuration file, launch and verify defaults are used; save settings and verify the file is created.
 
 Unit tests cover URL and JSON parsing, schema validation, JSON round-trips, conflicts,
