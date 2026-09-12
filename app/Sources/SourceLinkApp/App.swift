@@ -83,36 +83,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     alert.addButton(withTitle: "Cancel")
     guard alert.runModal() == .alertFirstButtonReturn else { return false }
     let editor = Editor.allCases[picker.indexOfSelectedItem]
-    for index in settings.checkouts.indices where
-      settings.checkouts[index].name.caseInsensitiveCompare(link.repository) == .orderedSame {
-      settings.checkouts[index].isDefault = false
-    }
-    if let index = settings.checkouts.firstIndex(where: {
-      $0.name.caseInsensitiveCompare(link.repository) == .orderedSame
-        && ConfigurationPaths.expand($0.path) == root.path
-    }) {
-      settings.checkouts[index].isDefault = true
-    } else {
-      settings.checkouts.append(Checkout(name: link.repository, path: root.path, isDefault: true))
-    }
-    let fileExtension = root.appendingPathComponent(link.path).pathExtension.lowercased()
-    if !fileExtension.isEmpty {
-      settings.rules.removeAll { $0.fileExtension.lowercased() == fileExtension }
-      var rule = FileRule()
-      rule.fileExtension = fileExtension
-      rule.editor = editor
-      settings.rules.insert(rule, at: 0)
-    } else {
-      settings.defaultEditor = editor
-    }
+    settings.configure(link, root: root, editor: editor)
     return store.saveSetup(settings, base: base)
   }
 
   private func chooseRoot(for link: SourceLink) -> URL? {
     NSApp.activate(ignoringOtherApps: true)
-    let matches = store.activeSettings.checkouts.filter {
-      $0.name.caseInsensitiveCompare(link.repository) == .orderedSame
-    }
+    let matches = store.activeSettings.checkouts(for: link.repository)
     if !matches.isEmpty {
       let alert = NSAlert()
       alert.messageText = "Choose a worktree for \(link.repository)"

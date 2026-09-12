@@ -18,7 +18,8 @@ final class SettingsStore: ObservableObject {
   private var base: ConfigurationSnapshot?
   private var active: ConfigurationSnapshot?
   private var watcher: Task<Void, Never>?
-  private var autoSave: Task<Void, Never>?
+  private(set) var autoSave: Task<Void, Never>?
+  private let autoSaveDelay: @Sendable () async throws -> Void
   private var isAcceptingSnapshot = false
 
   var isDirty: Bool {
@@ -43,7 +44,14 @@ final class SettingsStore: ObservableObject {
     return ConfigurationRepository()
   }
 
-  init(repository: ConfigurationRepository? = nil) {
+  init(
+    repository: ConfigurationRepository? = nil,
+    watchForChanges: Bool = true,
+    autoSaveDelay: @escaping @Sendable () async throws -> Void = {
+      try await Task.sleep(for: .milliseconds(500))
+    }
+  ) {
+    self.autoSaveDelay = autoSaveDelay
     let repository = repository ?? Self.defaultRepository()
     self.repository = repository
     do { try accept(repository.load(), discardDraft: true) } catch {
@@ -51,6 +59,7 @@ final class SettingsStore: ObservableObject {
     }
     // Reopen the path each time: this also catches atomic replacements, parent-directory
     // replacements and symlink retargeting, including initially missing configuration files.
+    guard watchForChanges else { return }
     watcher = Task { [weak self] in
       while !Task.isCancelled {
         do { try await Task.sleep(for: .seconds(1)) } catch { return }
@@ -62,6 +71,7 @@ final class SettingsStore: ObservableObject {
   #if DEBUG
     /// Canvas edits stay in memory: no configuration load, watcher, or save baseline.
     init(previewSettings: SourceSettings) {
+      autoSaveDelay = {}
       repository = ConfigurationRepository(file: FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString).appendingPathComponent("preview.json"))
       settings = previewSettings
@@ -79,8 +89,9 @@ final class SettingsStore: ObservableObject {
     autoSave = nil
     saveError = nil
     guard isDirty, canSave else { return }
+    let delay = autoSaveDelay
     autoSave = Task { [weak self] in
-      do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
+      do { try await delay() } catch { return }
       guard !Task.isCancelled else { return }
       self?.save()
     }
@@ -130,8 +141,7 @@ final class SettingsStore: ObservableObject {
     guard canSave, isDirty, let base else { return }
     var extensions = Set<String>()
     for rule in settings.rules {
-      let fileExtension = rule.fileExtension
-        .trimmingCharacters(in: CharacterSet(charactersIn: ". ")).lowercased()
+      let fileExtension = rule.normalizedExtension
       guard extensions.insert(fileExtension).inserted else {
         saveError = "Each file extension can have one rule. Remove the duplicate rule for \(fileExtension)."
         return

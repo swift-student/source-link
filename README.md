@@ -35,8 +35,8 @@ For a direct build, substitute `.build/direct/source-link.app`.
   Existing repository names are preserved so previously shared links continue to work.
 - Checkout labels come from their folder names. The action menus can change a folder, reveal it in Finder,
   or remove its mapping; removing a mapping does not delete files.
-- Select a default editor and optional extension rules. Rules ignore extension case and a leading dot;
-  the first matching rule wins. In **File Rules**, drag rows or use their Move Up/Move Down actions to reorder.
+- Select a default editor and optional extension rules. Rules ignore extension case and surrounding dots and spaces.
+  In **File Rules**, use + to add a rule and − or swipe to remove one. Settings requires one rule per extension.
 - Built-in launch profiles support Xcode, VS Code, Cursor, and Zed. Install the editor separately and
   expand an editor in **Editors** to adjust or choose its executable path when installed elsewhere.
 - An unknown repository prompts for a folder and editor, saves the mapping and extension rule, and opens the file.
@@ -82,6 +82,10 @@ repository are errors. Names and extensions must not be empty. Paths must be abs
 start with `~/`; `~` expands to the current user's home directory only when used. Shell
 variables and commands are not expanded. Missing directories or executables do not invalidate
 the configuration; availability is checked when opening a link. UI row IDs are never stored.
+
+JSON may contain multiple rules for the same normalized extension; the first matching rule wins.
+Settings displays these rules but blocks auto-save until duplicates are removed. First-link setup
+replaces all rules matching the chosen file extension with the selected editor.
 
 The location is `$XDG_CONFIG_HOME/source-link/config.json` when `XDG_CONFIG_HOME` is an
 absolute path, otherwise `~/.config/source-link/config.json`. A GUI app launched from Finder
@@ -145,7 +149,7 @@ Configuration uses Foundation's JSON encoder and decoder without external depend
 
 ```sh
 make format # Format and auto-correct all repository Swift sources, tests, and scripts
-make check  # Tests, strict lint, formatting verification, and app build
+make check  # Core and app unit tests, strict lint, formatting verification, and app build
 make run
 ```
 
@@ -162,12 +166,12 @@ make ui-test
 
 The XCUITest target launches the app with `--settings`, visits all three pages, and
 adds a file rule then verifies it survives a restart. A populated-settings test also
-checks checkout defaults, executable-path persistence and reset, and rule reordering
+checks checkout defaults, executable-path persistence and reset, and rule selection
 and removal. It uses a temporary settings
 file through the Debug-only `SOURCE_LINK_TEST_SETTINGS_PATH` environment variable
 and removes it afterward. Release builds always use the normal settings location.
 The app and test runner are signed locally with an ad-hoc identity; no development
-team is required. Xcode stores results under `.build/xcode/Logs/Test`, including a
+team is required. Xcode stores results under `.build/xcode/Logs/Test`, including
 retained window screenshots for all three pages and on failure. UI tests use XCTest;
 core tests use Swift Testing. Verified screenshots are in `docs/screenshots/settings`.
 
@@ -186,7 +190,7 @@ The ad-hoc signed app is written to `.build/direct/source-link.app`, and the sep
 4. Install VS Code and select it for `md`; open a Markdown link with a line and column.
 5. Add a second checkout under the repository, make it default, and verify the same shared link opens there.
    Remove that checkout and verify the remaining checkout becomes default.
-6. Switch among all three Settings pages, reorder competing extension rules, and verify the first rule wins.
+6. Switch among all three Settings pages, add and remove extension rules, and verify each opens in its selected editor.
 7. Change Settings, wait for “All changes saved”, restart the app and verify that mappings and editor rules persist.
 8. Try an absent file, an escaping symlink, and an invalid line; verify a visible error and no editor launch.
 
@@ -199,7 +203,9 @@ The ad-hoc signed app is written to `.build/direct/source-link.app`, and the sep
 
 Unit tests cover URL and JSON parsing, schema validation, JSON round-trips, conflicts,
 symlink saves, path containment, worktree decisions, file-type routing, and editor
-arguments. Real editor navigation requires the manual checks above.
+arguments. `make app-test` runs Swift Testing coverage for autosave cancellation, external-edit
+merging, conflicts, invalid-file recovery, and duplicate-rule validation with a controlled save delay.
+These app unit tests are also included in `make check`. Real editor navigation requires the manual checks above.
 
 ## Source-linked diagrams
 
