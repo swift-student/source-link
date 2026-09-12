@@ -27,18 +27,15 @@ To keep the app, copy it to Applications. Install your preferred editor separate
 
 ## Open your first link
 
-1. In Settings, choose **Add Repository** and select this repository’s root folder (`source-link`).
-2. Select your editor in **Editors** and allow a moment for autosave.
-3. Open a link to the README:
+Open a link to the README:
 
-   ```sh
-   open 'source-link://source-link/README.md?line=1'
-   ```
+```sh
+open 'source-link://source-link/README.md?line=1'
+```
 
-The README opens in your selected editor. For an unknown repository, opening a link prompts you to choose its local folder and editor.
-
-Settings auto-saves after 500 ms without edits. Pending or failed edits do not affect link handling.
-If saving fails, an alert offers **Keep Editing** or **Reload from File**. Reloading discards unsaved edits.
+Source Link prompts you to choose the repository’s local folder and an editor, then opens
+the file. No Settings changes are needed beforehand. You can manage repository mappings
+and editors in Settings later.
 
 ## Guides
 
