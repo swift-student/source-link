@@ -24,7 +24,7 @@ A `ConfigurationSnapshot` contains the decoded document, resolved file target, a
 
 `ConfigurationRepository` follows symlinks and atomically replaces the target while preserving permissions. It rechecks disk state immediately before replacement; this is optimistic concurrency, not a lock on external writers.
 
-**Discard changes and reload** cancels pending saves and replaces the draft/base/active state only after a successful read. Read failures retain the draft and last valid active state. Explicit reload may accept file removal as defaults without writing a replacement.
+**Reload from File** cancels pending saves and replaces the draft/base/active state only after a successful read. Read failures retain the draft and last valid active state. Explicit reload may accept file removal as defaults without writing a replacement.
 
 ## Reference standards
 

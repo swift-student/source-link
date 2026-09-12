@@ -20,7 +20,7 @@ app or accessing the user's settings. Each case uses a unique temporary configur
 
 Snapshots cover both pages with empty and populated settings in light/dark
 appearance at 1100×680,
-plus pending-save and conflict/reload states on Editors, and empty Editors resized to the minimum 860×540. Geometry assertions also check that the
+plus empty Editors resized to the minimum 860×540. Geometry assertions also check that the
 native close button stays within the title-bar region after resizing. The sidebar,
 rounded chrome, toolbar, and control placement are owned by macOS via NavigationSplitView. The captures include the native title
 bar and controls, not just SwiftUI content. ScreenCaptureKit's `currentProcess`

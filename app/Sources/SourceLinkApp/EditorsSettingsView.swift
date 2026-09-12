@@ -83,7 +83,7 @@ struct EditorsSettingsView: View {
             if !NSWorkspace.shared.open(file) {
               NSWorkspace.shared.activateFileViewerSelecting([file])
             }
-          } catch { SettingsStore.show(error) }
+          } catch { store.reportSettingsError(error) }
         }
         .disabled(store.setupSnapshot == nil && store.errorMessage == nil)
       }

@@ -12,8 +12,16 @@ final class SettingsStore: ObservableObject {
   }
 
   @Published private(set) var activeSettings = SourceSettings()
-  @Published private(set) var errorMessage: String?
-  @Published private(set) var saveError: String?
+  @Published private(set) var errorMessage: String? {
+    didSet { presentErrorIfNeeded() }
+  }
+
+  @Published private(set) var saveError: String? {
+    didSet { presentErrorIfNeeded() }
+  }
+
+  @Published var presentedError: String?
+  private var reportedErrors = Set<String>()
   let repository: ConfigurationRepository
   private var base: ConfigurationSnapshot?
   private var active: ConfigurationSnapshot?
@@ -26,14 +34,19 @@ final class SettingsStore: ObservableObject {
     base.map { !settings.hasSameConfiguration(as: $0.document.settings) } ?? false
   }
 
-  var saveStatus: String {
-    if errorMessage != nil || saveError != nil {
-      return "Changes not saved"
+  private func presentErrorIfNeeded() {
+    guard let message = errorMessage ?? saveError else {
+      reportedErrors.removeAll()
+      presentedError = nil
+      return
     }
-    if isDirty {
-      return "Changes pending…"
+    if reportedErrors.insert(message).inserted {
+      presentedError = message
     }
-    return base == nil ? "Preview — changes stay in memory" : "All changes saved"
+  }
+
+  func reportSettingsError(_ error: Error) {
+    saveError = error.localizedDescription
   }
 
   var canSave: Bool {
@@ -67,6 +80,7 @@ final class SettingsStore: ObservableObject {
     do { try accept(repository.load(), discardDraft: true) } catch {
       errorMessage = error.localizedDescription
     }
+    presentErrorIfNeeded()
     // Reopen the path each time: this also catches atomic replacements, parent-directory
     // replacements and symlink retargeting, including initially missing configuration files.
     guard watchForChanges else { return }

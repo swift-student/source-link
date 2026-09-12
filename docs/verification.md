@@ -8,7 +8,7 @@
 5. Add a second checkout under the repository, make it default, and verify the same shared link opens there.
    Remove that checkout and verify the remaining checkout becomes default.
 6. Switch among both Settings pages, add and remove extension rules, and verify each opens in its selected editor.
-7. Change Settings, wait for “All changes saved”, restart the app and verify that mappings and editor rules persist.
+7. Change Settings, pause briefly for autosave, restart the app and verify that mappings and editor rules persist.
 8. Try an absent file, an escaping symlink, and an invalid line; verify a visible error and no editor launch.
 
 9. Edit JSON externally and verify the app reloads within a second; repeat with an atomic file replacement.
@@ -25,4 +25,4 @@ merging, conflicts, invalid-file recovery, and duplicate-rule validation with a 
 These app unit tests are also included in `make check`. Real editor navigation requires the manual checks above.
 
 
-15. Create a configuration conflict, then choose **Discard changes and reload**. Verify the file’s settings appear and a subsequent edit saves successfully. Repeat with invalid JSON: the draft should remain until the file is repaired.
+15. Create a configuration conflict, then choose **Reload from File** in the alert. Verify the file’s settings appear and a subsequent edit saves successfully. Repeat with invalid JSON: the draft should remain until the file is repaired.

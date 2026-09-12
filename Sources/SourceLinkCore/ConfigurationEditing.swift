@@ -27,7 +27,7 @@ extension ConfigurationDocument {
     guard disk == base || disk == draft else {
       throw ConfigurationError("Conflict in \(key): the file changed while you were editing. "
         + "Your draft is retained. Adjust the conflicting setting to match the file, "
-        + "or choose Discard changes and reload in Settings.")
+        + "or choose Reload from File in the settings alert.")
     }
     return draft
   }

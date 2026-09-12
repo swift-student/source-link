@@ -28,7 +28,7 @@ To keep the app, copy it to Applications. Install your preferred editor separate
 ## Open your first link
 
 1. In Settings, choose **Add Repository** and select this repository’s root folder (`source-link`).
-2. Select your editor in **Editors** and wait for **All changes saved**.
+2. Select your editor in **Editors** and allow a moment for autosave.
 3. Open a link to the README:
 
    ```sh
@@ -38,7 +38,7 @@ To keep the app, copy it to Applications. Install your preferred editor separate
 The README opens in your selected editor. For an unknown repository, opening a link prompts you to choose its local folder and editor.
 
 Settings auto-saves after 500 ms without edits. Pending or failed edits do not affect link handling.
-Use **Discard changes and reload** to abandon a draft and load the current configuration.
+If saving fails, an alert offers **Keep Editing** or **Reload from File**. Reloading discards unsaved edits.
 
 ## Guides
 

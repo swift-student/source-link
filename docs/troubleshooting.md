@@ -14,13 +14,13 @@ A repository name maps to a local root folder. Check the mapping and default che
 
 Install the editor separately and choose **Edit Configuration…** in **Editors** to check its executable and argument templates. The built-in Xcode profile uses `/usr/bin/xed`; other editor profiles specify their CLI executable. A nonzero editor exit status is reported as a launch failure. Xcode receives the line but not the column.
 
-## Changes are pending or failed
+## A settings error appears
 
-Wait for **All changes saved** before opening a link that depends on an edit. Errors appear above the settings page. Duplicate extension rules must be removed before settings can save.
+Autosave runs quietly after 500 ms without edits. If an error occurs, an alert appears once; repeated background checks do not reopen it. Choose **Keep Editing** to retain your draft. Duplicate extension rules must be removed before settings can save.
 
-For a conflict with an external edit, either adjust the conflicting setting to match the file or choose **Discard changes and reload**. This cancels pending saves and loads the current file without writing it. A removed file loads defaults; it is only recreated by a later edit. A changed symlink is followed at its current destination.
+For a conflict with an external edit, either adjust the conflicting setting to match the file or choose **Reload from File** in the alert. This cancels pending saves and loads the current file without writing it. A removed file loads defaults; it is only recreated by a later edit. A changed symlink is followed at its current destination.
 
-If the file is invalid, reload reports the error and keeps your draft and the last valid active settings. Repair the JSON, then reload again to discard the draft. The background watcher can resume pending edits after a repaired file becomes valid; use reload to explicitly accept the file’s contents.
+If the file is invalid, reload reports the error and keeps your draft and the last valid active settings. Repair the JSON, then continue editing, or use **Reload from File** if another error alert appears. The background watcher can resume pending edits after a repaired file becomes valid; the alert’s reload action explicitly accepts the file’s contents.
 
 ## Check the configuration
 

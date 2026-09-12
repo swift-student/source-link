@@ -98,8 +98,8 @@ from overwriting it. Restore a removed file to resume editing.
 Debounced auto-save merges a draft with the latest file. Independent changes to editor profiles (per editor ID), the default editor,
 and separate collections can merge. Concurrent edits to the
 same field or collection produce a conflict and retain your draft. Adjust the conflicting
-setting to match the file, or choose **Discard changes and reload** in Settings to load the file.
-File creation/deletion or symlink retargeting during a draft also requires **Discard changes and reload** before
+setting to match the file, or choose **Reload from File** in the error alert to load the file.
+File creation/deletion or symlink retargeting during a draft also requires **Reload from File** before
 editing again. First-link setup uses the same save mechanism with explicit confirmation.
 
 Saves rewrite the document as pretty-printed JSON with sorted object keys and preserve array

@@ -4,6 +4,30 @@ import Testing
 
 @MainActor
 struct SettingsStoreTests {
+  @Test func `background errors alert once until recovery`() throws {
+    let fixture = try StoreFixture()
+    let original = try Data(contentsOf: fixture.repository.file)
+    try Data("invalid JSON".utf8).write(to: fixture.repository.file)
+    fixture.store.reload()
+    #expect(fixture.store.presentedError != nil)
+    fixture.store.presentedError = nil
+    fixture.store.reload()
+    fixture.store.reload()
+    #expect(fixture.store.presentedError == nil)
+    try original.write(to: fixture.repository.file)
+    fixture.store.reload()
+    try Data("invalid JSON".utf8).write(to: fixture.repository.file)
+    fixture.store.reload()
+    #expect(fixture.store.presentedError != nil)
+  }
+
+  @Test func `startup errors are available for an alert`() throws {
+    let fixture = try StoreFixture()
+    try Data("invalid JSON".utf8).write(to: fixture.repository.file)
+    let store = SettingsStore(repository: fixture.repository, watchForChanges: false)
+    #expect(store.presentedError != nil)
+  }
+
   @Test func `editing configuration creates a file with all profiles`() throws {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -30,9 +54,7 @@ struct SettingsStoreTests {
   @Test func `discard cancels a suspended save and loads the latest file`() async throws {
     let fixture = try StoreFixture()
     let store = fixture.store
-    #expect(store.saveStatus == "All changes saved")
     store.settings.defaultEditor = .cursor
-    #expect(store.saveStatus == "Changes pending…")
     let pending = try #require(store.autoSave)
     await fixture.delay.waitUntilScheduled()
     try fixture.editDisk { $0.defaultEditor = .zed }
@@ -41,7 +63,6 @@ struct SettingsStoreTests {
     await pending.value
     #expect(store.settings.defaultEditor == .zed)
     #expect(store.activeSettings.defaultEditor == .zed)
-    #expect(store.saveStatus == "All changes saved")
     #expect(try fixture.repository.load().document.settings.defaultEditor == .zed)
     store.settings.defaultEditor = .vscode
     try await fixture.finishSave()
@@ -53,7 +74,6 @@ struct SettingsStoreTests {
     fixture.store.settings.defaultEditor = .cursor
     try fixture.editDisk { $0.defaultEditor = .zed }
     try await fixture.finishSave()
-    #expect(fixture.store.saveStatus == "Changes not saved")
     fixture.store.discardChangesAndReload()
     #expect(fixture.store.saveError == nil)
     #expect(fixture.store.settings.defaultEditor == .zed)
@@ -73,7 +93,6 @@ struct SettingsStoreTests {
     await pending.value
     #expect(fixture.store.settings.defaultEditor == .cursor)
     #expect(fixture.store.activeSettings.defaultEditor == .xcode)
-    #expect(fixture.store.saveStatus == "Changes not saved")
     #expect(try String(contentsOf: fixture.repository.file, encoding: .utf8) == "invalid JSON")
   }
 
