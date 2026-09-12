@@ -93,3 +93,19 @@ struct EditorsSettingsView: View {
     }
   }
 }
+
+#if DEBUG
+  #Preview("Editors — Custom Executable") {
+    SettingsPreview { store in
+      EditorsSettingsView(store: store)
+        .settingsPagePreviewLayout()
+    }
+  }
+
+  #Preview("Editors — Defaults") {
+    SettingsPreview(populated: false) { store in
+      EditorsSettingsView(store: store)
+        .settingsPagePreviewLayout()
+    }
+  }
+#endif

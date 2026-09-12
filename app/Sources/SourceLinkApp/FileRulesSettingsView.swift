@@ -174,3 +174,19 @@ private extension [FileRule] {
     }
   }
 }
+
+#if DEBUG
+  #Preview("File Rules — Populated") {
+    SettingsPreview { store in
+      ScrollView { FileRulesSettingsView(store: store) }
+        .settingsPagePreviewLayout()
+    }
+  }
+
+  #Preview("File Rules — Empty") {
+    SettingsPreview(populated: false) { store in
+      ScrollView { FileRulesSettingsView(store: store) }
+        .settingsPagePreviewLayout()
+    }
+  }
+#endif

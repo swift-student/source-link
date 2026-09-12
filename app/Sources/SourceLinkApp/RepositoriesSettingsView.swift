@@ -147,3 +147,19 @@ struct RepositoriesSettingsView: View {
     store.settings.checkouts[index].path = root.path
   }
 }
+
+#if DEBUG
+  #Preview("Repositories — Populated") {
+    SettingsPreview { store in
+      RepositoriesSettingsView(store: store)
+        .settingsPagePreviewLayout()
+    }
+  }
+
+  #Preview("Repositories — Empty") {
+    SettingsPreview(populated: false) { store in
+      RepositoriesSettingsView(store: store)
+        .settingsPagePreviewLayout()
+    }
+  }
+#endif

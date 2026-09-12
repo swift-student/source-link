@@ -57,3 +57,21 @@ struct SettingsView: View {
            minHeight: SettingsStyle.Layout.minimumWindow.height)
   }
 }
+
+#if DEBUG
+  #Preview("Settings — Light") {
+    SettingsPreview { store in
+      SettingsView(store: store)
+        .frame(width: SettingsStyle.Layout.window.width, height: SettingsStyle.Layout.window.height)
+        .preferredColorScheme(.light)
+    }
+  }
+
+  #Preview("Settings — Dark") {
+    SettingsPreview { store in
+      SettingsView(store: store, selection: .rules)
+        .frame(width: SettingsStyle.Layout.window.width, height: SettingsStyle.Layout.window.height)
+        .preferredColorScheme(.dark)
+    }
+  }
+#endif
