@@ -16,7 +16,7 @@
           Checkout(name: "source-link", path: "/worktrees/settings", isDefault: true),
           Checkout(name: "website", path: "/workspace/website", isDefault: true)
         ]
-        settings.executablePaths[Editor.xcode.rawValue] = "/usr/local/bin/custom-xed"
+        settings.editors[Editor.xcode.rawValue]?.executable = "/usr/local/bin/custom-xed"
         settings.rules = [("swift", Editor.xcode), ("md", Editor.vscode)].map { fileExtension, editor in
           var rule = FileRule()
           rule.fileExtension = fileExtension

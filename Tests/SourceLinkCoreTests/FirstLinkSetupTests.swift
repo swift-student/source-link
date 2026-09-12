@@ -29,14 +29,14 @@ struct FirstLinkSetupTests {
     var unrelated = FileRule()
     unrelated.fileExtension = "md"
     settings.rules = [unrelated]
-    settings.executablePaths["cursor"] = "/custom/cursor"
+    settings.editors["cursor"]?.executable = "/custom/cursor"
     let link = try SourceLink(#require(URL(string: "source-link://REPO/File.swift")))
     settings.configure(link, root: URL(fileURLWithPath: "/worktree"), editor: .cursor)
     #expect(settings.checkouts.map(\.id) == original.map(\.id))
     #expect(settings.checkouts.map(\.name) == original.map(\.name))
     #expect(settings.checkouts.map(\.isDefault) == [false, true, true])
     #expect(settings.rules.last == unrelated)
-    #expect(settings.executablePaths["cursor"] == "/custom/cursor")
+    #expect(settings.editors["cursor"]?.executable == "/custom/cursor")
     #expect(settings.defaultEditor == .xcode)
   }
 

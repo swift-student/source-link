@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum SettingsPage: String, CaseIterable, Identifiable {
-  case repositories = "Repositories", editors = "Editors", rules = "File Rules"
+  case repositories = "Repositories", editors = "Editors"
   var id: String {
     rawValue
   }
@@ -10,7 +10,6 @@ enum SettingsPage: String, CaseIterable, Identifiable {
     switch self {
     case .repositories: "folder"
     case .editors: "chevron.left.forwardslash.chevron.right"
-    case .rules: "doc.text"
     }
   }
 }
@@ -35,8 +34,7 @@ struct SettingsView: View {
       Group {
         switch selection ?? .repositories {
         case .repositories: RepositoriesSettingsView(store: store)
-        case .editors: EditorsSettingsView(store: store)
-        case .rules: ScrollView { FileRulesSettingsView(store: store) }
+        case .editors: ScrollView { EditorsSettingsView(store: store) }
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -69,7 +67,7 @@ struct SettingsView: View {
 
   #Preview("Settings — Dark") {
     SettingsPreview { store in
-      SettingsView(store: store, selection: .rules)
+      SettingsView(store: store, selection: .editors)
         .frame(width: SettingsStyle.Layout.window.width, height: SettingsStyle.Layout.window.height)
         .preferredColorScheme(.dark)
     }

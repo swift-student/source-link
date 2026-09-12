@@ -4,6 +4,29 @@ import Testing
 
 @MainActor
 struct SettingsStoreTests {
+  @Test func `editing configuration creates a file with all profiles`() throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let file = directory.appendingPathComponent("config.json")
+    let store = SettingsStore(repository: ConfigurationRepository(file: file), watchForChanges: false)
+    #expect(try store.prepareConfigurationForEditing() == file)
+    let text = try String(contentsOf: file, encoding: .utf8)
+    #expect(text.contains("\"executable\""))
+    #expect(text.contains("\"line_arguments\""))
+    #expect(try ConfigurationDocument(text: text).settings.editors == EditorProfile.defaults)
+  }
+
+  @Test func `editing configuration flushes the draft and preserves invalid disk contents`() throws {
+    let fixture = try StoreFixture()
+    fixture.store.settings.defaultEditor = .cursor
+    _ = try fixture.store.prepareConfigurationForEditing()
+    #expect(fixture.store.autoSave == nil)
+    #expect(try fixture.repository.load().document.settings.defaultEditor == .cursor)
+    try Data("broken JSON".utf8).write(to: fixture.repository.file)
+    #expect(try fixture.store.prepareConfigurationForEditing() == fixture.repository.file)
+    #expect(try String(contentsOf: fixture.repository.file, encoding: .utf8) == "broken JSON")
+  }
+
   @Test func `rapid edits cancel earlier saves and preserve row identities`() async throws {
     let fixture = try StoreFixture()
     let store = fixture.store
@@ -25,14 +48,14 @@ struct SettingsStoreTests {
   @Test func `external edits merge with a pending draft`() async throws {
     let fixture = try StoreFixture()
     fixture.store.settings.defaultEditor = .cursor
-    try fixture.editDisk { $0.executablePaths["zed"] = "/custom/zed" }
+    try fixture.editDisk { $0.editors["zed"]?.executable = "/custom/zed" }
     fixture.store.reload()
-    #expect(fixture.store.activeSettings.executablePaths["zed"] == "/custom/zed")
+    #expect(fixture.store.activeSettings.editors["zed"]?.executable == "/custom/zed")
     #expect(fixture.store.settings.defaultEditor == .cursor)
     try await fixture.finishSave()
     let saved = try fixture.repository.load().document.settings
     #expect(saved.defaultEditor == .cursor)
-    #expect(saved.executablePaths["zed"] == "/custom/zed")
+    #expect(saved.editors["zed"]?.executable == "/custom/zed")
     #expect(fixture.store.saveError == nil)
   }
 

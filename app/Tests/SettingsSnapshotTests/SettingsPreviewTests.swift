@@ -20,7 +20,7 @@
       store.settings.defaultEditor = .vscode
       store.settings.checkouts.append(Checkout(name: "example", path: "/workspace/example", isDefault: true))
       store.settings.rules.append(FileRule())
-      store.settings.executablePaths[Editor.xcode.rawValue] = "/usr/local/bin/custom-xed"
+      store.settings.editors[Editor.xcode.rawValue]?.executable = "/usr/local/bin/custom-xed"
 
       // Pass both the 500 ms autosave debounce and the 1 second watcher interval.
       try await Task.sleep(for: .milliseconds(1200))
@@ -28,7 +28,7 @@
       #expect(store.settings.defaultEditor == .vscode)
       #expect(store.settings.checkouts.count == 1)
       #expect(store.settings.rules.count == 1)
-      #expect(store.settings.executablePaths[Editor.xcode.rawValue] == "/usr/local/bin/custom-xed")
+      #expect(store.settings.editors[Editor.xcode.rawValue]?.executable == "/usr/local/bin/custom-xed")
       #expect(!store.canSave)
       #expect(store.setupSnapshot == nil)
       #expect(store.errorMessage == nil)

@@ -12,7 +12,7 @@ let package = Package(
     .executable(name: "source-link", targets: ["SourceLinkCLI"])
   ],
   targets: [
-    .target(name: "SourceLinkCore"),
+    .target(name: "SourceLinkCore", resources: [.process("Resources")]),
     .executableTarget(name: "SourceLinkCLI", dependencies: ["SourceLinkCore"]),
     .testTarget(
       name: "SourceLinkCoreTests",

@@ -32,10 +32,10 @@ enum ConfigurationSchema {
   }
 
   private static func validate(_ settings: SourceSettings) throws {
-    for (key, value) in settings.executablePaths {
-      guard Editor(rawValue: key) != nil else { throw ConfigurationError("executables.\(key) is an unknown key.") }
-      try path(value, key: "executables.\(key)")
+    guard settings.editors[settings.defaultEditor.rawValue] != nil else {
+      throw ConfigurationError("default_editor must name a configured editor.")
     }
+    try validateEditors(settings.editors)
     for (index, checkout) in settings.checkouts.enumerated() {
       guard !checkout.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
             !checkout.name.contains("\0")
@@ -49,10 +49,48 @@ enum ConfigurationSchema {
       throw ConfigurationError("checkouts allows at most one default per repository.")
     }
     for (index, rule) in settings.rules.enumerated() {
-      guard !rule.normalizedExtension.isEmpty,
-            !rule.fileExtension.contains("\0")
-      else {
+      guard settings.editors[rule.editor.rawValue] != nil else {
+        throw ConfigurationError("rules.\(index).editor must name a configured editor.")
+      }
+      guard !rule.fileExtension.trimmingCharacters(in: CharacterSet(charactersIn: ". ")).isEmpty,
+            !rule.fileExtension.contains("\0") else {
         throw ConfigurationError("rules.\(index).extension must not be empty or contain null characters.")
+      }
+    }
+  }
+
+  private static func validateEditors(_ editors: [String: EditorProfile]) throws {
+    for (key, profile) in editors {
+      guard Editor(rawValue: key) != nil, !profile.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            !profile.name.contains("\0") else { throw ConfigurationError("editors.\(key) has an invalid ID or name.") }
+      if let arguments = profile.projectArguments {
+        for argument in arguments {
+          let literal = argument.replacingOccurrences(of: "{project}", with: "")
+          guard !literal.contains("{"), !literal.contains("}"), !literal.contains("\0") else {
+            throw ConfigurationError("Invalid project_arguments in editors.\(key).")
+          }
+        }
+      }
+      try path(profile.executable, key: "editors.\(key).executable")
+      for arguments in [profile.arguments, profile.lineArguments, profile.columnArguments].compactMap(\.self) {
+        try validateArguments(arguments, key: "editors.\(key)")
+      }
+      guard !profile.arguments.contains(where: { $0.contains("{line}") || $0.contains("{column}") }) else {
+        throw ConfigurationError("editors.\(key).arguments cannot use position placeholders.")
+      }
+    }
+  }
+
+  private static func validateArguments(_ arguments: [String], key: String) throws {
+    guard arguments.contains(where: { $0.contains("{file}") }) else {
+      throw ConfigurationError("\(key) argument lists must include {file}.")
+    }
+    for argument in arguments {
+      let literal = ["{file}", "{line}", "{column}"].reduce(argument) {
+        $0.replacingOccurrences(of: $1, with: "")
+      }
+      guard !literal.contains("{"), !literal.contains("}"), !literal.contains("\0") else {
+        throw ConfigurationError("\(key) arguments contain an unknown placeholder or null character.")
       }
     }
   }
@@ -67,17 +105,17 @@ enum ConfigurationSchema {
 private struct Configuration: Codable {
   var version = 1
   var defaultEditor: Editor
-  var executables: [String: String]
+  var editors: [String: EditorProfile]
   var checkouts: [ConfigurationCheckout]
   var rules: [ConfigurationRule]
 
   enum CodingKeys: String, CodingKey, CaseIterable {
-    case version, defaultEditor = "default_editor", executables, checkouts, rules
+    case version, defaultEditor = "default_editor", editors, checkouts, rules
   }
 
   init(_ settings: SourceSettings) {
     defaultEditor = settings.defaultEditor
-    executables = settings.executablePaths
+    editors = settings.editors
     checkouts = settings.checkouts.map(ConfigurationCheckout.init)
     rules = settings.rules.map { ConfigurationRule(extension: $0.fileExtension, editor: $0.editor) }
   }
@@ -87,7 +125,8 @@ private struct Configuration: Codable {
     version = try values.decode(Int.self, forKey: .version)
     guard version == 1 else { throw ConfigurationError("version must be the integer 1 (supported schema version).") }
     defaultEditor = try values.contains(.defaultEditor) ? values.decode(Editor.self, forKey: .defaultEditor) : .xcode
-    executables = try values.contains(.executables) ? values.decode([String: String].self, forKey: .executables) : [:]
+    let configured = try values.contains(.editors) ? values.decode([String: EditorProfile].self, forKey: .editors) : [:]
+    editors = EditorProfile.defaults.merging(configured) { _, custom in custom }
     checkouts = try values.contains(.checkouts) ? values.decode([ConfigurationCheckout].self, forKey: .checkouts) : []
     rules = try values.contains(.rules) ? values.decode([ConfigurationRule].self, forKey: .rules) : []
   }
@@ -95,7 +134,7 @@ private struct Configuration: Codable {
   var settings: SourceSettings {
     var settings = SourceSettings()
     settings.defaultEditor = defaultEditor
-    settings.executablePaths = executables
+    settings.editors = editors
     settings.checkouts = checkouts.map { Checkout(name: $0.name, path: $0.path, isDefault: $0.isDefault) }
     settings.rules = rules.map {
       var rule = FileRule()
@@ -161,7 +200,7 @@ private struct ConfigurationKey: CodingKey {
   }
 }
 
-private extension Decoder {
+extension Decoder {
   func checkedContainer<Key: CodingKey & CaseIterable>(keyedBy type: Key.Type)
     throws -> KeyedDecodingContainer<Key> {
     let keys = try container(keyedBy: ConfigurationKey.self).allKeys

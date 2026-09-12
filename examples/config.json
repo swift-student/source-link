@@ -11,9 +11,6 @@
     }
   ],
   "default_editor": "cursor",
-  "executables": {
-    "cursor": "/Applications/Cursor.app/Contents/Resources/app/bin/cursor"
-  },
   "rules": [
     {
       "editor": "xcode",
@@ -24,5 +21,26 @@
       "extension": "md"
     }
   ],
-  "version": 1
+  "version": 1,
+  "editors": {
+    "idea": {
+      "name": "IntelliJ IDEA",
+      "executable": "/Applications/IntelliJ IDEA.app/Contents/MacOS/idea",
+      "arguments": [
+        "{file}"
+      ],
+      "line_arguments": [
+        "--line",
+        "{line}",
+        "{file}"
+      ],
+      "column_arguments": [
+        "--line",
+        "{line}",
+        "--column",
+        "{column}",
+        "{file}"
+      ]
+    }
+  }
 }

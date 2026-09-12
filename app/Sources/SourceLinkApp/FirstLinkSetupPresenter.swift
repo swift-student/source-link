@@ -14,14 +14,14 @@ struct FirstLinkSetupPresenter {
     alert.messageText = "Open with"
     alert.informativeText = "Choose the editor for this file type. You can change it in Settings."
     let picker = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 260, height: 28))
-    picker.addItems(withTitles: Editor.allCases.map(\.title))
+    picker.addItems(withTitles: settings.availableEditors.map { settings.title(for: $0) })
     let preferred = settings.editor(for: root.appendingPathComponent(link.path))
-    picker.selectItem(at: Editor.allCases.firstIndex(of: preferred) ?? 0)
+    picker.selectItem(at: settings.availableEditors.firstIndex(of: preferred) ?? 0)
     alert.accessoryView = picker
     alert.addButton(withTitle: "Save and Open")
     alert.addButton(withTitle: "Cancel")
     guard alert.runModal() == .alertFirstButtonReturn else { return false }
-    let editor = Editor.allCases[picker.indexOfSelectedItem]
+    let editor = settings.availableEditors[picker.indexOfSelectedItem]
     settings.configure(link, root: root, editor: editor)
     return store.saveSetup(settings, base: base)
   }

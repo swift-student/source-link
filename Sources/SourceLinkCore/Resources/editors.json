@@ -1,0 +1,100 @@
+{
+  "xcode": {
+    "name": "Xcode",
+    "executable": "/usr/bin/xed",
+    "arguments": [
+      "{file}"
+    ],
+    "line_arguments": [
+      "--line",
+      "{line}",
+      "{file}"
+    ],
+    "project_arguments": [
+      "-p",
+      "{project}"
+    ]
+  },
+  "vscode": {
+    "name": "Visual Studio Code",
+    "executable": "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code",
+    "arguments": [
+      "--goto",
+      "{file}"
+    ],
+    "line_arguments": [
+      "--goto",
+      "{file}:{line}:{column}"
+    ]
+  },
+  "cursor": {
+    "name": "Cursor",
+    "executable": "/Applications/Cursor.app/Contents/Resources/app/bin/cursor",
+    "arguments": [
+      "--goto",
+      "{file}"
+    ],
+    "line_arguments": [
+      "--goto",
+      "{file}:{line}:{column}"
+    ]
+  },
+  "zed": {
+    "name": "Zed",
+    "executable": "/Applications/Zed.app/Contents/MacOS/cli",
+    "arguments": [
+      "{file}"
+    ],
+    "line_arguments": [
+      "{file}:{line}:{column}"
+    ]
+  },
+  "android-studio": {
+    "name": "Android Studio",
+    "executable": "/Applications/Android Studio.app/Contents/MacOS/studio",
+    "arguments": [
+      "{file}"
+    ],
+    "line_arguments": [
+      "--line",
+      "{line}",
+      "{file}"
+    ],
+    "column_arguments": [
+      "--line",
+      "{line}",
+      "--column",
+      "{column}",
+      "{file}"
+    ]
+  },
+  "idea": {
+    "name": "IntelliJ IDEA",
+    "executable": "/Applications/IntelliJ IDEA.app/Contents/MacOS/idea",
+    "arguments": [
+      "{file}"
+    ],
+    "line_arguments": [
+      "--line",
+      "{line}",
+      "{file}"
+    ],
+    "column_arguments": [
+      "--line",
+      "{line}",
+      "--column",
+      "{column}",
+      "{file}"
+    ]
+  },
+  "sublime": {
+    "name": "Sublime Text",
+    "executable": "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl",
+    "arguments": [
+      "{file}"
+    ],
+    "line_arguments": [
+      "{file}:{line}:{column}"
+    ]
+  }
+}

@@ -20,6 +20,7 @@ struct ConfigurationTests {
   @Test(arguments: [
     "", "{}", "[]", #"{"version":2}"#, #"{"version":true}"#, #"{"version":"1"}"#,
     #"{"version":1,"unknown":1}"#, #"{"version":1,"default_editor":"emacs"}"#,
+    #"{"version":1,"executables":{"xcode":"/usr/bin/xed"}}"#,
     #"{"version":1,"executables":{"xcode":"xed"}}"#,
     #"{"version":1,"executables":{"unknown":"/bin/editor"}}"#,
     #"{"version":1,"checkouts":["bad"]}"#,
@@ -53,11 +54,11 @@ struct ConfigurationTests {
   @Test func `merges separate edits and rejects conflicts`() throws {
     let base = try ConfigurationDocument(text: #"{"version":1,"default_editor":"xcode"}"#)
     var draft = base.settings
-    draft.executablePaths["zed"] = "~/bin/zed"
+    draft.editors["zed"]?.executable = "~/bin/zed"
     let disk = try ConfigurationDocument(text: #"{"version":1,"default_editor":"cursor"}"#)
     let merged = try disk.merging(base: base.settings, draft: draft)
     #expect(merged.settings.defaultEditor == .cursor)
-    #expect(merged.settings.executablePaths["zed"] == "~/bin/zed")
+    #expect(merged.settings.editors["zed"]?.executable == "~/bin/zed")
     draft.defaultEditor = .zed
     #expect(throws: ConfigurationError.self) { try disk.merging(base: base.settings, draft: draft) }
   }
@@ -65,13 +66,13 @@ struct ConfigurationTests {
   @Test func `edits collections and overrides`() throws {
     var settings = SourceSettings()
     settings.checkouts = [Checkout(name: "a", path: "/a"), Checkout(name: "a", path: "/b", isDefault: true)]
-    settings.executablePaths["xcode"] = "/usr/bin/xed"
+    settings.editors["xcode"]?.executable = "/usr/bin/xed"
     let document = try ConfigurationDocument.initial(settings)
     var draft = document.settings
     draft.checkouts[0].isDefault = true
     draft.checkouts[1].isDefault = false
-    draft.executablePaths["xcode"] = nil
-    draft.executablePaths["cursor"] = "~/bin/cursor"
+    draft.editors["xcode"] = EditorProfile.defaults["xcode"]
+    draft.editors["cursor"]?.executable = "~/bin/cursor"
     let edited = try document.merging(base: document.settings, draft: draft)
     #expect(edited.settings.hasSameConfiguration(as: draft))
     draft.checkouts.removeFirst()
