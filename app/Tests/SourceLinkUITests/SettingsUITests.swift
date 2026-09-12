@@ -42,6 +42,43 @@ final class SettingsUITests: XCTestCase {
     XCTAssertFalse(window.buttons["Reveal File"].exists)
   }
 
+  func testConfigurationErrorAlertAndRecovery() throws {
+    let window = app.windows["Source Link Settings"]
+    XCTAssertTrue(window.waitForExistence(timeout: 10))
+    XCTAssertFalse(window.staticTexts["settings.save.status"].exists)
+    XCTAssertFalse(window.buttons["settings.discard"].exists)
+    let file = directory.appendingPathComponent("config.json")
+    try Data("invalid JSON".utf8).write(to: file)
+    let keepEditing = window.sheets.buttons.matching(identifier: "Keep Editing").firstMatch
+    XCTAssertTrue(keepEditing.waitForExistence(timeout: 5))
+    let screenshot = XCTAttachment(screenshot: window.screenshot())
+    screenshot.name = "Settings error alert"
+    screenshot.lifetime = .keepAlways
+    add(screenshot)
+    keepEditing.click()
+    // An inverted expectation spans multiple watcher polls without a blocking sleep.
+    let repeated = expectation(for: NSPredicate { _, _ in keepEditing.exists }, evaluatedWith: nil)
+    repeated.isInverted = true
+    wait(for: [repeated], timeout: 2.5)
+    // A distinct error presents again and offers explicit reload recovery.
+    try FileManager.default.removeItem(at: file)
+    let valid = try ConfigurationDocument.initial().text
+    try Data(valid.utf8).write(to: file)
+    let editorPage = window.descendants(matching: .any)["settings.page.Editors"].firstMatch
+    editorPage.click()
+    let picker = window.popUpButtons["Default editor"]
+    picker.click()
+    app.menuItems["Cursor"].click()
+    waitForSavedSettings { $0.defaultEditor == .cursor }
+    try FileManager.default.removeItem(at: file)
+    let reload = window.sheets.buttons.matching(identifier: "Reload from File").firstMatch
+    XCTAssertTrue(reload.waitForExistence(timeout: 5))
+    reload.click()
+    XCTAssertTrue(picker.waitForExistence(timeout: 5))
+    XCTAssertFalse(window.sheets.buttons.matching(identifier: "Keep Editing").firstMatch.exists)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
+  }
+
   func testSettingsNavigationAndRulePersistence() {
     let window = app.windows["Source Link Settings"]
     XCTAssertTrue(window.waitForExistence(timeout: 10))
@@ -91,7 +128,7 @@ final class SettingsUITests: XCTestCase {
     XCTAssertEqual(window.textFields["File extension for rule 1"].value as? String, "swift")
     window.textFields["File extension for rule 1"].click()
     window.buttons["Remove Rule"].click()
-    XCTAssertTrue(window.staticTexts["No File Rules"].exists)
+    XCTAssertTrue(window.staticTexts["No File Rules"].waitForExistence(timeout: 5))
     XCTAssertFalse(window.buttons["Remove Rule"].isEnabled)
   }
 

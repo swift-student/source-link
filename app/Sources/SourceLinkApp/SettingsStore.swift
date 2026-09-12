@@ -12,8 +12,16 @@ final class SettingsStore: ObservableObject {
   }
 
   @Published private(set) var activeSettings = SourceSettings()
-  @Published private(set) var errorMessage: String?
-  @Published private(set) var saveError: String?
+  @Published private(set) var errorMessage: String? {
+    didSet { presentErrorIfNeeded() }
+  }
+
+  @Published private(set) var saveError: String? {
+    didSet { presentErrorIfNeeded() }
+  }
+
+  @Published var presentedError: String?
+  private var reportedErrors = Set<String>()
   let repository: ConfigurationRepository
   private var base: ConfigurationSnapshot?
   private var active: ConfigurationSnapshot?
@@ -24,6 +32,21 @@ final class SettingsStore: ObservableObject {
 
   var isDirty: Bool {
     base.map { !settings.hasSameConfiguration(as: $0.document.settings) } ?? false
+  }
+
+  private func presentErrorIfNeeded() {
+    guard let message = errorMessage ?? saveError else {
+      reportedErrors.removeAll()
+      presentedError = nil
+      return
+    }
+    if reportedErrors.insert(message).inserted {
+      presentedError = message
+    }
+  }
+
+  func reportSettingsError(_ error: Error) {
+    saveError = error.localizedDescription
   }
 
   var canSave: Bool {
@@ -57,6 +80,7 @@ final class SettingsStore: ObservableObject {
     do { try accept(repository.load(), discardDraft: true) } catch {
       errorMessage = error.localizedDescription
     }
+    presentErrorIfNeeded()
     // Reopen the path each time: this also catches atomic replacements, parent-directory
     // replacements and symlink retargeting, including initially missing configuration files.
     guard watchForChanges else { return }
@@ -133,6 +157,16 @@ final class SettingsStore: ObservableObject {
           scheduleAutoSave()
         }
       }
+    } catch { errorMessage = error.localizedDescription }
+  }
+
+  /// Cancel pending writes; only discard the draft after successfully reading the current file.
+  func discardChangesAndReload() {
+    autoSave?.cancel()
+    autoSave = nil
+    do {
+      try accept(repository.load(), discardDraft: true)
+      saveError = nil
     } catch { errorMessage = error.localizedDescription }
   }
 

@@ -4,6 +4,30 @@ import Testing
 
 @MainActor
 struct SettingsStoreTests {
+  @Test func `background errors alert once until recovery`() throws {
+    let fixture = try StoreFixture()
+    let original = try Data(contentsOf: fixture.repository.file)
+    try Data("invalid JSON".utf8).write(to: fixture.repository.file)
+    fixture.store.reload()
+    #expect(fixture.store.presentedError != nil)
+    fixture.store.presentedError = nil
+    fixture.store.reload()
+    fixture.store.reload()
+    #expect(fixture.store.presentedError == nil)
+    try original.write(to: fixture.repository.file)
+    fixture.store.reload()
+    try Data("invalid JSON".utf8).write(to: fixture.repository.file)
+    fixture.store.reload()
+    #expect(fixture.store.presentedError != nil)
+  }
+
+  @Test func `startup errors are available for an alert`() throws {
+    let fixture = try StoreFixture()
+    try Data("invalid JSON".utf8).write(to: fixture.repository.file)
+    let store = SettingsStore(repository: fixture.repository, watchForChanges: false)
+    #expect(store.presentedError != nil)
+  }
+
   @Test func `editing configuration creates a file with all profiles`() throws {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: directory) }
@@ -25,6 +49,64 @@ struct SettingsStoreTests {
     try Data("broken JSON".utf8).write(to: fixture.repository.file)
     #expect(try fixture.store.prepareConfigurationForEditing() == fixture.repository.file)
     #expect(try String(contentsOf: fixture.repository.file, encoding: .utf8) == "broken JSON")
+  }
+
+  @Test func `discard cancels a suspended save and loads the latest file`() async throws {
+    let fixture = try StoreFixture()
+    let store = fixture.store
+    store.settings.defaultEditor = .cursor
+    let pending = try #require(store.autoSave)
+    await fixture.delay.waitUntilScheduled()
+    try fixture.editDisk { $0.defaultEditor = .zed }
+    store.discardChangesAndReload()
+    await fixture.delay.resumeNext()
+    await pending.value
+    #expect(store.settings.defaultEditor == .zed)
+    #expect(store.activeSettings.defaultEditor == .zed)
+    #expect(try fixture.repository.load().document.settings.defaultEditor == .zed)
+    store.settings.defaultEditor = .vscode
+    try await fixture.finishSave()
+    #expect(store.activeSettings.defaultEditor == .vscode)
+  }
+
+  @Test func `discard clears a conflict and permits subsequent saves`() async throws {
+    let fixture = try StoreFixture()
+    fixture.store.settings.defaultEditor = .cursor
+    try fixture.editDisk { $0.defaultEditor = .zed }
+    try await fixture.finishSave()
+    fixture.store.discardChangesAndReload()
+    #expect(fixture.store.saveError == nil)
+    #expect(fixture.store.settings.defaultEditor == .zed)
+    fixture.store.settings.defaultEditor = .vscode
+    try await fixture.finishSave()
+    #expect(fixture.store.activeSettings.defaultEditor == .vscode)
+  }
+
+  @Test func `failed reload retains the draft and last valid settings`() async throws {
+    let fixture = try StoreFixture()
+    fixture.store.settings.defaultEditor = .cursor
+    let pending = try #require(fixture.store.autoSave)
+    await fixture.delay.waitUntilScheduled()
+    try Data("invalid JSON".utf8).write(to: fixture.repository.file)
+    fixture.store.discardChangesAndReload()
+    await fixture.delay.resumeNext()
+    await pending.value
+    #expect(fixture.store.settings.defaultEditor == .cursor)
+    #expect(fixture.store.activeSettings.defaultEditor == .xcode)
+    #expect(try String(contentsOf: fixture.repository.file, encoding: .utf8) == "invalid JSON")
+  }
+
+  @Test func `explicit reload accepts file removal without recreating it`() async throws {
+    let fixture = try StoreFixture()
+    try FileManager.default.removeItem(at: fixture.repository.file)
+    fixture.store.reload()
+    #expect(fixture.store.errorMessage != nil)
+    fixture.store.discardChangesAndReload()
+    #expect(fixture.store.errorMessage == nil)
+    #expect(!FileManager.default.fileExists(atPath: fixture.repository.file.path))
+    fixture.store.settings.defaultEditor = .cursor
+    try await fixture.finishSave()
+    #expect(try fixture.repository.load().document.settings.defaultEditor == .cursor)
   }
 
   @Test func `rapid edits cancel earlier saves and preserve row identities`() async throws {

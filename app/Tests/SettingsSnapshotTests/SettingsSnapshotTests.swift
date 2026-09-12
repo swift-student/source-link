@@ -31,7 +31,7 @@ struct SettingsSnapshotTests {
     if populated {
       try writePopulatedFixture(to: file)
     }
-    let store = SettingsStore(repository: ConfigurationRepository(file: file))
+    let store = SettingsStore(repository: ConfigurationRepository(file: file), watchForChanges: false)
     #expect(store.errorMessage == nil)
     NSApplication.shared.setActivationPolicy(.regular)
     NSApplication.shared.activate(ignoringOtherApps: true)

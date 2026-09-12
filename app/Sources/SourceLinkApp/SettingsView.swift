@@ -39,17 +39,20 @@ struct SettingsView: View {
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
       .background(SettingsStyle.pageBackground)
-      .safeAreaInset(edge: .top, spacing: 0) {
-        if let message = store.errorMessage ?? store.saveError {
-          Text(message)
-            .font(.callout)
-            .foregroundStyle(.red)
-            .textSelection(.enabled)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(SettingsStyle.Spacing.extraLarge)
-            .accessibilityIdentifier("settings.configuration.error")
+    }
+    .alert("Settings Error", isPresented: Binding(
+      get: { store.presentedError != nil },
+      set: {
+        if !$0 {
+          store.presentedError = nil
         }
       }
+    )) {
+      Button("Keep Editing", role: .cancel) { store.presentedError = nil }
+      Button("Reload from File", role: .destructive) { store.discardChangesAndReload() }
+    } message: {
+      Text((store.presentedError ?? "") + "\n\nReloading from file discards unsaved edits. "
+        + "If the file cannot be read, your edits are kept.")
     }
     .frame(minWidth: SettingsStyle.Layout.minimumWindow.width,
            minHeight: SettingsStyle.Layout.minimumWindow.height)
