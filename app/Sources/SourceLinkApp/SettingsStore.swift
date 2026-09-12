@@ -59,6 +59,16 @@ final class SettingsStore: ObservableObject {
     }
   }
 
+  #if DEBUG
+    /// Canvas edits stay in memory: no configuration load, watcher, or save baseline.
+    init(previewSettings: SourceSettings) {
+      repository = ConfigurationRepository(file: FileManager.default.temporaryDirectory
+        .appendingPathComponent(UUID().uuidString).appendingPathComponent("preview.json"))
+      settings = previewSettings
+      activeSettings = previewSettings
+    }
+  #endif
+
   deinit {
     watcher?.cancel()
     autoSave?.cancel()
