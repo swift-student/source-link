@@ -60,7 +60,9 @@ public struct ConfigurationRepository: Sendable {
     guard current.target == expected.target, current.exists == expected.exists,
           current.document.text == expected.document.text
     else {
-      throw ConfigurationError("\(file.path): changed again during saving. Try Apply again.")
+      throw ConfigurationError(
+        "\(file.path): changed again during saving. Your draft is retained. Edit the setting again to retry saving."
+      )
     }
     // rename replaces the destination atomically without replacing the user's symlink.
     let status = expected.exists ? rename(temporary.path, expected.target.path)

@@ -14,7 +14,7 @@ struct FileRulesSettingsView: View {
       SettingsCard {
         HStack {
           Text("File extension")
-            .padding(.leading, 6)
+            .padding(.leading, SettingsStyle.Layout.ruleHeaderInset)
             .frame(maxWidth: .infinity, alignment: .leading)
           Text("Open in")
             // The macOS picker bezel extends beyond its layout frame.
@@ -48,7 +48,7 @@ struct FileRulesSettingsView: View {
           .contentMargins(.horizontal, 0, for: .scrollContent)
           .scrollContentBackground(.hidden)
           .scrollDisabled(true)
-          .frame(height: CGFloat(store.settings.rules.count) * 45)
+          .frame(height: CGFloat(store.settings.rules.count) * SettingsStyle.Layout.ruleRowHeight)
           .focusEffectDisabled()
           .focused($isRuleTableFocused)
           .onDeleteCommand {
@@ -77,18 +77,24 @@ struct FileRulesSettingsView: View {
   private var ruleToolbar: some View {
     HStack(spacing: 0) {
       Button(action: addRuleButtonTapped) {
-        Image(systemName: "plus").frame(width: 32, height: 28)
+        Image(systemName: "plus").frame(
+          width: SettingsStyle.Layout.ruleToolbarButtonWidth,
+          height: SettingsStyle.Layout.ruleToolbarHeight
+        )
       }
       .accessibilityLabel("Add Rule")
       .help("Add a file rule")
-      Divider().frame(height: 28)
+      Divider().frame(height: SettingsStyle.Layout.ruleToolbarHeight)
       Button(action: removeRuleButtonTapped) {
-        Image(systemName: "minus").frame(width: 32, height: 28)
+        Image(systemName: "minus").frame(
+          width: SettingsStyle.Layout.ruleToolbarButtonWidth,
+          height: SettingsStyle.Layout.ruleToolbarHeight
+        )
       }
       .accessibilityLabel("Remove Rule")
       .help("Remove the selected rule")
       .disabled(selection == nil)
-      Divider().frame(height: 28)
+      Divider().frame(height: SettingsStyle.Layout.ruleToolbarHeight)
       Spacer(minLength: 0)
     }
     .buttonStyle(.borderless)
@@ -112,7 +118,7 @@ struct FileRulesSettingsView: View {
     }
     .padding(.horizontal, SettingsStyle.Spacing.large)
     .padding(.vertical, SettingsStyle.Spacing.small)
-    .frame(height: 45)
+    .frame(height: SettingsStyle.Layout.ruleRowHeight)
     .contentShape(Rectangle())
     .onTapGesture { ruleRowTapped(rule.id) }
     .accessibilityAddTraits(selection == rule.id ? .isSelected : [])
@@ -129,17 +135,7 @@ struct FileRulesSettingsView: View {
   }
 
   private func addRuleButtonTapped() {
-    let extensions = Set(store.settings.rules.map(\.normalizedExtension))
-    var rule = FileRule()
-    if extensions.contains(rule.fileExtension) {
-      rule.fileExtension = "txt"
-      var suffix = 2
-      while extensions.contains(rule.fileExtension) {
-        rule.fileExtension = "extension\(suffix)"
-        suffix += 1
-      }
-    }
-    store.settings.rules.append(rule)
+    let rule = store.settings.addFileRule()
     selection = rule.id
     focusedRule = rule.id
   }

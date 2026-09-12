@@ -22,9 +22,10 @@ struct RepositoriesSettingsView: View {
               Button("+ Add Repository…") { addRepository() }
                 .buttonStyle(.plain)
                 .font(.system(size: 13, weight: .medium))
-                .padding(.horizontal, 12).padding(.vertical, 9)
-                .background(SettingsStyle.pageBackground, in: RoundedRectangle(cornerRadius: 8))
-                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(SettingsStyle.cardBorder))
+                .padding(.horizontal, SettingsStyle.Spacing.medium).padding(.vertical, 9)
+                .background(SettingsStyle.pageBackground, in: RoundedRectangle(cornerRadius: SettingsStyle.cardRadius))
+                .overlay(RoundedRectangle(cornerRadius: SettingsStyle.cardRadius)
+                  .strokeBorder(SettingsStyle.cardBorder))
                 .accessibilityIdentifier("repositories.add")
             }
             .frame(maxWidth: .infinity)
@@ -40,9 +41,9 @@ struct RepositoriesSettingsView: View {
             }
           }
         }
-        .padding(.horizontal, 40)
-        .padding(.top, 32)
-        .padding(.bottom, 24)
+        .padding(.horizontal, SettingsStyle.Layout.repositoryPageInset)
+        .padding(.top, SettingsStyle.Spacing.page)
+        .padding(.bottom, SettingsStyle.Spacing.section)
       }
     }
   }
@@ -92,7 +93,8 @@ struct RepositoriesSettingsView: View {
 
   private func checkoutRow(_ checkout: Checkout) -> some View {
     HStack(spacing: SettingsStyle.Spacing.medium) {
-      Image(systemName: "arrow.turn.down.right").foregroundStyle(.tertiary).frame(width: 20)
+      Image(systemName: "arrow.turn.down.right").foregroundStyle(.tertiary)
+        .frame(width: SettingsStyle.Layout.checkoutIconWidth)
       VStack(alignment: .leading, spacing: SettingsStyle.Spacing.small) {
         Text(checkout.folderName).fontWeight(.medium).lineLimit(1)
         Text((checkout.path as NSString).abbreviatingWithTildeInPath)
@@ -140,11 +142,8 @@ struct RepositoriesSettingsView: View {
   private func changeFolder(_ checkout: Checkout) {
     guard let root = SettingsPanels.chooseFolder(
       title: "Change Checkout Folder", message: "Choose a replacement folder for \(checkout.name)."
-    ), let index = store.settings.checkouts.firstIndex(where: { $0.id == checkout.id }) else { return }
-    guard !store.settings.checkouts(for: checkout.name).contains(where: {
-      $0.id != checkout.id && ConfigurationPaths.expand($0.path) == root.path
-    }) else { return }
-    store.settings.checkouts[index].path = root.path
+    ) else { return }
+    store.settings.changeCheckoutFolder(checkout.id, root: root)
   }
 }
 
