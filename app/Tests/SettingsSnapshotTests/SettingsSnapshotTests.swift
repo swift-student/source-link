@@ -19,7 +19,7 @@ struct SettingsSnapshotTests {
 
   @Test(arguments: [false, true])
   func `minimum window`(dark: Bool) async throws {
-    try await snapshot(page: .rules, dark: dark, size: SettingsStyle.Layout.minimumWindow)
+    try await snapshot(page: .editors, dark: dark, size: SettingsStyle.Layout.minimumWindow)
   }
 
   private func snapshot(page: SettingsPage, dark: Bool, size: CGSize, populated: Bool = false) async throws {
@@ -42,7 +42,7 @@ struct SettingsSnapshotTests {
     window.makeKeyAndOrderFront(nil)
     defer { window.close() }
     // Allow SwiftUI layout and AppKit's title-bar controls to settle.
-    try await Task.sleep(for: .milliseconds(300))
+    try await Task.sleep(for: .milliseconds(700))
     let frameView = try #require(window.contentView?.superview)
     frameView.layoutSubtreeIfNeeded()
     window.displayIfNeeded()

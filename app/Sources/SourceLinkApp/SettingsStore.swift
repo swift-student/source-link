@@ -153,6 +153,28 @@ final class SettingsStore: ObservableObject {
     } catch { saveError = error.localizedDescription }
   }
 
+  /// Flush pending edits and materialize bundled profiles before handing the file to an editor.
+  func prepareConfigurationForEditing() throws -> URL {
+    autoSave?.cancel()
+    autoSave = nil
+    reload()
+    if errorMessage != nil {
+      guard FileManager.default.fileExists(atPath: repository.file.path) else {
+        throw ConfigurationError(errorMessage ?? "Configuration is unavailable.")
+      }
+      return repository.file
+    }
+    if isDirty {
+      save()
+      if let saveError {
+        throw ConfigurationError(saveError)
+      }
+    }
+    guard let base else { throw ConfigurationError("Configuration is unavailable.") }
+    try accept(repository.save(base: base, draft: settings), discardDraft: true)
+    return repository.file
+  }
+
   func saveSetup(_ settings: SourceSettings, base: ConfigurationSnapshot) -> Bool {
     guard errorMessage == nil else { return false }
     do {

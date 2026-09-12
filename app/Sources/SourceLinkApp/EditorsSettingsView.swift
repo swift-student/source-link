@@ -4,113 +4,209 @@ import SwiftUI
 
 struct EditorsSettingsView: View {
   @ObservedObject var store: SettingsStore
-  @State private var expanded: Set<Editor> = []
+  @Environment(\.colorScheme) private var colorScheme
+  @FocusState private var isRuleTableFocused: Bool
+  @State private var selection: FileRule.ID?
+  @FocusState private var focusedRule: FileRule.ID?
 
   var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: SettingsStyle.Spacing.section) {
-        SettingsHeading(title: "Editors", subtitle: "Set a default, then configure only the editors you use.") {}
-        SettingsCard {
-          ForEach(store.settings.availableEditors) { editor in
-            if editor != store.settings.availableEditors.first {
-              Divider()
-            }
-            DisclosureGroup(isExpanded: Binding(
-              get: { expanded.contains(editor) },
-              set: {
-                if $0 {
-                  expanded.insert(editor)
-                } else {
-                  expanded.remove(editor)
+    VStack(alignment: .leading, spacing: SettingsStyle.Spacing.section) {
+      SettingsHeading(title: "Editors", subtitle: "Choose where your source links open.") {}
+      SettingsCard {
+        HStack {
+          Text("File extension")
+            .padding(.leading, SettingsStyle.Layout.ruleHeaderInset)
+            .frame(maxWidth: .infinity, alignment: .leading)
+          Text("Open in")
+            // The macOS picker bezel extends beyond its layout frame.
+            .padding(.leading, -SettingsStyle.Spacing.small)
+            .frame(width: SettingsStyle.Layout.editorPicker, alignment: .leading)
+        }
+        .font(.caption).foregroundStyle(.secondary).padding(SettingsStyle.Spacing.large)
+        .background(SettingsStyle.tableHeaderBackground)
+        Divider()
+        if store.settings.rules.isEmpty {
+          ContentUnavailableView("No File Rules", systemImage: "doc.text", description:
+            Text(
+              "All files open in \(store.settings.title(for: store.settings.defaultEditor)). Click + to add a rule."
+            ))
+            .frame(maxWidth: .infinity, minHeight: SettingsStyle.Layout.emptyRulesHeight)
+        } else {
+          // The list provides swipe actions, but selection belongs to this view
+          // so macOS does not draw its own highlight over our accent tint.
+          List {
+            ForEach(store.settings.rules) { rule in
+              ruleRow($store.settings.rules[ruleID: rule.id])
+                .selectionDisabled()
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .listRowBackground(selection == rule.id ? selectionBackground : Color.clear)
+                .overlay(alignment: .bottom) { Divider() }
+                .swipeActions(edge: .trailing) {
+                  Button("Delete", role: .destructive) { removeRule(rule.id) }
                 }
-              }
-            )) {
-              editorConfiguration(editor)
-            } label: {
-              HStack {
-                Text(store.settings.title(for: editor)).fontWeight(.medium)
-                Spacer()
-                if editor == store.settings.defaultEditor {
-                  Text("Default editor").foregroundStyle(SettingsStyle.actionForeground)
-                } else {
-                  Button("Make Default") { store.settings.defaultEditor = editor }
-                    .buttonStyle(SettingsLinkButtonStyle())
-                    .accessibilityIdentifier("editors.makeDefault.\(editor.rawValue)")
-                }
-              }
-              .padding(.vertical, SettingsStyle.Spacing.large)
             }
-            .disclosureGroupStyle(SettingsDisclosureGroupStyle(title: editor.title))
-            .padding(.horizontal, SettingsStyle.Spacing.large)
+          }
+          .listStyle(.plain)
+          .contentMargins(.horizontal, 0, for: .scrollContent)
+          .scrollContentBackground(.hidden)
+          .scrollDisabled(true)
+          .frame(height: CGFloat(store.settings.rules.count) * SettingsStyle.Layout.ruleRowHeight)
+          .focusEffectDisabled()
+          .focused($isRuleTableFocused)
+          .onDeleteCommand {
+            guard focusedRule == nil else { return }
+            removeRuleButtonTapped()
           }
         }
+        ruleToolbar
       }
-      .padding(SettingsStyle.Spacing.page)
+      HStack {
+        VStack(alignment: .leading, spacing: SettingsStyle.Spacing.extraSmall) {
+          Text("All other files").fontWeight(.medium)
+          Text("Use the default editor").foregroundStyle(.secondary)
+        }
+        Spacer()
+        Picker("Default editor", selection: $store.settings.defaultEditor) {
+          ForEach(store.settings.availableEditors) { Text(store.settings.title(for: $0)).tag($0) }
+        }
+        .labelsHidden().frame(width: SettingsStyle.Layout.editorPicker)
+      }
+      Divider()
+      HStack {
+        Text("Add or customize editors in the configuration file.")
+          .font(.callout).foregroundStyle(.secondary)
+        Spacer()
+        Button("Edit Configuration…") {
+          do {
+            let file = try store.prepareConfigurationForEditing()
+            if !NSWorkspace.shared.open(file) {
+              NSWorkspace.shared.activateFileViewerSelecting([file])
+            }
+          } catch { SettingsStore.show(error) }
+        }
+        .disabled(store.setupSnapshot == nil && store.errorMessage == nil)
+      }
     }
-    .onAppear { expanded.insert(store.settings.defaultEditor) }
-  }
-
-  private func editorConfiguration(_ editor: Editor) -> some View {
-    VStack(alignment: .leading, spacing: SettingsStyle.Spacing.medium) {
-      Text("Executable").fontWeight(.medium)
-      HStack(spacing: SettingsStyle.Spacing.medium) {
-        TextField("Executable path", text: Binding(
-          get: { profilePath(editor) },
-          set: { store.settings.editors[editor.rawValue]?.executable = $0 }
-        ))
-        .textFieldStyle(.roundedBorder).accessibilityLabel("\(editor.title) executable path")
-        Button("Choose…") { chooseExecutable(editor) }
-      }
-      Text("Command arguments are configured in config.json. Install the editor before using it.")
-        .font(.callout).foregroundStyle(.secondary)
-      if let profile = store.settings.editors[editor.rawValue] {
-        Text(profile.arguments.joined(separator: " "))
-          .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
-      }
-      if let bundled = EditorProfile.defaults[editor.rawValue], profilePath(editor) != bundled.executable {
-        Button("Use Default Path") { store.settings.editors[editor.rawValue]?.executable = bundled.executable }
-          .buttonStyle(SettingsLinkButtonStyle())
+    .padding(SettingsStyle.Spacing.page)
+    .onChange(of: focusedRule) { _, id in
+      if let id {
+        selection = id
       }
     }
-    .padding(.leading, SettingsStyle.Layout.editorConfigurationInset).padding(.bottom, SettingsStyle.Spacing.extraLarge)
-  }
-
-  private func profilePath(_ editor: Editor) -> String {
-    store.settings.editors[editor.rawValue]?.executable ?? ""
-  }
-
-  private func chooseExecutable(_ editor: Editor) {
-    let panel = NSOpenPanel()
-    panel.title = "Choose \(editor.title) Executable"
-    panel.message = "Select the editor’s command-line executable."
-    panel.canChooseDirectories = false
-    panel.canChooseFiles = true
-    panel.allowsMultipleSelection = false
-    panel.treatsFilePackagesAsDirectories = true
-    panel.directoryURL = URL(fileURLWithPath:
-      ConfigurationPaths.expand(profilePath(editor)))
-      .deletingLastPathComponent()
-    if panel.runModal() == .OK, let url = panel.url {
-      guard FileManager.default.isExecutableFile(atPath: url.path) else {
-        SettingsStore.show(SourceLinkError.invalidEditor)
-        return
+    .onChange(of: store.settings.rules.map(\.id)) { _, ids in
+      if let selection, !ids.contains(selection) {
+        self.selection = nil
       }
-      store.settings.editors[editor.rawValue]?.executable = url.path
+    }
+  }
+
+  private var ruleToolbar: some View {
+    HStack(spacing: 0) {
+      Button(action: addRuleButtonTapped) {
+        Image(systemName: "plus").frame(
+          width: SettingsStyle.Layout.ruleToolbarButtonWidth,
+          height: SettingsStyle.Layout.ruleToolbarHeight
+        )
+      }
+      .accessibilityLabel("Add Rule")
+      .help("Add a file rule")
+      Divider().frame(height: SettingsStyle.Layout.ruleToolbarHeight)
+      Button(action: removeRuleButtonTapped) {
+        Image(systemName: "minus").frame(
+          width: SettingsStyle.Layout.ruleToolbarButtonWidth,
+          height: SettingsStyle.Layout.ruleToolbarHeight
+        )
+      }
+      .accessibilityLabel("Remove Rule")
+      .help("Remove the selected rule")
+      .disabled(selection == nil)
+      Divider().frame(height: SettingsStyle.Layout.ruleToolbarHeight)
+      Spacer(minLength: 0)
+    }
+    .buttonStyle(.borderless)
+    .background(SettingsStyle.tableHeaderBackground)
+  }
+
+  private func ruleRow(_ binding: Binding<FileRule>) -> some View {
+    let rule = binding.wrappedValue
+    let index = store.settings.rules.firstIndex(where: { $0.id == rule.id }) ?? 0
+    return HStack(spacing: SettingsStyle.Spacing.large) {
+      TextField("Extension", text: binding.fileExtension)
+        .textFieldStyle(.roundedBorder).frame(maxWidth: SettingsStyle.Layout.extensionField)
+        .accessibilityLabel("File extension for rule \(index + 1)")
+        .focused($focusedRule, equals: rule.id)
+      Spacer(minLength: 0)
+      Picker("Editor for rule \(index + 1)", selection: binding.editor) {
+        ForEach(store.settings.availableEditors) { Text(store.settings.title(for: $0)).tag($0) }
+      }
+      .labelsHidden().frame(width: SettingsStyle.Layout.editorPicker, alignment: .leading)
+      .simultaneousGesture(TapGesture().onEnded { selection = rule.id })
+    }
+    .padding(.horizontal, SettingsStyle.Spacing.large)
+    .padding(.vertical, SettingsStyle.Spacing.small)
+    .frame(height: SettingsStyle.Layout.ruleRowHeight)
+    .contentShape(Rectangle())
+    .onTapGesture { ruleRowTapped(rule.id) }
+    .accessibilityAddTraits(selection == rule.id ? .isSelected : [])
+  }
+
+  private var selectionBackground: Color {
+    SettingsStyle.selectionBackground(for: colorScheme)
+  }
+
+  private func ruleRowTapped(_ id: FileRule.ID) {
+    focusedRule = nil
+    isRuleTableFocused = true
+    selection = id
+  }
+
+  private func addRuleButtonTapped() {
+    let rule = store.settings.addFileRule()
+    selection = rule.id
+    focusedRule = rule.id
+  }
+
+  private func removeRuleButtonTapped() {
+    guard let selection else { return }
+    removeRule(selection)
+  }
+
+  private func removeRule(_ id: FileRule.ID) {
+    guard let index = store.settings.rules.firstIndex(where: { $0.id == id }) else { return }
+    if focusedRule == id {
+      focusedRule = nil
+    }
+    if selection == id {
+      selection = nil
+    }
+    store.settings.rules.remove(at: index)
+  }
+}
+
+private extension [FileRule] {
+  /// Text fields can finish editing after their row is removed. Resolve by identity
+  /// rather than retaining an array-index binding that can become invalid.
+  subscript(ruleID id: FileRule.ID) -> FileRule {
+    get { first { $0.id == id } ?? FileRule() }
+    set {
+      guard let index = firstIndex(where: { $0.id == id }) else { return }
+      self[index] = newValue
     }
   }
 }
 
 #if DEBUG
-  #Preview("Editors — Custom Executable") {
+  #Preview("Editors — Populated") {
     SettingsPreview { store in
-      EditorsSettingsView(store: store)
+      ScrollView { EditorsSettingsView(store: store) }
         .settingsPagePreviewLayout()
     }
   }
 
-  #Preview("Editors — Defaults") {
+  #Preview("Editors — Empty") {
     SettingsPreview(populated: false) { store in
-      EditorsSettingsView(store: store)
+      ScrollView { EditorsSettingsView(store: store) }
         .settingsPagePreviewLayout()
     }
   }

@@ -36,9 +36,9 @@ For a direct build, substitute `.build/direct/source-link.app`.
 - Checkout labels come from their folder names. The action menus can change a folder, reveal it in Finder,
   or remove its mapping; removing a mapping does not delete files.
 - Select a default editor and optional extension rules. Rules ignore extension case and surrounding dots and spaces.
-  In **File Rules**, use + to add a rule and − or swipe to remove one. Settings requires one rule per extension.
+  In **Editors**, use + to add a rule and − or swipe to remove one. Settings requires one rule per extension.
 - Built-in launch profiles support Xcode, VS Code, Cursor, Zed, Android Studio, IntelliJ IDEA, and Sublime Text. Install the editor separately and
-  expand an editor in **Editors** to adjust or choose its executable path when installed elsewhere.
+  use **Edit Configuration…** in **Editors** to configure its executable and arguments.
 - An unknown repository prompts for a folder and editor, saves the mapping and extension rule, and opens the file.
 - Settings and first-link setup share `~/.config/source-link/config.json` with external editors and agents.
   Settings auto-saves after 500 ms without edits; pending or failed changes do not affect link handling.
@@ -49,7 +49,7 @@ Zed and Sublime Text use `file:line:column`. Android Studio and IntelliJ IDEA us
 without shell interpolation.
 
 These profiles default to apps in `/Applications`. For JetBrains Toolbox, older IDEA
-Community installations, or renamed apps, choose the bundled executable in Settings:
+Community installations, or renamed apps, set the executable path in the configuration file:
 `Contents/MacOS/studio` or `Contents/MacOS/idea`. Sublime Text uses
 `Contents/SharedSupport/bin/subl`. No separate shell launcher installation is required.
 See the [VS Code CLI](https://code.visualstudio.com/docs/configure/command-line) and
@@ -124,9 +124,12 @@ Adding a bundled editor only requires adding its JSON profile; pickers discover 
 Saving writes the effective profiles
 into `editors`, making commands editable in JSON. Omitted built-in profiles are restored from
 defaults; removing a custom profile requires removing references to it as well.
-Settings edits the profile's executable directly. **Use Default Path** restores the bundled
-executable for that editor. The `executables` field is not supported and is rejected. Argument templates are edited
-through the configuration file; Settings displays the base arguments.
+The **Editors** page contains file-type rules and a default editor for all other files.
+**Edit Configuration…** writes the effective profiles to `config.json` and opens it in the
+system-associated application (or reveals it in Finder if no app can open it).
+Executable paths and arguments are edited together in that file, manually or with an agent.
+Invalid configuration is opened for repair without overwriting it.
+The `executables` field is not supported and is rejected.
 
 Unknown keys, incorrect types, unsupported versions, and multiple defaults for the same
 repository are errors. Names and extensions must not be empty. Paths must be absolute or
@@ -217,7 +220,7 @@ make ui-test
 
 The XCUITest target launches the app with `--settings`, visits all three pages, and
 adds a file rule then verifies it survives a restart. A populated-settings test also
-checks checkout defaults, executable-path persistence and reset, and rule selection
+checks checkout defaults, default-editor persistence, and rule selection
 and removal. It uses a temporary settings
 file through the Debug-only `SOURCE_LINK_TEST_SETTINGS_PATH` environment variable
 and removes it afterward. Release builds always use the normal settings location.
