@@ -2,9 +2,8 @@ import Foundation
 import Testing
 @testable import XedLinkCore
 
-@Suite
 struct SourceLinkTests {
-  @Test func parsesPortableLink() throws {
+  @Test func `parses portable link`() throws {
     let link = try SourceLink(#require(URL(string: "source-link://MyRepo/Sources/My%20File.swift?line=42&column=3")))
     #expect(link.repository.lowercased() == "myrepo")
     #expect(link.path == "Sources/My File.swift")
@@ -22,11 +21,11 @@ struct SourceLinkTests {
     "source-link://user@repo/file", "source-link://repo:80/file",
     "source-link://repo/", "xed:///tmp/file", "source-link://repo/a%00b"
   ])
-  func rejectsInvalidLinks(_ value: String) throws {
+  func `rejects invalid links`(_ value: String) throws {
     #expect(throws: (any Error).self) { try SourceLink(#require(URL(string: value))) }
   }
 
-  @Test func resolvesFilesAndRejectsEscapingSymlinks() throws {
+  @Test func `resolves files and rejects escaping symlinks`() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -36,12 +35,12 @@ struct SourceLinkTests {
     let missing = try SourceLink(#require(URL(string: "source-link://repo/missing")))
     #expect(throws: (any Error).self) { try missing.resolve(root: root) }
     try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("escape"),
-                                              withDestinationURL: root.deletingLastPathComponent())
+                                               withDestinationURL: root.deletingLastPathComponent())
     let escape = try SourceLink(#require(URL(string: "source-link://repo/escape/anything")))
     #expect(throws: (any Error).self) { try escape.resolve(root: root) }
   }
 
-  @Test func requiresSetupForUnknownOrAmbiguousRepositories() {
+  @Test func `requires setup for unknown or ambiguous repositories`() {
     var settings = SourceSettings()
     #expect(settings.checkout(for: "repo") == nil)
     settings.checkouts = [Checkout(name: "Repo", path: "/one")]
@@ -54,7 +53,7 @@ struct SourceLinkTests {
     #expect(settings.checkout(for: "repo") == nil)
   }
 
-  @Test func settingsRoundTripAndEditorSelection() throws {
+  @Test func `settings round trip and editor selection`() throws {
     var settings = SourceSettings()
     settings.defaultEditor = .vscode
     var rule = FileRule()
@@ -66,7 +65,7 @@ struct SourceLinkTests {
     #expect(try JSONDecoder().decode(SourceSettings.self, from: JSONEncoder().encode(settings)) == settings)
   }
 
-  @Test func editorArgumentsDoNotUseShellInterpolation() {
+  @Test func `editor arguments do not use shell interpolation`() {
     let file = URL(fileURLWithPath: "/tmp/a file;$(echo bad).swift")
     let xcode = EditorCommand(editor: .xcode, file: file, line: 12, column: 3)
     #expect(xcode.arguments == ["--line", "12", file.path])
@@ -78,7 +77,7 @@ struct SourceLinkTests {
   }
 
   @Test(arguments: [nil, 42] as [Int?])
-  func xcodeUsesXedWithoutForcingAnotherWorkspace(line: Int?) throws {
+  func `xcode uses xed without forcing another workspace`(line: Int?) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -96,13 +95,13 @@ struct SourceLinkTests {
       + [file.resolvingSymlinksInPath().path])
   }
 
-  @Test func rejectsMissingExecutable() {
+  @Test func `rejects missing executable`() {
     let command = EditorCommand(editor: .vscode, executable: "/nonexistent/editor",
                                 file: URL(fileURLWithPath: "/tmp/file"), line: nil, column: nil)
     #expect(throws: (any Error).self) { try command.run() }
   }
 
-  @Test func observesEditorExitStatus() throws {
+  @Test func `observes editor exit status`() throws {
     let file = URL(fileURLWithPath: "/tmp/file.swift")
     try EditorCommand(editor: .xcode, executable: "/usr/bin/true",
                       file: file, line: nil, column: nil).run()
@@ -111,7 +110,7 @@ struct SourceLinkTests {
     #expect(throws: (any Error).self) { try failure.run() }
   }
 
-  @Test func resolvesThenRoutesAnExistingFile() throws {
+  @Test func `resolves then routes an existing file`() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -127,5 +126,4 @@ struct SourceLinkTests {
     #expect(command.executable == "/custom/code")
     #expect(command.arguments == ["--goto", file.resolvingSymlinksInPath().path + ":1:2"])
   }
-
 }

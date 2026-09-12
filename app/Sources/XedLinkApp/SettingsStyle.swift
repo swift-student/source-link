@@ -34,7 +34,7 @@ enum SettingsStyle {
   static let cardBackground = Color(nsColor: .controlBackgroundColor)
   static let cardBorder = Color(nsColor: .separatorColor).opacity(0.5)
   static let tableHeaderBackground = Color.primary.opacity(0.03)
-  // Keep the system accent hue, but soften text toward the appearance's label color.
+  /// Keep the system accent hue, but soften text toward the appearance's label color.
   static let actionForeground = Color.accentColor.mix(with: .primary, by: 0.25)
 
   static func selectionBackground(for colorScheme: ColorScheme) -> Color {

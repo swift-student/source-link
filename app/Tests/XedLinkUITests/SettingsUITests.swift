@@ -26,7 +26,9 @@ final class SettingsUITests: XCTestCase {
       add(screenshot)
     }
     app?.terminate()
-    if let directory { try FileManager.default.removeItem(at: directory) }
+    if let directory {
+      try FileManager.default.removeItem(at: directory)
+    }
   }
 
   func testEmptyRepositoriesActions() {
@@ -37,7 +39,7 @@ final class SettingsUITests: XCTestCase {
     XCTAssertEqual(window.buttons.matching(identifier: "repositories.add").count, 1)
     XCTAssertFalse(window.buttons["settings.apply"].exists)
     XCTAssertFalse(window.buttons["Save"].exists)
-    XCTAssertTrue(window.buttons["Reveal File"].exists)
+    XCTAssertFalse(window.buttons["Reveal File"].exists)
   }
 
   func testSettingsNavigationAndRulePersistence() {
@@ -54,11 +56,7 @@ final class SettingsUITests: XCTestCase {
     field.typeKey("a", modifierFlags: .command)
     field.typeText("uitest")
     window.descendants(matching: .any)["settings.page.Editors"].firstMatch.click()
-    let savedStatus = window.staticTexts["settings.saveStatus"]
-    let saved = NSPredicate(
-      format: "label BEGINSWITH %@ OR value BEGINSWITH %@", "All changes saved", "All changes saved")
-    expectation(for: saved, evaluatedWith: savedStatus)
-    waitForExpectations(timeout: 5)
+    waitForSavedSettings { $0.rules.contains { $0.fileExtension == "uitest" } }
     app.terminate()
     app.launch()
     XCTAssertTrue(window.waitForExistence(timeout: 10))
@@ -85,11 +83,7 @@ final class SettingsUITests: XCTestCase {
     window.textFields["File extension for rule 2"].click()
     XCTAssertTrue(window.buttons["Remove Rule"].isEnabled)
     XCTAssertEqual(window.textFields["File extension for rule 1"].value as? String, "swift")
-    let savedStatus = window.staticTexts["settings.saveStatus"]
-    let savedPredicate = NSPredicate(
-      format: "label BEGINSWITH %@ OR value BEGINSWITH %@", "All changes saved", "All changes saved")
-    expectation(for: savedPredicate, evaluatedWith: savedStatus)
-    waitForExpectations(timeout: 5)
+    waitForSavedSettings { $0.executablePaths["xcode"] == "/tmp/custom-xed" }
     app.terminate()
     app.launch()
     XCTAssertTrue(window.waitForExistence(timeout: 10))
@@ -110,6 +104,44 @@ final class SettingsUITests: XCTestCase {
     window.buttons["Remove Rule"].click()
     XCTAssertTrue(window.staticTexts["No File Rules"].exists)
     XCTAssertFalse(window.buttons["Remove Rule"].isEnabled)
+  }
+
+  func testEditorRowDisclosureAndDefaultPersistence() {
+    let window = app.windows["Source Link Settings"]
+    XCTAssertTrue(window.waitForExistence(timeout: 10))
+    window.descendants(matching: .any)["settings.page.Editors"].firstMatch.click()
+    XCTAssertFalse(window.popUpButtons["Default editor"].exists)
+    let collapse = window.buttons["Collapse Xcode"]
+    XCTAssertTrue(collapse.waitForExistence(timeout: 5))
+    XCTAssertGreaterThanOrEqual(collapse.frame.width, 36)
+    XCTAssertGreaterThanOrEqual(collapse.frame.height, 44)
+    // Click away from the glyph to exercise the expanded hit target.
+    collapse.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.5)).click()
+    XCTAssertFalse(window.textFields["Xcode executable path"].exists)
+    window.buttons["Expand Xcode"].click()
+    XCTAssertTrue(window.textFields["Xcode executable path"].exists)
+    window.buttons["editors.makeDefault.cursor"].click()
+    XCTAssertTrue(window.buttons["Expand Cursor"].exists)
+    waitForSavedSettings { $0.defaultEditor == .cursor }
+    app.terminate()
+    app.launch()
+    XCTAssertTrue(window.waitForExistence(timeout: 10))
+    window.descendants(matching: .any)["settings.page.Editors"].firstMatch.click()
+    XCTAssertTrue(window.textFields["Cursor executable path"].waitForExistence(timeout: 5))
+    XCTAssertFalse(window.buttons["editors.makeDefault.cursor"].exists)
+    window.descendants(matching: .any)["settings.page.File Rules"].firstMatch.click()
+    XCTAssertFalse(window.staticTexts["All other files"].exists)
+  }
+
+  private func waitForSavedSettings(_ matches: @escaping (SourceSettings) -> Bool) {
+    let file = directory.appendingPathComponent("config.json")
+    let saved = NSPredicate { _, _ in
+      guard let text = try? String(contentsOf: file, encoding: .utf8),
+            let document = try? ConfigurationDocument(text: text) else { return false }
+      return matches(document.settings)
+    }
+    expectation(for: saved, evaluatedWith: nil)
+    waitForExpectations(timeout: 5)
   }
 
   private func writeFixture() throws {
@@ -141,5 +173,4 @@ final class SettingsUITests: XCTestCase {
     """
     try Data(fixture.utf8).write(to: directory.appendingPathComponent("config.json"))
   }
-
 }

@@ -11,8 +11,8 @@ enum ConfigurationSchema {
     } catch let error as DecodingError {
       let context: DecodingError.Context
       switch error {
-      case .dataCorrupted(let value), .keyNotFound(_, let value),
-           .typeMismatch(_, let value), .valueNotFound(_, let value): context = value
+      case let .dataCorrupted(value), let .keyNotFound(_, value),
+           let .typeMismatch(_, value), let .valueNotFound(_, value): context = value
       @unknown default: throw ConfigurationError("Invalid JSON configuration.")
       }
       let path = context.codingPath.map(\.stringValue).joined(separator: ".")
@@ -38,7 +38,8 @@ enum ConfigurationSchema {
     }
     for (index, checkout) in settings.checkouts.enumerated() {
       guard !checkout.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-            !checkout.name.contains("\0") else {
+            !checkout.name.contains("\0")
+      else {
         throw ConfigurationError("checkouts.\(index).name must not be empty or contain null characters.")
       }
       try path(checkout.path, key: "checkouts.\(index).path")
@@ -49,7 +50,8 @@ enum ConfigurationSchema {
     }
     for (index, rule) in settings.rules.enumerated() {
       guard !rule.fileExtension.trimmingCharacters(in: CharacterSet(charactersIn: ". ")).isEmpty,
-            !rule.fileExtension.contains("\0") else {
+            !rule.fileExtension.contains("\0")
+      else {
         throw ConfigurationError("rules.\(index).extension must not be empty or contain null characters.")
       }
     }
@@ -146,9 +148,17 @@ private struct ConfigurationRule: Codable {
 
 private struct ConfigurationKey: CodingKey {
   let stringValue: String
-  var intValue: Int? { nil }
-  init?(stringValue: String) { self.stringValue = stringValue }
-  init?(intValue: Int) { return nil }
+  var intValue: Int? {
+    nil
+  }
+
+  init?(stringValue: String) {
+    self.stringValue = stringValue
+  }
+
+  init?(intValue _: Int) {
+    nil
+  }
 }
 
 private extension Decoder {

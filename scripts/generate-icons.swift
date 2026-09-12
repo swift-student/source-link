@@ -68,5 +68,6 @@ for points in [16, 32, 128, 256, 512] {
     try render(pixels: points * scale, appIcon: true, to: appIcon.appendingPathComponent(filename))
   }
 }
+
 try writeJSON(["info": info, "images": images], to: appIcon.appendingPathComponent("Contents.json"))
 print("Generated Source Link app and menu-bar icons.")

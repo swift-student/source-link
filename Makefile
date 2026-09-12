@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: build check generate lint run test ui-test snapshot-test
+.PHONY: build check format format-check generate lint run test ui-test snapshot-test
 
 build: generate
 	xcodebuild \
@@ -12,10 +12,18 @@ build: generate
 		CODE_SIGNING_ALLOWED=NO \
 		build
 
-check: test lint build
+check: test lint format-check build
 
 generate:
 	cd app && xcodegen generate
+
+format:
+	swiftformat .
+	swiftlint lint --fix --config .swiftlint.yml
+	swiftformat .
+
+format-check:
+	swiftformat . --lint
 
 lint:
 	swiftlint lint --strict --config .swiftlint.yml

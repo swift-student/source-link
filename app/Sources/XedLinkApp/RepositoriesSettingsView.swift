@@ -32,7 +32,9 @@ struct RepositoriesSettingsView: View {
           } else {
             SettingsCard {
               ForEach(store.settings.repositoryNames, id: \.self) { name in
-                if name != store.settings.repositoryNames.first { Divider() }
+                if name != store.settings.repositoryNames.first {
+                  Divider()
+                }
                 repositoryGroup(name)
               }
             }
@@ -49,7 +51,13 @@ struct RepositoriesSettingsView: View {
     let checkouts = store.settings.checkouts(for: name)
     return DisclosureGroup(isExpanded: Binding(
       get: { !collapsed.contains(name) },
-      set: { if $0 { collapsed.remove(name) } else { collapsed.insert(name) } }
+      set: {
+        if $0 {
+          collapsed.remove(name)
+        } else {
+          collapsed.insert(name)
+        }
+      }
     )) {
       VStack(spacing: 0) {
         ForEach(checkouts) { checkout in
@@ -78,6 +86,7 @@ struct RepositoriesSettingsView: View {
       }
       .padding(.vertical, SettingsStyle.Spacing.large)
     }
+    .disclosureGroupStyle(SettingsDisclosureGroupStyle(title: name))
     .padding(.horizontal, SettingsStyle.Spacing.large)
   }
 
@@ -92,10 +101,12 @@ struct RepositoriesSettingsView: View {
       }
       Spacer(minLength: SettingsStyle.Spacing.medium)
       Group {
-        if checkout.isDefault { DefaultBadge() } else {
-            Button("Make Default") { store.settings.setDefaultCheckout(checkout.id) }
-                .buttonStyle(SettingsLinkButtonStyle())
-                .font(.callout)
+        if checkout.isDefault {
+          DefaultBadge()
+        } else {
+          Button("Make Default") { store.settings.setDefaultCheckout(checkout.id) }
+            .buttonStyle(SettingsLinkButtonStyle())
+            .font(.callout)
         }
       }
       .frame(width: SettingsStyle.Layout.checkoutStatus)

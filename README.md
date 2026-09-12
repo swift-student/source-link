@@ -85,8 +85,8 @@ the configuration; availability is checked when opening a link. UI row IDs are n
 
 The location is `$XDG_CONFIG_HOME/source-link/config.json` when `XDG_CONFIG_HOME` is an
 absolute path, otherwise `~/.config/source-link/config.json`. A GUI app launched from Finder
-usually does not inherit shell startup variables. **Settings displays the actual path**; use
-that path when validating if your shell has a different environment. The default location is
+usually does not inherit shell startup variables. Use `source-link config path` to check the
+CLI's resolved location, accounting for any different GUI environment. The default location is
 recommended for a shared GUI/terminal workflow.
 
 You can symlink the file or its parent directory into a dotfiles repository. Saves follow the
@@ -138,11 +138,14 @@ For a standalone CLI binary, build with `swift build -c release --product source
 
 ## Development
 
-Requires Swift 6.2+, Xcode, XcodeGen, and SwiftLint. Tests use native Swift Testing.
+Requires Swift 6.2+, Xcode, XcodeGen, SwiftLint, and SwiftFormat. Install the development tools
+with `brew install xcodegen swiftlint swiftformat` (formatting verified with SwiftFormat 0.63.0
+and SwiftLint 0.65.1). Tests use native Swift Testing.
 Configuration uses Foundation's JSON encoder and decoder without external dependencies.
 
 ```sh
-make check
+make format # Format and auto-correct all repository Swift sources, tests, and scripts
+make check  # Tests, strict lint, formatting verification, and app build
 make run
 ```
 

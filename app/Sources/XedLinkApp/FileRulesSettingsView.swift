@@ -60,22 +60,17 @@ struct FileRulesSettingsView: View {
       }
       Text("Each file extension can have one rule. Files without a rule use the default editor.")
         .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-      Divider()
-      HStack {
-        VStack(alignment: .leading, spacing: SettingsStyle.Spacing.small) {
-          Text("All other files").fontWeight(.medium)
-          Text("Use the default editor").foregroundStyle(.secondary)
-        }
-        Spacer()
-        Text(store.settings.defaultEditor.title)
-      }
     }
     .padding(SettingsStyle.Spacing.page)
     .onChange(of: focusedRule) { _, id in
-      if let id { selection = id }
+      if let id {
+        selection = id
+      }
     }
     .onChange(of: store.settings.rules.map(\.id)) { _, ids in
-      if let selection, !ids.contains(selection) { self.selection = nil }
+      if let selection, !ids.contains(selection) {
+        self.selection = nil
+      }
     }
   }
 
@@ -158,15 +153,19 @@ struct FileRulesSettingsView: View {
 
   private func removeRule(_ id: FileRule.ID) {
     guard let index = store.settings.rules.firstIndex(where: { $0.id == id }) else { return }
-    if focusedRule == id { focusedRule = nil }
-    if selection == id { selection = nil }
+    if focusedRule == id {
+      focusedRule = nil
+    }
+    if selection == id {
+      selection = nil
+    }
     store.settings.rules.remove(at: index)
   }
 }
 
-private extension Array where Element == FileRule {
-  // Text fields can finish editing after their row is removed. Resolve by identity
-  // rather than retaining an array-index binding that can become invalid.
+private extension [FileRule] {
+  /// Text fields can finish editing after their row is removed. Resolve by identity
+  /// rather than retaining an array-index binding that can become invalid.
   subscript(ruleID id: FileRule.ID) -> FileRule {
     get { first { $0.id == id } ?? FileRule() }
     set {

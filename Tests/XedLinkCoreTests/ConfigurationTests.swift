@@ -2,8 +2,8 @@ import Foundation
 import Testing
 @testable import XedLinkCore
 
-@Suite struct ConfigurationTests {
-  @Test func defaultsAndPortablePaths() throws {
+struct ConfigurationTests {
+  @Test func `defaults and portable paths`() throws {
     let document = try ConfigurationDocument(text: #"{"version":1}"#)
     #expect(document.settings.defaultEditor == .xcode)
     #expect(document.settings.checkouts.isEmpty)
@@ -37,11 +37,11 @@ import Testing
     #"{"version":1,"executables":{"xcode":"/bin/\u0000xed"}}"#,
     #"{"version":1, broken}"#
   ])
-  func rejectsInvalidConfiguration(_ text: String) {
+  func `rejects invalid configuration`(_ text: String) {
     #expect(throws: ConfigurationError.self) { try ConfigurationDocument(text: text) }
   }
 
-  @Test func reportsInvalidField() {
+  @Test func `reports invalid field`() {
     do {
       _ = try ConfigurationDocument(text: #"{"version":1,"default_editor":3}"#)
       Issue.record("Expected a schema error")
@@ -50,7 +50,7 @@ import Testing
     }
   }
 
-  @Test func mergesSeparateEditsAndRejectsConflicts() throws {
+  @Test func `merges separate edits and rejects conflicts`() throws {
     let base = try ConfigurationDocument(text: #"{"version":1,"default_editor":"xcode"}"#)
     var draft = base.settings
     draft.executablePaths["zed"] = "~/bin/zed"
@@ -62,7 +62,7 @@ import Testing
     #expect(throws: ConfigurationError.self) { try disk.merging(base: base.settings, draft: draft) }
   }
 
-  @Test func editsCollectionsAndOverrides() throws {
+  @Test func `edits collections and overrides`() throws {
     var settings = SourceSettings()
     settings.checkouts = [Checkout(name: "a", path: "/a"), Checkout(name: "a", path: "/b", isDefault: true)]
     settings.executablePaths["xcode"] = "/usr/bin/xed"
@@ -82,7 +82,7 @@ import Testing
     #expect(try removed.merging(base: removed.settings, draft: draft).settings.hasSameConfiguration(as: draft))
   }
 
-  @Test func concurrentCollectionEditsConflict() throws {
+  @Test func `concurrent collection edits conflict`() throws {
     let base = try ConfigurationDocument.initial()
     var draft = base.settings
     draft.checkouts.append(Checkout(name: "a", path: "/a"))
@@ -92,7 +92,7 @@ import Testing
     #expect(throws: ConfigurationError.self) { try disk.merging(base: base.settings, draft: draft) }
   }
 
-  @Test func roundTripsEscapesAndRuleOrderWithoutUIIDs() throws {
+  @Test func `round trips escapes and rule order without UII ds`() throws {
     var settings = SourceSettings()
     settings.checkouts = [Checkout(name: "a\"b\\c🐈", path: "~/code/\t\n\u{7f}")]
     var first = FileRule()
