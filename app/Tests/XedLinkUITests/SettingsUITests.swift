@@ -29,16 +29,23 @@ final class SettingsUITests: XCTestCase {
     if let directory { try FileManager.default.removeItem(at: directory) }
   }
 
+  func testEmptyRepositoriesActions() {
+    let window = app.windows["Source Link Settings"]
+    XCTAssertTrue(window.waitForExistence(timeout: 10))
+    XCTAssertTrue(window.staticTexts["No repositories yet"].exists)
+    XCTAssertTrue(window.staticTexts["Connect shared source links to folders on this Mac."].exists)
+    XCTAssertEqual(window.buttons.matching(identifier: "repositories.add").count, 1)
+    XCTAssertFalse(window.buttons["settings.apply"].exists)
+    XCTAssertFalse(window.buttons["Save"].exists)
+    XCTAssertTrue(window.buttons["Reveal File"].exists)
+  }
+
   func testSettingsNavigationAndRulePersistence() {
     let window = app.windows["Source Link Settings"]
     XCTAssertTrue(window.waitForExistence(timeout: 10))
     for page in ["Repositories", "Editors", "File Rules"] {
       window.descendants(matching: .any)["settings.page.\(page)"].firstMatch.click()
       XCTAssertTrue(window.staticTexts["settings.heading.\(page)"].waitForExistence(timeout: 5))
-      let snapshot = XCTAttachment(screenshot: app.windows["Source Link Settings"].screenshot())
-      snapshot.name = page
-      snapshot.lifetime = .keepAlways
-      add(snapshot)
     }
     window.buttons["Add Rule"].click()
     let field = window.textFields["Extension"].firstMatch
@@ -67,7 +74,6 @@ final class SettingsUITests: XCTestCase {
     let window = app.windows["Source Link Settings"]
     XCTAssertTrue(window.waitForExistence(timeout: 10))
     window.descendants(matching: .any)["Make Default"].firstMatch.click()
-    capture(window, name: "Repositories populated")
     window.descendants(matching: .any)["settings.page.Editors"].firstMatch.click()
     let executable = window.textFields["Xcode executable path"]
     XCTAssertTrue(executable.waitForExistence(timeout: 5))
@@ -79,7 +85,6 @@ final class SettingsUITests: XCTestCase {
     window.textFields["File extension for rule 2"].click()
     XCTAssertTrue(window.buttons["Remove Rule"].isEnabled)
     XCTAssertEqual(window.textFields["File extension for rule 1"].value as? String, "swift")
-    capture(window, name: "File Rules populated")
     let savedStatus = window.staticTexts["settings.saveStatus"]
     let savedPredicate = NSPredicate(
       format: "label BEGINSWITH %@ OR value BEGINSWITH %@", "All changes saved", "All changes saved")
@@ -94,7 +99,6 @@ final class SettingsUITests: XCTestCase {
     window.descendants(matching: .any)["settings.page.Editors"].firstMatch.click()
     XCTAssertTrue(executable.waitForExistence(timeout: 5))
     XCTAssertEqual(executable.value as? String, "/tmp/custom-xed")
-    capture(window, name: "Editors populated")
     window.descendants(matching: .any)["Use Default Path"].firstMatch.click()
     XCTAssertEqual(executable.value as? String, "/usr/bin/xed")
     window.descendants(matching: .any)["settings.page.File Rules"].firstMatch.click()
@@ -136,13 +140,6 @@ final class SettingsUITests: XCTestCase {
     }
     """
     try Data(fixture.utf8).write(to: directory.appendingPathComponent("config.json"))
-  }
-
-  private func capture(_ window: XCUIElement, name: String) {
-    let snapshot = XCTAttachment(screenshot: window.screenshot())
-    snapshot.name = name
-    snapshot.lifetime = .keepAlways
-    add(snapshot)
   }
 
 }

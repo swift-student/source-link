@@ -1,0 +1,1 @@
+app/Tests/SettingsSnapshotTests/__Snapshots__/**/*.png filter=lfs diff=lfs merge=lfs -text

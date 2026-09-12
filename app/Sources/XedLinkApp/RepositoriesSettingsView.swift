@@ -7,31 +7,41 @@ struct RepositoriesSettingsView: View {
   @State private var collapsed: Set<String> = []
 
   var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: SettingsStyle.Spacing.section) {
-        SettingsHeading(title: "Repositories", subtitle: "Choose where source links open on this Mac.") {
-          Button("Add Repository", systemImage: "plus") { addRepository() }
-        }
-        if store.settings.checkouts.isEmpty {
-          ContentUnavailableView {
-            Label("No Repositories", systemImage: "folder")
-          } description: {
-            Text("Choose a repository’s main root folder to get started. Its folder name identifies shared links.")
-          } actions: {
-            Button("Add Repository…") { addRepository() }
+    GeometryReader { geometry in
+      ScrollView {
+        VStack(alignment: .leading, spacing: SettingsStyle.Spacing.section) {
+          SettingsHeading(title: "Repositories", subtitle: "Connect shared source links to folders on this Mac.") {
+            if !store.settings.checkouts.isEmpty {
+              Button("Add Repository", systemImage: "plus") { addRepository() }
+            }
           }
-        } else {
-          SettingsCard {
-            ForEach(store.settings.repositoryNames, id: \.self) { name in
-              if name != store.settings.repositoryNames.first { Divider() }
-              repositoryGroup(name)
+          if store.settings.checkouts.isEmpty {
+            VStack(spacing: 10) {
+              Text("No repositories yet")
+                .font(.system(size: 16, weight: .semibold))
+              Button("+ Add Repository…") { addRepository() }
+                .buttonStyle(.plain)
+                .font(.system(size: 13, weight: .medium))
+                .padding(.horizontal, 12).padding(.vertical, 9)
+                .background(SettingsStyle.pageBackground, in: RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(SettingsStyle.cardBorder))
+                .accessibilityIdentifier("repositories.add")
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, max(40, geometry.size.height * 0.35 - 84))
+          } else {
+            SettingsCard {
+              ForEach(store.settings.repositoryNames, id: \.self) { name in
+                if name != store.settings.repositoryNames.first { Divider() }
+                repositoryGroup(name)
+              }
             }
           }
         }
-        Text("Shared links use the repository’s root folder name and open in its default checkout.")
-          .font(.callout).foregroundStyle(.secondary)
+        .padding(.horizontal, 40)
+        .padding(.top, 32)
+        .padding(.bottom, 24)
       }
-      .padding(SettingsStyle.Spacing.page)
     }
   }
 

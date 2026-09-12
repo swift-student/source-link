@@ -46,3 +46,8 @@ ui-test: generate
 		-derivedDataPath .build/xcode \
 		CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
 		test
+
+# Explicit opt-in: review baseline changes before committing.
+.PHONY: record-snapshots
+record-snapshots:
+	TEST_RUNNER_RECORD_SNAPSHOTS=1 $(MAKE) snapshot-test
