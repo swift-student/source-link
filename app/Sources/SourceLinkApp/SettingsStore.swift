@@ -26,6 +26,16 @@ final class SettingsStore: ObservableObject {
     base.map { !settings.hasSameConfiguration(as: $0.document.settings) } ?? false
   }
 
+  var saveStatus: String {
+    if errorMessage != nil || saveError != nil {
+      return "Changes not saved"
+    }
+    if isDirty {
+      return "Changes pending…"
+    }
+    return base == nil ? "Preview — changes stay in memory" : "All changes saved"
+  }
+
   var canSave: Bool {
     base != nil && errorMessage == nil
   }
@@ -133,6 +143,16 @@ final class SettingsStore: ObservableObject {
           scheduleAutoSave()
         }
       }
+    } catch { errorMessage = error.localizedDescription }
+  }
+
+  /// Cancel pending writes; only discard the draft after successfully reading the current file.
+  func discardChangesAndReload() {
+    autoSave?.cancel()
+    autoSave = nil
+    do {
+      try accept(repository.load(), discardDraft: true)
+      saveError = nil
     } catch { errorMessage = error.localizedDescription }
   }
 

@@ -50,6 +50,20 @@ struct SettingsView: View {
             .accessibilityIdentifier("settings.configuration.error")
         }
       }
+      .safeAreaInset(edge: .bottom, spacing: 0) {
+        HStack {
+          Text(store.saveStatus)
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("settings.save.status")
+          Spacer()
+          if store.isDirty || store.errorMessage != nil || store.saveError != nil {
+            Button("Discard changes and reload") { store.discardChangesAndReload() }
+              .accessibilityIdentifier("settings.discard")
+          }
+        }
+        .font(.callout)
+        .padding(SettingsStyle.Spacing.extraLarge)
+      }
     }
     .frame(minWidth: SettingsStyle.Layout.minimumWindow.width,
            minHeight: SettingsStyle.Layout.minimumWindow.height)

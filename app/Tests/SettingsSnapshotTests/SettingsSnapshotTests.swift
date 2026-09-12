@@ -22,7 +22,14 @@ struct SettingsSnapshotTests {
     try await snapshot(page: .editors, dark: dark, size: SettingsStyle.Layout.minimumWindow)
   }
 
-  private func snapshot(page: SettingsPage, dark: Bool, size: CGSize, populated: Bool = false) async throws {
+  @Test(arguments: [false, true])
+  func `unsaved settings window`(conflict: Bool) async throws {
+    try await snapshot(page: .editors, dark: false, size: SettingsStyle.Layout.window,
+                       populated: true, unsaved: conflict ? "conflict" : "pending")
+  }
+
+  private func snapshot(page: SettingsPage, dark: Bool, size: CGSize, populated: Bool = false,
+                        unsaved: String? = nil) async throws {
     // Never read or write the user's real configuration, or launch the menu-bar app.
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -31,7 +38,7 @@ struct SettingsSnapshotTests {
     if populated {
       try writePopulatedFixture(to: file)
     }
-    let store = SettingsStore(repository: ConfigurationRepository(file: file))
+    let store = try await makeStore(file: file, unsaved: unsaved)
     #expect(store.errorMessage == nil)
     NSApplication.shared.setActivationPolicy(.regular)
     NSApplication.shared.activate(ignoringOtherApps: true)
@@ -65,10 +72,31 @@ struct SettingsSnapshotTests {
     let cgImage = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: configuration)
     let image = NSImage(cgImage: cgImage, size: size)
     let name = "\(page.id)-\(dark ? "dark" : "light")-\(Int(size.width))"
-    let snapshotName = populated ? "\(name)-populated" : name
+    let snapshotName = unsaved.map { "\(name)-\($0)" } ?? (populated ? "\(name)-populated" : name)
     withSnapshotTesting(record: ProcessInfo.processInfo.environment["RECORD_SNAPSHOTS"] == "1" ? .all : .never) {
       assertSnapshot(of: image, as: .image, named: snapshotName, testName: "settingsWindow")
     }
+  }
+
+  private func makeStore(file: URL, unsaved: String?) async throws -> SettingsStore {
+    let repository = ConfigurationRepository(file: file)
+    let store = SettingsStore(repository: repository, watchForChanges: false, autoSaveDelay: {
+      if unsaved == "pending" {
+        try await Task.sleep(for: .seconds(60))
+      }
+    })
+    if let unsaved {
+      store.settings.defaultEditor = .cursor
+      if unsaved == "conflict" {
+        let base = try repository.load()
+        var changed = base.document.settings
+        changed.defaultEditor = .zed
+        _ = try repository.save(base: base, draft: changed)
+        await store.autoSave?.value
+        #expect(store.saveError != nil)
+      }
+    }
+    return store
   }
 
   private func writePopulatedFixture(to file: URL) throws {

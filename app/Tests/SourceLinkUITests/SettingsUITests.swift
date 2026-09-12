@@ -42,6 +42,23 @@ final class SettingsUITests: XCTestCase {
     XCTAssertFalse(window.buttons["Reveal File"].exists)
   }
 
+  func testReloadRecoversFromInvalidConfiguration() throws {
+    let window = app.windows["Source Link Settings"]
+    XCTAssertTrue(window.waitForExistence(timeout: 10))
+    let file = directory.appendingPathComponent("config.json")
+    try Data("invalid JSON".utf8).write(to: file)
+    XCTAssertTrue(window.staticTexts["settings.configuration.error"].waitForExistence(timeout: 5))
+    let reload = window.buttons["settings.discard"]
+    XCTAssertTrue(reload.exists)
+    reload.click()
+    XCTAssertTrue(window.staticTexts["settings.configuration.error"].exists)
+    try FileManager.default.removeItem(at: file)
+    reload.click()
+    XCTAssertTrue(window.staticTexts["All changes saved"].waitForExistence(timeout: 5))
+    XCTAssertFalse(window.staticTexts["settings.configuration.error"].exists)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
+  }
+
   func testSettingsNavigationAndRulePersistence() {
     let window = app.windows["Source Link Settings"]
     XCTAssertTrue(window.waitForExistence(timeout: 10))

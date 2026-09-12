@@ -29,7 +29,7 @@ public struct ConfigurationRepository: Sendable {
     let latest = try load()
     guard latest.exists == base.exists, latest.target == base.target else {
       throw ConfigurationError("\(file.path): the file was created, removed, or its symlink changed. "
-        + "Restart Source Link to load the current file and discard unsaved changes before editing again.")
+        + "Choose Discard changes and reload in Settings before editing again.")
     }
     let merged = try latest.document.merging(base: base.document.settings, draft: draft)
     return try write(merged, replacing: latest)
