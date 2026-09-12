@@ -19,12 +19,17 @@ enum SettingsStyle {
     static let sidebarIdeal: CGFloat = 220
     static let sidebarMaximum: CGFloat = 260
     static let editorPicker: CGFloat = 200
-    static let ruleOrder: CGFloat = 44
     static let extensionField: CGFloat = 160
     static let actionMenu: CGFloat = 28
     static let checkoutStatus: CGFloat = 100
+    static let ruleRowHeight: CGFloat = 45
+    static let ruleToolbarButtonWidth: CGFloat = 32
+    static let ruleToolbarHeight: CGFloat = 28
+    static let ruleHeaderInset: CGFloat = 6
+    static let repositoryPageInset: CGFloat = 40
+    static let checkoutIconWidth: CGFloat = 20
+    static let editorConfigurationInset: CGFloat = 36
     static let emptyRulesHeight: CGFloat = 180
-    static let rulesMinimumHeight: CGFloat = 160
   }
 
   static let headingFont = Font.system(size: 24, weight: .semibold)

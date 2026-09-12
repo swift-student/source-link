@@ -70,7 +70,7 @@ struct EditorsSettingsView: View {
           .buttonStyle(SettingsLinkButtonStyle())
       }
     }
-    .padding(.leading, 36).padding(.bottom, SettingsStyle.Spacing.extraLarge)
+    .padding(.leading, SettingsStyle.Layout.editorConfigurationInset).padding(.bottom, SettingsStyle.Spacing.extraLarge)
   }
 
   private func chooseExecutable(_ editor: Editor) {

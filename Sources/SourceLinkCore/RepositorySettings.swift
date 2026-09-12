@@ -50,6 +50,15 @@ public extension SourceSettings {
     normalizeDefaults()
   }
 
+  /// Changes a checkout folder without changing its shared identity or default status.
+  mutating func changeCheckoutFolder(_ id: UUID, root: URL) {
+    guard let index = checkouts.firstIndex(where: { $0.id == id }) else { return }
+    guard !checkouts(for: checkouts[index].name).contains(where: {
+      $0.id != id && ConfigurationPaths.expand($0.path) == root.path
+    }) else { return }
+    checkouts[index].path = root.path
+  }
+
   mutating func removeCheckout(_ id: UUID) {
     checkouts.removeAll { $0.id == id }
     normalizeDefaults()

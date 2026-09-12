@@ -1,14 +1,16 @@
 SHELL := /bin/bash
 
+XCODEBUILD = xcodebuild \
+	-workspace SourceLink.xcworkspace \
+	-configuration Debug \
+	-destination 'platform=macOS' \
+	-derivedDataPath .build/xcode
+TEST_SIGNING = CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual
+
 .PHONY: build check format format-check generate lint run test ui-test snapshot-test app-test
 
 build: generate
-	xcodebuild \
-		-workspace SourceLink.xcworkspace \
-		-scheme SourceLink \
-		-configuration Debug \
-		-destination 'platform=macOS' \
-		-derivedDataPath .build/xcode \
+	$(XCODEBUILD) -scheme SourceLink \
 		CODE_SIGNING_ALLOWED=NO \
 		build
 
@@ -34,25 +36,14 @@ run: build
 test:
 	swift test
 
-
 snapshot-test: generate
-	xcodebuild \
-		-workspace SourceLink.xcworkspace \
-		-scheme SettingsSnapshots \
-		-configuration Debug \
-		-destination 'platform=macOS' \
-		-derivedDataPath .build/xcode \
-		CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
+	$(XCODEBUILD) -scheme SettingsSnapshots \
+		$(TEST_SIGNING) \
 		test
 
 ui-test: generate
-	xcodebuild \
-		-workspace SourceLink.xcworkspace \
-		-scheme SourceLink \
-		-configuration Debug \
-		-destination 'platform=macOS' \
-		-derivedDataPath .build/xcode \
-		CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
+	$(XCODEBUILD) -scheme SourceLink \
+		$(TEST_SIGNING) \
 		test
 
 # Explicit opt-in: review baseline changes before committing.
@@ -61,11 +52,6 @@ record-snapshots:
 	TEST_RUNNER_RECORD_SNAPSHOTS=1 $(MAKE) snapshot-test
 
 app-test: generate
-	xcodebuild \
-		-workspace SourceLink.xcworkspace \
-		-scheme SourceLinkAppTests \
-		-configuration Debug \
-		-destination 'platform=macOS' \
-		-derivedDataPath .build/xcode \
-		CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
+	$(XCODEBUILD) -scheme SourceLinkAppTests \
+		$(TEST_SIGNING) \
 		test

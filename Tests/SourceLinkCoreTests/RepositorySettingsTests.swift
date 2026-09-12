@@ -3,6 +3,26 @@ import Foundation
 import Testing
 
 struct RepositorySettingsTests {
+  @Test func `changing folders preserves identity and rejects duplicates within a repository`() {
+    var settings = SourceSettings()
+    settings.checkouts = [
+      Checkout(name: "Repo", path: "/one", isDefault: true),
+      Checkout(name: "REPO", path: "/two"),
+      Checkout(name: "Other", path: "/three")
+    ]
+    let original = settings.checkouts[0]
+    settings.changeCheckoutFolder(original.id, root: URL(fileURLWithPath: "/two"))
+    #expect(settings.checkouts[0] == original)
+    settings.changeCheckoutFolder(UUID(), root: URL(fileURLWithPath: "/missing"))
+    #expect(settings.checkouts[0] == original)
+    settings.changeCheckoutFolder(original.id, root: URL(fileURLWithPath: "/three"))
+    #expect(settings.checkouts[0].path == "/three")
+    #expect(settings.checkouts[0].id == original.id)
+    #expect(settings.checkouts[0].name == original.name)
+    #expect(settings.checkouts[0].isDefault)
+    #expect(settings.checkouts[1].path == "/two")
+  }
+
   @Test func `worktrees keep the shared root name`() throws {
     var settings = SourceSettings()
     settings.addCheckout(root: URL(fileURLWithPath: "/workspace/source-link"))
