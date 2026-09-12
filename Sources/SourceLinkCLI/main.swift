@@ -1,5 +1,5 @@
 import Foundation
-import XedLinkCore
+import SourceLinkCore
 
 let arguments = Array(CommandLine.arguments.dropFirst())
 do {

@@ -1,6 +1,6 @@
 import AppKit
+import SourceLinkCore
 import SwiftUI
-import XedLinkCore
 
 @MainActor
 final class SettingsStore: ObservableObject {

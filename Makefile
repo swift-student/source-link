@@ -4,8 +4,8 @@ SHELL := /bin/bash
 
 build: generate
 	xcodebuild \
-		-workspace XedLink.xcworkspace \
-		-scheme XedLink \
+		-workspace SourceLink.xcworkspace \
+		-scheme SourceLink \
 		-configuration Debug \
 		-destination 'platform=macOS' \
 		-derivedDataPath .build/xcode \
@@ -37,7 +37,7 @@ test:
 
 snapshot-test: generate
 	xcodebuild \
-		-workspace XedLink.xcworkspace \
+		-workspace SourceLink.xcworkspace \
 		-scheme SettingsSnapshots \
 		-configuration Debug \
 		-destination 'platform=macOS' \
@@ -47,8 +47,8 @@ snapshot-test: generate
 
 ui-test: generate
 	xcodebuild \
-		-workspace XedLink.xcworkspace \
-		-scheme XedLink \
+		-workspace SourceLink.xcworkspace \
+		-scheme SourceLink \
 		-configuration Debug \
 		-destination 'platform=macOS' \
 		-derivedDataPath .build/xcode \

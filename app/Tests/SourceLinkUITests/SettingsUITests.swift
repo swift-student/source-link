@@ -1,5 +1,5 @@
+import SourceLinkCore
 import XCTest
-import XedLinkCore
 
 @MainActor
 final class SettingsUITests: XCTestCase {

@@ -6,19 +6,19 @@ output_dir="$PWD/.build/direct"
 mkdir -p "$output_dir/modules" "$output_dir/source-link.app/Contents/MacOS" "$output_dir/cache"
 xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
   -module-cache-path "$output_dir/cache" -emit-library -static -emit-module \
-  -module-name XedLinkCore -emit-module-path "$output_dir/modules/XedLinkCore.swiftmodule" \
-  Sources/XedLinkCore/*.swift -o "$output_dir/modules/libXedLinkCore.a"
+  -module-name SourceLinkCore -emit-module-path "$output_dir/modules/SourceLinkCore.swiftmodule" \
+  Sources/SourceLinkCore/*.swift -o "$output_dir/modules/libSourceLinkCore.a"
 xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
   -module-cache-path "$output_dir/cache" -I "$output_dir/modules" -L "$output_dir/modules" \
-  -lXedLinkCore \
-  app/Sources/XedLinkApp/*.swift \
+  -lSourceLinkCore \
+  app/Sources/SourceLinkApp/*.swift \
   -o "$output_dir/source-link.app/Contents/MacOS/source-link"
 xcrun swiftc -swift-version 6 -target arm64-apple-macos15.0 \
   -module-cache-path "$output_dir/cache" -I "$output_dir/modules" -L "$output_dir/modules" \
-  -lXedLinkCore \
+  -lSourceLinkCore \
   Sources/SourceLinkCLI/main.swift -o "$output_dir/source-link"
 mkdir -p "$output_dir/source-link.app/Contents/Resources"
-xcrun actool app/Sources/XedLinkApp/Assets.xcassets \
+xcrun actool app/Sources/SourceLinkApp/Assets.xcassets \
   --compile "$output_dir/source-link.app/Contents/Resources" \
   --platform macosx --minimum-deployment-target 15.0 --target-device mac \
   --app-icon AppIcon --output-partial-info-plist "$output_dir/asset-info.plist"
@@ -28,7 +28,7 @@ import sys
 from pathlib import Path
 info = {
     'CFBundleExecutable': 'source-link',
-    'CFBundleIdentifier': 'com.shawngee.XedLink',
+    'CFBundleIdentifier': 'com.shawngee.SourceLink',
     'CFBundleName': 'source-link',
     'CFBundleDisplayName': 'Source Link',
     'CFBundlePackageType': 'APPL',
@@ -38,7 +38,7 @@ info = {
     'LSUIElement': True,
     'CFBundleURLTypes': [{
         'CFBundleTypeRole': 'Editor',
-        'CFBundleURLName': 'com.shawngee.XedLink.source-link',
+        'CFBundleURLName': 'com.shawngee.SourceLink.source-link',
         'CFBundleURLSchemes': ['source-link'],
     }],
 }

@@ -1,11 +1,11 @@
-name: XedLink
+name: SourceLink
 options:
   bundleIdPrefix: com.shawngee
 packages:
   SnapshotTesting:
     url: https://github.com/pointfreeco/swift-snapshot-testing
     from: 1.18.0
-  XedLinkPackage:
+  SourceLinkPackage:
     path: ..
 schemes:
   SettingsSnapshots:
@@ -15,17 +15,17 @@ schemes:
     test:
       targets:
         - SettingsSnapshotTests
-  XedLink:
+  SourceLink:
     build:
       targets:
-        XedLink: all
+        SourceLink: all
     test:
       targets:
-        - XedLinkUITests
+        - SourceLinkUITests
     run:
       config: Debug
 targets:
-  XedLink:
+  SourceLink:
     type: application
     platform: macOS
     deploymentTarget: "15.0"
@@ -35,18 +35,18 @@ targets:
         CFBundleDisplayName: Source Link
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
-            CFBundleURLName: com.shawngee.XedLink.source-link
+            CFBundleURLName: com.shawngee.SourceLink.source-link
             CFBundleURLSchemes:
               - source-link
         LSUIElement: true
     sources:
-      - Sources/XedLinkApp
+      - Sources/SourceLinkApp
     dependencies:
-      - package: XedLinkPackage
-        product: XedLinkCore
+      - package: SourceLinkPackage
+        product: SourceLinkCore
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.shawngee.XedLink
+        PRODUCT_BUNDLE_IDENTIFIER: com.shawngee.SourceLink
         PRODUCT_NAME: source-link
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_VERSION: 6.0
@@ -60,15 +60,15 @@ targets:
     platform: macOS
     deploymentTarget: "15.0"
     sources:
-      - path: Sources/XedLinkApp
+      - path: Sources/SourceLinkApp
         excludes:
           - App.swift
       - path: Tests/SettingsSnapshotTests
         excludes:
           - __Snapshots__
     dependencies:
-      - package: XedLinkPackage
-        product: XedLinkCore
+      - package: SourceLinkPackage
+        product: SourceLinkCore
       - package: SnapshotTesting
         product: SnapshotTesting
     settings:
@@ -78,20 +78,20 @@ targets:
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGN_STYLE: Manual
 
-  XedLinkUITests:
+  SourceLinkUITests:
     type: bundle.ui-testing
     platform: macOS
     deploymentTarget: "15.0"
     sources:
-      - Tests/XedLinkUITests
+      - Tests/SourceLinkUITests
     dependencies:
-      - target: XedLink
-      - package: XedLinkPackage
-        product: XedLinkCore
+      - target: SourceLink
+      - package: SourceLinkPackage
+        product: SourceLinkCore
     settings:
       base:
         SWIFT_VERSION: 6.0
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGN_STYLE: Manual
-        TEST_TARGET_NAME: XedLink
+        TEST_TARGET_NAME: SourceLink

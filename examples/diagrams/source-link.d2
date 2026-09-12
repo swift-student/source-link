@@ -7,31 +7,31 @@ classes: {
 }
 receive: "Receive URL" {
   class: step
-  link: "source-link://source-link/app/Sources/XedLinkApp/App.swift?line=50"
+  link: "source-link://source-link/app/Sources/SourceLinkApp/App.swift?line=50"
 }
 parse: "Parse repository, path, position" {
   class: step
-  link: "source-link://source-link/Sources/XedLinkCore/SourceLink.swift?line=9"
+  link: "source-link://source-link/Sources/SourceLinkCore/SourceLink.swift?line=9"
 }
 checkout: "Checkout selected?" {
   class: choice
-  link: "source-link://source-link/Sources/XedLinkCore/SourceLink.swift?line=116"
+  link: "source-link://source-link/Sources/SourceLinkCore/SourceLink.swift?line=116"
 }
 setup: "Choose checkout and editor" {
   class: step
-  link: "source-link://source-link/app/Sources/XedLinkApp/App.swift?line=65"
+  link: "source-link://source-link/app/Sources/SourceLinkApp/App.swift?line=65"
 }
 resolve: "Validate file inside checkout" {
   class: step
-  link: "source-link://source-link/Sources/XedLinkCore/SourceLink.swift?line=43"
+  link: "source-link://source-link/Sources/SourceLinkCore/SourceLink.swift?line=43"
 }
 command: "Choose editor and arguments" {
   class: step
-  link: "source-link://source-link/Sources/XedLinkCore/SourceLink.swift?line=130"
+  link: "source-link://source-link/Sources/SourceLinkCore/SourceLink.swift?line=130"
 }
 run: "Launch editor process" {
   class: finish
-  link: "source-link://source-link/Sources/XedLinkCore/SourceLink.swift?line=155"
+  link: "source-link://source-link/Sources/SourceLinkCore/SourceLink.swift?line=155"
 }
 receive -> parse -> checkout
 checkout -> resolve: yes

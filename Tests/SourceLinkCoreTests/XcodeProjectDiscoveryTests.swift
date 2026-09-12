@@ -1,6 +1,6 @@
 import Foundation
+@testable import SourceLinkCore
 import Testing
-@testable import XedLinkCore
 
 struct XcodeProjectDiscoveryTests {
   @Test(arguments: [

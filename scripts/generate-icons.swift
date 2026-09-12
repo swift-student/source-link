@@ -3,7 +3,7 @@
 import AppKit
 
 let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-let assets = root.appendingPathComponent("app/Sources/XedLinkApp/Assets.xcassets")
+let assets = root.appendingPathComponent("app/Sources/SourceLinkApp/Assets.xcassets")
 guard let mark = NSImage(contentsOf: root.appendingPathComponent("docs/assets/source-link.svg")) else {
   fatalError("Unable to load the Source Link master SVG")
 }

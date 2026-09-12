@@ -1,6 +1,6 @@
 import Foundation
+@testable import SourceLinkCore
 import Testing
-@testable import XedLinkCore
 
 struct RepositorySettingsTests {
   @Test func `worktrees keep the shared root name`() throws {

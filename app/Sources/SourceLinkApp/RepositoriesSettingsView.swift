@@ -1,6 +1,6 @@
 import AppKit
+import SourceLinkCore
 import SwiftUI
-import XedLinkCore
 
 struct RepositoriesSettingsView: View {
   @ObservedObject var store: SettingsStore

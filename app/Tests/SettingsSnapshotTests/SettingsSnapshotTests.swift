@@ -1,8 +1,8 @@
 import AppKit
 import ScreenCaptureKit
 import SnapshotTesting
+import SourceLinkCore
 import Testing
-import XedLinkCore
 
 @Suite(.serialized)
 @MainActor

@@ -50,7 +50,7 @@ See the [VS Code CLI](https://code.visualstudio.com/docs/configure/command-line)
 
 The app remains a menu-bar accessory with no Dock icon. Settings and setup windows appear on request.
 Only `source-link:` URLs are supported.
-Internal package/project names still use XedLink to preserve the imported build structure.
+Package, module, and Xcode project names use `SourceLink`; the app and URL scheme use `source-link`.
 
 ## JSON configuration and dotfiles
 
@@ -149,7 +149,7 @@ make check  # Tests, strict lint, formatting verification, and app build
 make run
 ```
 
-Settings UI tokens live in `app/Sources/XedLinkApp/SettingsStyle.swift`: use the shared
+Settings UI tokens live in `app/Sources/SourceLinkApp/SettingsStyle.swift`: use the shared
 spacing scale for padding and gaps, and layout tokens for aligned columns and window sizes.
 `SettingsComponents.swift` contains shared headings, cards, badges, and action menus.
 Keep native control styles and semantic macOS colors so appearance follows system settings.
@@ -171,7 +171,7 @@ team is required. Xcode stores results under `.build/xcode/Logs/Test`, including
 retained window screenshots for all three pages and on failure. UI tests use XCTest;
 core tests use Swift Testing. Verified screenshots are in `docs/screenshots/settings`.
 
-Open `XedLink.xcworkspace`, or the generated `app/XedLink.xcodeproj`.
+Open `SourceLink.xcworkspace`, or the generated `app/SourceLink.xcodeproj`.
 
 For an Apple Silicon build without Xcode workspace services, run `bash scripts/build-direct.sh`.
 The ad-hoc signed app is written to `.build/direct/source-link.app`, and the separate CLI to

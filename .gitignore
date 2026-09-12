@@ -2,6 +2,6 @@
 .swiftpm/
 .DS_Store
 app/Info.plist
-app/XedLink.xcodeproj/
+app/SourceLink.xcodeproj/
 xcuserdata/
 *.xcuserstate

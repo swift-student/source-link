@@ -3,21 +3,21 @@
 import PackageDescription
 
 let package = Package(
-  name: "XedLinkPackage",
+  name: "SourceLinkPackage",
   platforms: [
     .macOS(.v15)
   ],
   products: [
-    .library(name: "XedLinkCore", targets: ["XedLinkCore"]),
+    .library(name: "SourceLinkCore", targets: ["SourceLinkCore"]),
     .executable(name: "source-link", targets: ["SourceLinkCLI"])
   ],
   targets: [
-    .target(name: "XedLinkCore"),
-    .executableTarget(name: "SourceLinkCLI", dependencies: ["XedLinkCore"]),
+    .target(name: "SourceLinkCore"),
+    .executableTarget(name: "SourceLinkCLI", dependencies: ["SourceLinkCore"]),
     .testTarget(
-      name: "XedLinkCoreTests",
+      name: "SourceLinkCoreTests",
       dependencies: [
-        "XedLinkCore"
+        "SourceLinkCore"
       ]
     )
   ],

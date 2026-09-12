@@ -1,6 +1,6 @@
 import AppKit
+import SourceLinkCore
 import SwiftUI
-import XedLinkCore
 
 @main
 struct SourceLinkApp: App {

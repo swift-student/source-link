@@ -1,6 +1,6 @@
 import Foundation
+@testable import SourceLinkCore
 import Testing
-@testable import XedLinkCore
 
 struct SourceLinkTests {
   @Test func `parses portable link`() throws {

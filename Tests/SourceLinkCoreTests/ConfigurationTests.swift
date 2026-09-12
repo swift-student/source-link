@@ -1,6 +1,6 @@
 import Foundation
+@testable import SourceLinkCore
 import Testing
-@testable import XedLinkCore
 
 struct ConfigurationTests {
   @Test func `defaults and portable paths`() throws {

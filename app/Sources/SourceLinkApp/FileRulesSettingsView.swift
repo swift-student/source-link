@@ -1,5 +1,5 @@
+import SourceLinkCore
 import SwiftUI
-import XedLinkCore
 
 struct FileRulesSettingsView: View {
   @ObservedObject var store: SettingsStore
