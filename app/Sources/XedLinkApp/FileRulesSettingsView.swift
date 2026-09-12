@@ -124,7 +124,7 @@ struct FileRulesSettingsView: View {
   }
 
   private var selectionBackground: Color {
-    Color.accentColor.opacity(colorScheme == .dark ? 0.25 : 0.1)
+    SettingsStyle.selectionBackground(for: colorScheme)
   }
 
   private func ruleRowTapped(_ id: FileRule.ID) {

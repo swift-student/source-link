@@ -58,7 +58,7 @@ struct RepositoriesSettingsView: View {
         }
         HStack {
           Button("Add Checkout to \(name)…", systemImage: "plus") { addCheckout(to: name) }
-            .buttonStyle(.link)
+            .buttonStyle(SettingsLinkButtonStyle())
           Spacer()
         }
         .padding(.leading, SettingsStyle.Spacing.page).padding(.vertical, SettingsStyle.Spacing.large)
@@ -93,7 +93,9 @@ struct RepositoriesSettingsView: View {
       Spacer(minLength: SettingsStyle.Spacing.medium)
       Group {
         if checkout.isDefault { DefaultBadge() } else {
-          Button("Make Default") { store.settings.setDefaultCheckout(checkout.id) }.buttonStyle(.link)
+            Button("Make Default") { store.settings.setDefaultCheckout(checkout.id) }
+                .buttonStyle(SettingsLinkButtonStyle())
+                .font(.callout)
         }
       }
       .frame(width: SettingsStyle.Layout.checkoutStatus)

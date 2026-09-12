@@ -62,7 +62,7 @@ struct EditorsSettingsView: View {
         .font(.callout).foregroundStyle(.secondary)
       if let path = store.settings.executablePaths[editor.rawValue], path != editor.defaultExecutable {
         Button("Use Default Path") { store.settings.executablePaths.removeValue(forKey: editor.rawValue) }
-          .buttonStyle(.link)
+          .buttonStyle(SettingsLinkButtonStyle())
       }
     }
     .padding(.leading, SettingsStyle.Spacing.large).padding(.bottom, SettingsStyle.Spacing.extraLarge)
