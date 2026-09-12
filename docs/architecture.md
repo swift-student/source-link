@@ -2,9 +2,9 @@
 
 Source Link has three boundaries:
 
-- `Sources/SourceLinkCore`: URL validation, checkout/editor selection, command construction and execution, configuration validation and persistence. It imports Foundation and has no app UI dependency.
+- `Packages/SourceLinkPackage/Sources/SourceLinkCore`: URL validation, checkout/editor selection, command construction and execution, configuration validation and persistence. It imports Foundation and has no app UI dependency.
 - `app/Sources/SourceLinkApp`: menu-bar lifecycle, setup dialogs, settings views, and the observable settings store.
-- `Sources/SourceLinkCLI`: configuration path and validation commands, independent of the running app.
+- `Packages/SourceLinkPackage/Sources/SourceLinkCLI`: configuration path and validation commands, independent of the running app.
 
 ## Opening a link
 

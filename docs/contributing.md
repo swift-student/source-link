@@ -33,7 +33,9 @@ team is required. Xcode stores results under `.build/xcode/Logs/Test`, including
 retained window screenshots for both pages and on failure. UI tests use XCTest;
 core tests use Swift Testing. Verified screenshots are in `docs/screenshots/settings` (historical captures; current baselines are in `app/Tests/SettingsSnapshotTests`).
 
-Open `SourceLink.xcworkspace`, or the generated `app/SourceLink.xcodeproj`.
+Run `make generate` once, then `xed .` from the repository root to open
+`SourceLink.xcworkspace`. The Swift package lives in `Packages/SourceLinkPackage`,
+leaving the workspace as the root Xcode entry point.
 
 For an Apple Silicon build without Xcode workspace services, run `bash scripts/build-direct.sh`.
 The ad-hoc signed app is written to `.build/direct/source-link.app`, and the separate CLI to

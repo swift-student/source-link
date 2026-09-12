@@ -2,6 +2,7 @@
 .swiftpm/
 .DS_Store
 app/Info.plist
-app/SourceLink.xcodeproj/
+# XcodeGen output (including projects from before the rename).
+app/*.xcodeproj/
 xcuserdata/
 *.xcuserstate

@@ -34,7 +34,7 @@ run: build
 	open .build/xcode/Build/Products/Debug/source-link.app
 
 test:
-	swift test
+	swift test --package-path Packages/SourceLinkPackage
 
 snapshot-test: generate
 	$(XCODEBUILD) -scheme SettingsSnapshots \

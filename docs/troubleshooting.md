@@ -25,8 +25,8 @@ If the file is invalid, reload reports the error and keeps your draft and the la
 ## Check the configuration
 
 ```sh
-swift run source-link config path
-swift run source-link config validate
+swift run --package-path Packages/SourceLinkPackage source-link config path
+swift run --package-path Packages/SourceLinkPackage source-link config validate
 ```
 
 Finder-launched apps may use a different environment from your terminal. The default path is `~/.config/source-link/config.json`. See [configuration](configuration.md) for `XDG_CONFIG_HOME`, symlinks, and validation details.

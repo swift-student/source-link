@@ -56,7 +56,7 @@ spaces and shell metacharacters in filenames are preserved literally. Unknown pl
 null characters, and literal braces in templates are rejected.
 
 Built-in names, executable paths, and argument templates are loaded from
-`Sources/SourceLinkCore/Resources/editors.json`, using the same profile format as user config.
+`Packages/SourceLinkPackage/Sources/SourceLinkCore/Resources/editors.json`, using the same profile format as user config.
 Adding a bundled editor only requires adding its JSON profile; pickers discover it automatically.
 Saving writes the effective profiles
 into `editors`, making commands editable in JSON. Omitted built-in profiles are restored from
@@ -115,9 +115,9 @@ created when you save settings or complete first-link setup.
 The package includes a separate `source-link` command-line executable:
 
 ```sh
-swift run source-link config path
-swift run source-link config validate
-swift run source-link config validate /path/to/proposed-config.json
+swift run --package-path Packages/SourceLinkPackage source-link config path
+swift run --package-path Packages/SourceLinkPackage source-link config validate
+swift run --package-path Packages/SourceLinkPackage source-link config validate /path/to/proposed-config.json
 ```
 
 `config path` prints the resolved configuration location. `config validate` reads and checks
@@ -128,6 +128,6 @@ A missing file is a validation error. Validation does not require editors or che
 
 An agent should read the latest file, make the smallest necessary edit, and validate it.
 Preserve unrelated settings. No `config set` API or UI automation is required.
-For a standalone CLI binary, build with `swift build -c release --product source-link`;
-`swift build -c release --show-bin-path` prints its containing directory.
+For a standalone CLI binary, build with `swift build --package-path Packages/SourceLinkPackage -c release --product source-link`;
+`swift build --package-path Packages/SourceLinkPackage -c release --show-bin-path` prints its containing directory.
 

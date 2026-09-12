@@ -1,9 +1,9 @@
 included:
-  - Sources
-  - Tests
+  - Packages/SourceLinkPackage/Sources
+  - Packages/SourceLinkPackage/Tests
   - app/Sources
   - app/Tests
   - scripts
-  - Package.swift
+  - Packages/SourceLinkPackage/Package.swift
 
 strict: true

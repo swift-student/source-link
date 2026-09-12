@@ -1,6 +1,6 @@
 --swiftversion 6.2
 --indent 2
---exclude .build,.git,app/SourceLink.xcodeproj
+--exclude .build,.git,app/*.xcodeproj
 --disable redundantSelf,wrapMultilineStatementBraces
 --trailing-commas never
 --maxwidth 120

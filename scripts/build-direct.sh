@@ -7,7 +7,7 @@ mkdir -p "$output_dir/modules" "$output_dir/source-link.app/Contents/MacOS" "$ou
 xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
   -module-cache-path "$output_dir/cache" -emit-library -static -emit-module \
   -module-name SourceLinkCore -emit-module-path "$output_dir/modules/SourceLinkCore.swiftmodule" \
-  Sources/SourceLinkCore/*.swift -o "$output_dir/modules/libSourceLinkCore.a"
+  Packages/SourceLinkPackage/Sources/SourceLinkCore/*.swift -o "$output_dir/modules/libSourceLinkCore.a"
 xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
   -module-cache-path "$output_dir/cache" -I "$output_dir/modules" -L "$output_dir/modules" \
   -lSourceLinkCore \
@@ -16,7 +16,7 @@ xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
 xcrun swiftc -swift-version 6 -target arm64-apple-macos15.0 \
   -module-cache-path "$output_dir/cache" -I "$output_dir/modules" -L "$output_dir/modules" \
   -lSourceLinkCore \
-  Sources/SourceLinkCLI/main.swift -o "$output_dir/source-link"
+  Packages/SourceLinkPackage/Sources/SourceLinkCLI/main.swift -o "$output_dir/source-link"
 mkdir -p "$output_dir/source-link.app/Contents/Resources"
 xcrun actool app/Sources/SourceLinkApp/Assets.xcassets \
   --compile "$output_dir/source-link.app/Contents/Resources" \
@@ -46,6 +46,6 @@ info.update(plistlib.loads(Path(sys.argv[2]).read_bytes()))
 Path(sys.argv[1]).write_bytes(plistlib.dumps(info))
 PY
 mkdir -p "$output_dir/source-link.app/Contents/Resources"
-cp Sources/SourceLinkCore/Resources/editors.json "$output_dir/source-link.app/Contents/Resources/editors.json"
-cp Sources/SourceLinkCore/Resources/editors.json "$output_dir/editors.json"
+cp Packages/SourceLinkPackage/Sources/SourceLinkCore/Resources/editors.json "$output_dir/source-link.app/Contents/Resources/editors.json"
+cp Packages/SourceLinkPackage/Sources/SourceLinkCore/Resources/editors.json "$output_dir/editors.json"
 codesign --force --sign - "$output_dir/source-link.app"

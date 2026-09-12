@@ -6,7 +6,7 @@ packages:
     url: https://github.com/pointfreeco/swift-snapshot-testing
     from: 1.18.0
   SourceLinkPackage:
-    path: ..
+    path: ../Packages/SourceLinkPackage
 schemes:
   SourceLinkAppTests:
     build:
