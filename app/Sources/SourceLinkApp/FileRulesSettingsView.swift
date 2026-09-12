@@ -179,18 +179,14 @@ private extension [FileRule] {
   #Preview("File Rules — Populated") {
     SettingsPreview { store in
       ScrollView { FileRulesSettingsView(store: store) }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(SettingsStyle.pageBackground)
-        .frame(width: 860, height: SettingsStyle.Layout.window.height)
+        .settingsPagePreviewLayout()
     }
   }
 
   #Preview("File Rules — Empty") {
     SettingsPreview(populated: false) { store in
       ScrollView { FileRulesSettingsView(store: store) }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(SettingsStyle.pageBackground)
-        .frame(width: 860, height: SettingsStyle.Layout.window.height)
+        .settingsPagePreviewLayout()
     }
   }
 #endif

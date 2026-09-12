@@ -32,4 +32,13 @@
     }
   }
 
+  extension View {
+    /// Match the detail area of the standard settings window.
+    func settingsPagePreviewLayout() -> some View {
+      frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(SettingsStyle.pageBackground)
+        .frame(width: SettingsStyle.Layout.window.width - SettingsStyle.Layout.sidebarIdeal,
+               height: SettingsStyle.Layout.window.height)
+    }
+  }
 #endif

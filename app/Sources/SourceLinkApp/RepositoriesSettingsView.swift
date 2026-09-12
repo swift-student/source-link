@@ -152,18 +152,14 @@ struct RepositoriesSettingsView: View {
   #Preview("Repositories — Populated") {
     SettingsPreview { store in
       RepositoriesSettingsView(store: store)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(SettingsStyle.pageBackground)
-        .frame(width: 860, height: SettingsStyle.Layout.window.height)
+        .settingsPagePreviewLayout()
     }
   }
 
   #Preview("Repositories — Empty") {
     SettingsPreview(populated: false) { store in
       RepositoriesSettingsView(store: store)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(SettingsStyle.pageBackground)
-        .frame(width: 860, height: SettingsStyle.Layout.window.height)
+        .settingsPagePreviewLayout()
     }
   }
 #endif
