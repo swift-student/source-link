@@ -26,7 +26,9 @@ struct FileRulesSettingsView: View {
         Divider()
         if store.settings.rules.isEmpty {
           ContentUnavailableView("No File Rules", systemImage: "doc.text", description:
-            Text("All files open in \(store.settings.defaultEditor.title). Click + to add a rule."))
+            Text(
+              "All files open in \(store.settings.title(for: store.settings.defaultEditor)). Click + to add a rule."
+            ))
             .frame(maxWidth: .infinity, minHeight: SettingsStyle.Layout.emptyRulesHeight)
         } else {
           // The list provides swipe actions, but selection belongs to this view
@@ -111,7 +113,7 @@ struct FileRulesSettingsView: View {
         .focused($focusedRule, equals: rule.id)
       Spacer(minLength: 0)
       Picker("Editor for rule \(index + 1)", selection: binding.editor) {
-        ForEach(Editor.allCases) { Text($0.title).tag($0) }
+        ForEach(store.settings.availableEditors) { Text(store.settings.title(for: $0)).tag($0) }
       }
       .labelsHidden().frame(width: SettingsStyle.Layout.editorPicker, alignment: .leading)
       .simultaneousGesture(TapGesture().onEnded { selection = rule.id })

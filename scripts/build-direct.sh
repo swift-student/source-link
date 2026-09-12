@@ -45,4 +45,7 @@ info = {
 info.update(plistlib.loads(Path(sys.argv[2]).read_bytes()))
 Path(sys.argv[1]).write_bytes(plistlib.dumps(info))
 PY
+mkdir -p "$output_dir/source-link.app/Contents/Resources"
+cp Sources/SourceLinkCore/Resources/editors.json "$output_dir/source-link.app/Contents/Resources/editors.json"
+cp Sources/SourceLinkCore/Resources/editors.json "$output_dir/editors.json"
 codesign --force --sign - "$output_dir/source-link.app"

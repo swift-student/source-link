@@ -5,8 +5,9 @@ extension ConfigurationDocument {
   public func merging(base: SourceSettings, draft: SourceSettings) throws -> ConfigurationDocument {
     var merged = settings
     merged.defaultEditor = try merge(base.defaultEditor, draft.defaultEditor, settings.defaultEditor, "default_editor")
-    for editor in Editor.allCases {
-      let key = editor.rawValue
+    let keys = Set(base.editors.keys).union(draft.editors.keys).union(settings.editors.keys)
+    for key in keys {
+      merged.editors[key] = try merge(base.editors[key], draft.editors[key], settings.editors[key], "editors.\(key)")
       merged.executablePaths[key] = try merge(base.executablePaths[key], draft.executablePaths[key],
                                               settings.executablePaths[key], "executables.\(key)")
     }

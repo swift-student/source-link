@@ -11,8 +11,8 @@ struct EditorsSettingsView: View {
       VStack(alignment: .leading, spacing: SettingsStyle.Spacing.section) {
         SettingsHeading(title: "Editors", subtitle: "Set a default, then configure only the editors you use.") {}
         SettingsCard {
-          ForEach(Editor.allCases) { editor in
-            if editor != Editor.allCases.first {
+          ForEach(store.settings.availableEditors) { editor in
+            if editor != store.settings.availableEditors.first {
               Divider()
             }
             DisclosureGroup(isExpanded: Binding(
@@ -28,7 +28,7 @@ struct EditorsSettingsView: View {
               editorConfiguration(editor)
             } label: {
               HStack {
-                Text(editor.title).fontWeight(.medium)
+                Text(store.settings.title(for: editor)).fontWeight(.medium)
                 Spacer()
                 if editor == store.settings.defaultEditor {
                   Text("Default editor").foregroundStyle(SettingsStyle.actionForeground)
@@ -55,22 +55,28 @@ struct EditorsSettingsView: View {
       Text("Executable").fontWeight(.medium)
       HStack(spacing: SettingsStyle.Spacing.medium) {
         TextField("Executable path", text: Binding(
-          get: { store.settings.executablePaths[editor.rawValue] ?? editor.defaultExecutable },
+          get: { store.settings.executablePaths[editor.rawValue] ?? profilePath(editor) },
           set: { store.settings.executablePaths[editor.rawValue] = $0 }
         ))
         .textFieldStyle(.roundedBorder).accessibilityLabel("\(editor.title) executable path")
         Button("Choose…") { chooseExecutable(editor) }
       }
-      Text(editor == .xcode
-        ? "Opens files at the requested line. Column positions aren’t supported."
-        : "Opens files at the requested line and column. Install the editor before using it.")
+      Text("Command arguments are configured in config.json. Install the editor before using it.")
         .font(.callout).foregroundStyle(.secondary)
-      if let path = store.settings.executablePaths[editor.rawValue], path != editor.defaultExecutable {
+      if let profile = store.settings.editors[editor.rawValue] {
+        Text(profile.arguments.joined(separator: " "))
+          .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+      }
+      if let path = store.settings.executablePaths[editor.rawValue], path != profilePath(editor) {
         Button("Use Default Path") { store.settings.executablePaths.removeValue(forKey: editor.rawValue) }
           .buttonStyle(SettingsLinkButtonStyle())
       }
     }
     .padding(.leading, SettingsStyle.Layout.editorConfigurationInset).padding(.bottom, SettingsStyle.Spacing.extraLarge)
+  }
+
+  private func profilePath(_ editor: Editor) -> String {
+    store.settings.editors[editor.rawValue]?.executable ?? ""
   }
 
   private func chooseExecutable(_ editor: Editor) {
@@ -82,7 +88,7 @@ struct EditorsSettingsView: View {
     panel.allowsMultipleSelection = false
     panel.treatsFilePackagesAsDirectories = true
     panel.directoryURL = URL(fileURLWithPath:
-      ConfigurationPaths.expand(store.settings.executablePaths[editor.rawValue] ?? editor.defaultExecutable))
+      ConfigurationPaths.expand(store.settings.executablePaths[editor.rawValue] ?? profilePath(editor)))
       .deletingLastPathComponent()
     if panel.runModal() == .OK, let url = panel.url {
       guard FileManager.default.isExecutableFile(atPath: url.path) else {

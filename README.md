@@ -37,16 +37,25 @@ For a direct build, substitute `.build/direct/source-link.app`.
   or remove its mapping; removing a mapping does not delete files.
 - Select a default editor and optional extension rules. Rules ignore extension case and surrounding dots and spaces.
   In **File Rules**, use + to add a rule and − or swipe to remove one. Settings requires one rule per extension.
-- Built-in launch profiles support Xcode, VS Code, Cursor, and Zed. Install the editor separately and
+- Built-in launch profiles support Xcode, VS Code, Cursor, Zed, Android Studio, IntelliJ IDEA, and Sublime Text. Install the editor separately and
   expand an editor in **Editors** to adjust or choose its executable path when installed elsewhere.
 - An unknown repository prompts for a folder and editor, saves the mapping and extension rule, and opens the file.
 - Settings and first-link setup share `~/.config/source-link/config.json` with external editors and agents.
   Settings auto-saves after 500 ms without edits; pending or failed changes do not affect link handling.
 
-Xcode uses `/usr/bin/xed --line` and does not receive a column. VS Code and Cursor use `--goto`;
-Zed uses `file:line:column`. Editor arguments are passed directly to `Process`, without shell interpolation.
+By default, Xcode uses `/usr/bin/xed --line` and does not receive a column. VS Code and Cursor use `--goto`;
+Zed and Sublime Text use `file:line:column`. Android Studio and IntelliJ IDEA use
+`--line` and `--column` with their bundled macOS launchers. Editor arguments are passed directly to `Process`,
+without shell interpolation.
+
+These profiles default to apps in `/Applications`. For JetBrains Toolbox, older IDEA
+Community installations, or renamed apps, choose the bundled executable in Settings:
+`Contents/MacOS/studio` or `Contents/MacOS/idea`. Sublime Text uses
+`Contents/SharedSupport/bin/subl`. No separate shell launcher installation is required.
 See the [VS Code CLI](https://code.visualstudio.com/docs/configure/command-line) and
-[Zed CLI](https://zed.dev/docs/reference/cli) documentation.
+[Zed CLI](https://zed.dev/docs/reference/cli),
+[IntelliJ IDEA CLI](https://www.jetbrains.com/help/idea/opening-files-from-command-line.html), and
+[Sublime Text CLI](https://www.sublimetext.com/docs/command_line.html) documentation.
 
 The app remains a menu-bar accessory with no Dock icon. Settings and setup windows appear on request.
 Only `source-link:` URLs are supported.
@@ -72,10 +81,53 @@ Start with [examples/config.json](examples/config.json). The file uses standard 
 | Setting | Required / default | Meaning |
 | --- | --- | --- |
 | `version` | Required, integer `1` | Configuration schema version. |
-| `default_editor` | `"xcode"` | `xcode`, `vscode`, `cursor`, or `zed`. |
-| `executables` | Optional | Editor names mapped to executable path overrides. |
+| `default_editor` | `"xcode"` | `xcode`, `vscode`, `cursor`, `zed`, `android-studio`, `idea`, `sublime`, or a configured custom editor ID. |
+| `executables` | Optional | Legacy executable overrides; take precedence over `editors.<id>.executable`. |
+| `editors` | Optional, built-in profiles | Editor IDs mapped to command profiles; custom profiles replace matching defaults. |
 | `checkouts` | Optional, empty | Each entry requires `name` and `path`; `default` defaults to `false`. |
 | `rules` | Optional, empty | Each entry requires `extension` and `editor`; document order matters. |
+
+Define commands as an executable and argument arrays. For example, add this top-level
+`editors` field to override IDEA's command (or use a new ID to add another editor):
+
+```json
+"editors": {
+  "idea": {
+    "name": "IntelliJ IDEA",
+    "executable": "/Applications/IntelliJ IDEA.app/Contents/MacOS/idea",
+    "arguments": ["{file}"],
+    "line_arguments": ["--line", "{line}", "{file}"],
+    "column_arguments": ["--line", "{line}", "--column", "{column}", "{file}"]
+  }
+}
+```
+
+`name`, `executable`, and `arguments` are required for each profile. Editor IDs use
+lowercase letters, digits, hyphens, or underscores. Custom editors appear in all editor pickers.
+The default editor and extension rules must reference an available profile.
+
+- No position: use `arguments` (only the `{file}` placeholder is allowed).
+- Line: use `line_arguments`, falling back to `arguments`.
+- Line and column: use `column_arguments`, falling back to `line_arguments`, then `arguments`.
+
+An optional `project_arguments` prefix supports `{project}` and is added only when
+a project is discovered. The bundled Xcode profile uses it to preserve project/workspace opening.
+
+Templates support `{file}` (absolute resolved path), `{line}`, and `{column}`;
+a missing column defaults to 1 in a line template. Every argument list must contain `{file}`.
+Each array element is one process argument. Do not add shell quotes around placeholders:
+spaces and shell metacharacters in filenames are preserved literally. Unknown placeholders,
+null characters, and literal braces in templates are rejected.
+
+Built-in names, executable paths, and argument templates are loaded from
+`Sources/SourceLinkCore/Resources/editors.json`, using the same profile format as user config.
+Adding a bundled editor only requires adding its JSON profile; pickers discover it automatically.
+Existing version-1 files keep their built-in defaults. Saving writes the effective profiles
+into `editors`, making commands editable in JSON. Omitted built-in profiles are restored from
+defaults; removing a custom profile requires removing references to it as well.
+The legacy `executables` field and Settings' path overrides still take precedence; use
+**Use Default Path** to return to the profile's executable. Argument templates are edited
+through the configuration file; Settings displays the base arguments.
 
 Unknown keys, incorrect types, unsupported versions, and multiple defaults for the same
 repository are errors. Names and extensions must not be empty. Paths must be absolute or
@@ -104,7 +156,7 @@ automatically. Invalid edits leave the last valid settings in memory and display
 Settings. At startup, invalid JSON opens Settings with the error and blocks first-link setup
 from overwriting it. Restore a removed file to resume editing.
 
-Debounced auto-save merges a draft with the latest file. Independent changes to the default editor,
+Debounced auto-save merges a draft with the latest file. Independent changes to editor profiles (per editor ID), the default editor,
 individual executable overrides, and separate collections can merge. Concurrent edits to the
 same field or collection produce a conflict and retain your draft. Adjust the conflicting
 setting to match the file, or restart Source Link to discard unsaved changes and load the file.

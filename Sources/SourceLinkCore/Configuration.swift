@@ -30,6 +30,7 @@ public struct ConfigurationDocument: Sendable {
 public extension SourceSettings {
   func hasSameConfiguration(as other: Self) -> Bool {
     defaultEditor == other.defaultEditor && executablePaths == other.executablePaths
+      && editors == other.editors
       && checkouts.map { CheckoutFields($0) } == other.checkouts.map { CheckoutFields($0) }
       && rules.map { RuleFields($0) } == other.rules.map { RuleFields($0) }
   }
