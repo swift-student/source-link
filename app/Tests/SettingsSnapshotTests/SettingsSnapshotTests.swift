@@ -79,7 +79,8 @@ struct SettingsSnapshotTests {
         {"name": "source-link", "path": "/workspace/source-link"},
         {"name": "source-link", "path": "/worktrees/settings", "default": true}
       ],
-      "executables": {"xcode": "/tmp/custom-xed"},
+      "editors": {"xcode": {"name": "Xcode", "executable": "/tmp/custom-xed",
+        "arguments": ["{file}"], "line_arguments": ["--line", "{line}", "{file}"]}},
       "rules": [
         {"extension": "swift", "editor": "xcode"},
         {"extension": "md", "editor": "vscode"}

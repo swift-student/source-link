@@ -51,11 +51,12 @@ struct ConfigurationRepositoryTests {
       var draft = initial.document.settings
       draft.defaultEditor = .cursor
       let base = try repository.save(base: initial, draft: draft)
-      try Data("{\"version\": 1, \"default_editor\": \"cursor\", \"executables\": {\"zed\": \"~/zed\"}}".utf8)
-        .write(to: repository.file, options: .atomic)
+      var external = base.document.settings
+      external.editors["zed"]?.executable = "~/zed"
+      try Data(ConfigurationDocument.initial(external).text.utf8).write(to: repository.file, options: .atomic)
       draft.defaultEditor = .zed
       let merged = try repository.save(base: base, draft: draft)
-      #expect(merged.document.settings.executablePaths["zed"] == "~/zed")
+      #expect(merged.document.settings.editors["zed"]?.executable == "~/zed")
       let broken = Data("{\"version\": [broken".utf8)
       try broken.write(to: repository.file)
       #expect(throws: ConfigurationError.self) { try repository.save(base: merged, draft: draft) }

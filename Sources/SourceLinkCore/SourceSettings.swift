@@ -4,7 +4,6 @@ public struct SourceSettings: Codable, Equatable, Sendable {
   public var checkouts: [Checkout] = []
   public var defaultEditor = Editor.xcode
   public var rules: [FileRule] = []
-  public var executablePaths: [String: String] = [:]
   public var editors: [String: EditorProfile] = EditorProfile.defaults
   public var availableEditors: [Editor] {
     Editor.allCases.filter { editors[$0.rawValue] != nil }
@@ -39,7 +38,7 @@ public struct SourceSettings: Codable, Equatable, Sendable {
     let file = try link.resolve(root: root)
     let editor = editor(for: file)
     guard let profile = editors[editor.rawValue] else { throw SourceLinkError.invalidEditor }
-    return EditorCommand(profile: profile, executable: executablePaths[editor.rawValue],
+    return EditorCommand(profile: profile,
                          file: file, line: link.line, column: link.column,
                          project: editor == .xcode
                            ? XcodeProjectDiscovery.project(in: root)?.resolvingSymlinksInPath() : nil)

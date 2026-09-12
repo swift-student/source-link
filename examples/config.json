@@ -11,9 +11,6 @@
     }
   ],
   "default_editor": "cursor",
-  "executables": {
-    "cursor": "/Applications/Cursor.app/Contents/Resources/app/bin/cursor"
-  },
   "rules": [
     {
       "editor": "xcode",

@@ -36,10 +36,6 @@ enum ConfigurationSchema {
       throw ConfigurationError("default_editor must name a configured editor.")
     }
     try validateEditors(settings.editors)
-    for (key, value) in settings.executablePaths {
-      guard settings.editors[key] != nil else { throw ConfigurationError("executables.\(key) is an unknown key.") }
-      try path(value, key: "executables.\(key)")
-    }
     for (index, checkout) in settings.checkouts.enumerated() {
       guard !checkout.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
             !checkout.name.contains("\0")
@@ -109,18 +105,16 @@ enum ConfigurationSchema {
 private struct Configuration: Codable {
   var version = 1
   var defaultEditor: Editor
-  var executables: [String: String]
   var editors: [String: EditorProfile]
   var checkouts: [ConfigurationCheckout]
   var rules: [ConfigurationRule]
 
   enum CodingKeys: String, CodingKey, CaseIterable {
-    case version, defaultEditor = "default_editor", executables, editors, checkouts, rules
+    case version, defaultEditor = "default_editor", editors, checkouts, rules
   }
 
   init(_ settings: SourceSettings) {
     defaultEditor = settings.defaultEditor
-    executables = settings.executablePaths
     editors = settings.editors
     checkouts = settings.checkouts.map(ConfigurationCheckout.init)
     rules = settings.rules.map { ConfigurationRule(extension: $0.fileExtension, editor: $0.editor) }
@@ -131,7 +125,6 @@ private struct Configuration: Codable {
     version = try values.decode(Int.self, forKey: .version)
     guard version == 1 else { throw ConfigurationError("version must be the integer 1 (supported schema version).") }
     defaultEditor = try values.contains(.defaultEditor) ? values.decode(Editor.self, forKey: .defaultEditor) : .xcode
-    executables = try values.contains(.executables) ? values.decode([String: String].self, forKey: .executables) : [:]
     let configured = try values.contains(.editors) ? values.decode([String: EditorProfile].self, forKey: .editors) : [:]
     editors = EditorProfile.defaults.merging(configured) { _, custom in custom }
     checkouts = try values.contains(.checkouts) ? values.decode([ConfigurationCheckout].self, forKey: .checkouts) : []
@@ -141,7 +134,6 @@ private struct Configuration: Codable {
   var settings: SourceSettings {
     var settings = SourceSettings()
     settings.defaultEditor = defaultEditor
-    settings.executablePaths = executables
     settings.editors = editors
     settings.checkouts = checkouts.map { Checkout(name: $0.name, path: $0.path, isDefault: $0.isDefault) }
     settings.rules = rules.map {

@@ -82,7 +82,6 @@ Start with [examples/config.json](examples/config.json). The file uses standard 
 | --- | --- | --- |
 | `version` | Required, integer `1` | Configuration schema version. |
 | `default_editor` | `"xcode"` | `xcode`, `vscode`, `cursor`, `zed`, `android-studio`, `idea`, `sublime`, or a configured custom editor ID. |
-| `executables` | Optional | Legacy executable overrides; take precedence over `editors.<id>.executable`. |
 | `editors` | Optional, built-in profiles | Editor IDs mapped to command profiles; custom profiles replace matching defaults. |
 | `checkouts` | Optional, empty | Each entry requires `name` and `path`; `default` defaults to `false`. |
 | `rules` | Optional, empty | Each entry requires `extension` and `editor`; document order matters. |
@@ -122,11 +121,11 @@ null characters, and literal braces in templates are rejected.
 Built-in names, executable paths, and argument templates are loaded from
 `Sources/SourceLinkCore/Resources/editors.json`, using the same profile format as user config.
 Adding a bundled editor only requires adding its JSON profile; pickers discover it automatically.
-Existing version-1 files keep their built-in defaults. Saving writes the effective profiles
+Saving writes the effective profiles
 into `editors`, making commands editable in JSON. Omitted built-in profiles are restored from
 defaults; removing a custom profile requires removing references to it as well.
-The legacy `executables` field and Settings' path overrides still take precedence; use
-**Use Default Path** to return to the profile's executable. Argument templates are edited
+Settings edits the profile's executable directly. **Use Default Path** restores the bundled
+executable for that editor. The `executables` field is not supported and is rejected. Argument templates are edited
 through the configuration file; Settings displays the base arguments.
 
 Unknown keys, incorrect types, unsupported versions, and multiple defaults for the same
@@ -157,7 +156,7 @@ Settings. At startup, invalid JSON opens Settings with the error and blocks firs
 from overwriting it. Restore a removed file to resume editing.
 
 Debounced auto-save merges a draft with the latest file. Independent changes to editor profiles (per editor ID), the default editor,
-individual executable overrides, and separate collections can merge. Concurrent edits to the
+and separate collections can merge. Concurrent edits to the
 same field or collection produce a conflict and retain your draft. Adjust the conflicting
 setting to match the file, or restart Source Link to discard unsaved changes and load the file.
 File creation/deletion or symlink retargeting during a draft also requires restarting before

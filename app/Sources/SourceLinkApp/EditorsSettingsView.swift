@@ -55,8 +55,8 @@ struct EditorsSettingsView: View {
       Text("Executable").fontWeight(.medium)
       HStack(spacing: SettingsStyle.Spacing.medium) {
         TextField("Executable path", text: Binding(
-          get: { store.settings.executablePaths[editor.rawValue] ?? profilePath(editor) },
-          set: { store.settings.executablePaths[editor.rawValue] = $0 }
+          get: { profilePath(editor) },
+          set: { store.settings.editors[editor.rawValue]?.executable = $0 }
         ))
         .textFieldStyle(.roundedBorder).accessibilityLabel("\(editor.title) executable path")
         Button("Choose…") { chooseExecutable(editor) }
@@ -67,8 +67,8 @@ struct EditorsSettingsView: View {
         Text(profile.arguments.joined(separator: " "))
           .font(.system(.caption, design: .monospaced)).textSelection(.enabled)
       }
-      if let path = store.settings.executablePaths[editor.rawValue], path != profilePath(editor) {
-        Button("Use Default Path") { store.settings.executablePaths.removeValue(forKey: editor.rawValue) }
+      if let bundled = EditorProfile.defaults[editor.rawValue], profilePath(editor) != bundled.executable {
+        Button("Use Default Path") { store.settings.editors[editor.rawValue]?.executable = bundled.executable }
           .buttonStyle(SettingsLinkButtonStyle())
       }
     }
@@ -88,14 +88,14 @@ struct EditorsSettingsView: View {
     panel.allowsMultipleSelection = false
     panel.treatsFilePackagesAsDirectories = true
     panel.directoryURL = URL(fileURLWithPath:
-      ConfigurationPaths.expand(store.settings.executablePaths[editor.rawValue] ?? profilePath(editor)))
+      ConfigurationPaths.expand(profilePath(editor)))
       .deletingLastPathComponent()
     if panel.runModal() == .OK, let url = panel.url {
       guard FileManager.default.isExecutableFile(atPath: url.path) else {
         SettingsStore.show(SourceLinkError.invalidEditor)
         return
       }
-      store.settings.executablePaths[editor.rawValue] = url.path
+      store.settings.editors[editor.rawValue]?.executable = url.path
     }
   }
 }

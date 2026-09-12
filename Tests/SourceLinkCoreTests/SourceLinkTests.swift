@@ -121,7 +121,7 @@ struct SourceLinkTests {
     #expect(try settings.command(for: link) == nil)
     settings.checkouts = [Checkout(name: "repo", path: root.path)]
     settings.defaultEditor = .vscode
-    settings.executablePaths[Editor.vscode.rawValue] = "/custom/code"
+    settings.editors[Editor.vscode.rawValue]?.executable = "/custom/code"
     let command = try #require(try settings.command(for: link))
     #expect(command.executable == "/custom/code")
     #expect(command.arguments == ["--goto", file.resolvingSymlinksInPath().path + ":1:2"])

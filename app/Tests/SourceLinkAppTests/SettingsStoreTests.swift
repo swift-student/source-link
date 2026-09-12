@@ -25,14 +25,14 @@ struct SettingsStoreTests {
   @Test func `external edits merge with a pending draft`() async throws {
     let fixture = try StoreFixture()
     fixture.store.settings.defaultEditor = .cursor
-    try fixture.editDisk { $0.executablePaths["zed"] = "/custom/zed" }
+    try fixture.editDisk { $0.editors["zed"]?.executable = "/custom/zed" }
     fixture.store.reload()
-    #expect(fixture.store.activeSettings.executablePaths["zed"] == "/custom/zed")
+    #expect(fixture.store.activeSettings.editors["zed"]?.executable == "/custom/zed")
     #expect(fixture.store.settings.defaultEditor == .cursor)
     try await fixture.finishSave()
     let saved = try fixture.repository.load().document.settings
     #expect(saved.defaultEditor == .cursor)
-    #expect(saved.executablePaths["zed"] == "/custom/zed")
+    #expect(saved.editors["zed"]?.executable == "/custom/zed")
     #expect(fixture.store.saveError == nil)
   }
 
