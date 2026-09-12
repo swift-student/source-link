@@ -53,7 +53,7 @@ final class SettingsUITests: XCTestCase {
     reload.click()
     XCTAssertTrue(window.staticTexts["settings.configuration.error"].exists)
     try FileManager.default.removeItem(at: file)
-    reload.click()
+    // The watcher also accepts the repaired state; do not race it for a disappearing button.
     XCTAssertTrue(window.staticTexts["All changes saved"].waitForExistence(timeout: 5))
     XCTAssertFalse(window.staticTexts["settings.configuration.error"].exists)
     XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
