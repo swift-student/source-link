@@ -49,7 +49,7 @@ enum ConfigurationSchema {
       throw ConfigurationError("checkouts allows at most one default per repository.")
     }
     for (index, rule) in settings.rules.enumerated() {
-      guard !rule.fileExtension.trimmingCharacters(in: CharacterSet(charactersIn: ". ")).isEmpty,
+      guard !rule.normalizedExtension.isEmpty,
             !rule.fileExtension.contains("\0")
       else {
         throw ConfigurationError("rules.\(index).extension must not be empty or contain null characters.")

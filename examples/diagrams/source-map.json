@@ -4,8 +4,8 @@
     "receive": {
       "repository": "source-link",
       "path": "app/Sources/SourceLinkApp/App.swift",
-      "match": "func application(_ application: NSApplication, open urls: [URL])",
-      "line": 50
+      "match": "func application(_: NSApplication, open urls: [URL])",
+      "line": 53
     },
     "parse": {
       "repository": "source-link",
@@ -15,15 +15,15 @@
     },
     "checkout": {
       "repository": "source-link",
-      "path": "Sources/SourceLinkCore/SourceLink.swift",
+      "path": "Sources/SourceLinkCore/SourceSettings.swift",
       "match": "public func checkout(for name: String)",
-      "line": 116
+      "line": 10
     },
     "setup": {
       "repository": "source-link",
       "path": "app/Sources/SourceLinkApp/App.swift",
       "match": "private func configure(_ link: SourceLink)",
-      "line": 65
+      "line": 69
     },
     "resolve": {
       "repository": "source-link",
@@ -33,15 +33,15 @@
     },
     "command": {
       "repository": "source-link",
-      "path": "Sources/SourceLinkCore/SourceLink.swift",
+      "path": "Sources/SourceLinkCore/SourceSettings.swift",
       "match": "public func command(for link: SourceLink)",
-      "line": 130
+      "line": 26
     },
     "run": {
       "repository": "source-link",
-      "path": "Sources/SourceLinkCore/SourceLink.swift",
+      "path": "Sources/SourceLinkCore/EditorCommand.swift",
       "match": "public func run() throws",
-      "line": 155
+      "line": 25
     },
     "click.main": {
       "repository": "click",
@@ -109,6 +109,5 @@
       "symbol": "OptionParser.parse_args",
       "line": 328
     }
-  },
-  "sourceLinkRevision": "545ea4d3826b2471f2919044a823b4535c59c11b"
+  }
 }

@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: build check format format-check generate lint run test ui-test snapshot-test
+.PHONY: build check format format-check generate lint run test ui-test snapshot-test app-test
 
 build: generate
 	xcodebuild \
@@ -12,7 +12,7 @@ build: generate
 		CODE_SIGNING_ALLOWED=NO \
 		build
 
-check: test lint format-check build
+check: test lint format-check build app-test
 
 generate:
 	cd app && xcodegen generate
@@ -59,3 +59,13 @@ ui-test: generate
 .PHONY: record-snapshots
 record-snapshots:
 	TEST_RUNNER_RECORD_SNAPSHOTS=1 $(MAKE) snapshot-test
+
+app-test: generate
+	xcodebuild \
+		-workspace SourceLink.xcworkspace \
+		-scheme SourceLinkAppTests \
+		-configuration Debug \
+		-destination 'platform=macOS' \
+		-derivedDataPath .build/xcode \
+		CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
+		test

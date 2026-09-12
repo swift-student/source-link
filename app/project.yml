@@ -8,6 +8,13 @@ packages:
   SourceLinkPackage:
     path: ..
 schemes:
+  SourceLinkAppTests:
+    build:
+      targets:
+        SourceLinkAppTests: all
+    test:
+      targets:
+        - SourceLinkAppTests
   SettingsSnapshots:
     build:
       targets:
@@ -95,3 +102,20 @@ targets:
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGN_STYLE: Manual
         TEST_TARGET_NAME: SourceLink
+
+  SourceLinkAppTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - Sources/SourceLinkApp/SettingsStore.swift
+      - Tests/SourceLinkAppTests
+    dependencies:
+      - package: SourceLinkPackage
+        product: SourceLinkCore
+    settings:
+      base:
+        SWIFT_VERSION: 6.0
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual

@@ -129,9 +129,7 @@ struct FileRulesSettingsView: View {
   }
 
   private func addRuleButtonTapped() {
-    let extensions = Set(store.settings.rules.map {
-      $0.fileExtension.trimmingCharacters(in: CharacterSet(charactersIn: ". ")).lowercased()
-    })
+    let extensions = Set(store.settings.rules.map(\.normalizedExtension))
     var rule = FileRule()
     if extensions.contains(rule.fileExtension) {
       rule.fileExtension = "txt"

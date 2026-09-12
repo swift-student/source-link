@@ -7,7 +7,7 @@ classes: {
 }
 receive: "Receive URL" {
   class: step
-  link: "source-link://source-link/app/Sources/SourceLinkApp/App.swift?line=50"
+  link: "source-link://source-link/app/Sources/SourceLinkApp/App.swift?line=53"
 }
 parse: "Parse repository, path, position" {
   class: step
@@ -15,11 +15,11 @@ parse: "Parse repository, path, position" {
 }
 checkout: "Checkout selected?" {
   class: choice
-  link: "source-link://source-link/Sources/SourceLinkCore/SourceLink.swift?line=116"
+  link: "source-link://source-link/Sources/SourceLinkCore/SourceSettings.swift?line=10"
 }
 setup: "Choose checkout and editor" {
   class: step
-  link: "source-link://source-link/app/Sources/SourceLinkApp/App.swift?line=65"
+  link: "source-link://source-link/app/Sources/SourceLinkApp/App.swift?line=69"
 }
 resolve: "Validate file inside checkout" {
   class: step
@@ -27,11 +27,11 @@ resolve: "Validate file inside checkout" {
 }
 command: "Choose editor and arguments" {
   class: step
-  link: "source-link://source-link/Sources/SourceLinkCore/SourceLink.swift?line=130"
+  link: "source-link://source-link/Sources/SourceLinkCore/SourceSettings.swift?line=26"
 }
 run: "Launch editor process" {
   class: finish
-  link: "source-link://source-link/Sources/SourceLinkCore/SourceLink.swift?line=155"
+  link: "source-link://source-link/Sources/SourceLinkCore/EditorCommand.swift?line=25"
 }
 receive -> parse -> checkout
 checkout -> resolve: yes
