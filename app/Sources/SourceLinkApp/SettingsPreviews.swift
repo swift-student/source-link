@@ -3,12 +3,12 @@
   import SwiftUI
 
   /// Owns an isolated store for the lifetime of each interactive canvas preview.
-  private struct SettingsPreview: View {
+  struct SettingsPreview<Content: View>: View {
     @StateObject private var store: SettingsStore
-    let page: SettingsPage
+    private let content: (SettingsStore) -> Content
 
-    init(page: SettingsPage, populated: Bool = true) {
-      self.page = page
+    init(populated: Bool = true, @ViewBuilder content: @escaping (SettingsStore) -> Content) {
+      self.content = content
       var settings = SourceSettings()
       if populated {
         settings.checkouts = [
@@ -28,37 +28,8 @@
     }
 
     var body: some View {
-      SettingsView(store: store, selection: page)
-        .frame(width: SettingsStyle.Layout.window.width, height: SettingsStyle.Layout.window.height)
+      content(store)
     }
   }
 
-  #Preview("Repositories — Populated") {
-    SettingsPreview(page: .repositories)
-  }
-
-  #Preview("Repositories — Empty") {
-    SettingsPreview(page: .repositories, populated: false)
-  }
-
-  #Preview("Editors — Custom Executable") {
-    SettingsPreview(page: .editors)
-  }
-
-  #Preview("Editors — Defaults") {
-    SettingsPreview(page: .editors, populated: false)
-  }
-
-  #Preview("File Rules — Populated") {
-    SettingsPreview(page: .rules)
-  }
-
-  #Preview("File Rules — Empty") {
-    SettingsPreview(page: .rules, populated: false)
-  }
-
-  #Preview("Settings — Dark") {
-    SettingsPreview(page: .rules)
-      .preferredColorScheme(.dark)
-  }
 #endif

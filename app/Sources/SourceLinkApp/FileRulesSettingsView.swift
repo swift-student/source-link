@@ -174,3 +174,23 @@ private extension [FileRule] {
     }
   }
 }
+
+#if DEBUG
+  #Preview("File Rules — Populated") {
+    SettingsPreview { store in
+      ScrollView { FileRulesSettingsView(store: store) }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(SettingsStyle.pageBackground)
+        .frame(width: 860, height: SettingsStyle.Layout.window.height)
+    }
+  }
+
+  #Preview("File Rules — Empty") {
+    SettingsPreview(populated: false) { store in
+      ScrollView { FileRulesSettingsView(store: store) }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(SettingsStyle.pageBackground)
+        .frame(width: 860, height: SettingsStyle.Layout.window.height)
+    }
+  }
+#endif

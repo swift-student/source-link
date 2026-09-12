@@ -93,3 +93,23 @@ struct EditorsSettingsView: View {
     }
   }
 }
+
+#if DEBUG
+  #Preview("Editors — Custom Executable") {
+    SettingsPreview { store in
+      EditorsSettingsView(store: store)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(SettingsStyle.pageBackground)
+        .frame(width: 860, height: SettingsStyle.Layout.window.height)
+    }
+  }
+
+  #Preview("Editors — Defaults") {
+    SettingsPreview(populated: false) { store in
+      EditorsSettingsView(store: store)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(SettingsStyle.pageBackground)
+        .frame(width: 860, height: SettingsStyle.Layout.window.height)
+    }
+  }
+#endif
