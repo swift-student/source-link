@@ -24,16 +24,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private let store = SettingsStore()
   private var settingsWindow: NSWindow?
 
-  func applicationWillFinishLaunching(_ notification: Notification) {
+  func applicationWillFinishLaunching(_: Notification) {
     NSApplication.shared.setActivationPolicy(.accessory)
   }
 
-  func applicationDidFinishLaunching(_ notification: Notification) {
+  func applicationDidFinishLaunching(_: Notification) {
     if store.activeSettings.checkouts.isEmpty || store.errorMessage != nil
-      || CommandLine.arguments.contains("--settings") { showSettings() }
+      || CommandLine.arguments.contains("--settings") {
+      showSettings()
+    }
   }
 
-  func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+  func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
     showSettings()
     return true
   }
@@ -48,7 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     NSApp.activate(ignoringOtherApps: true)
   }
 
-  func application(_ application: NSApplication, open urls: [URL]) {
+  func application(_: NSApplication, open urls: [URL]) {
     store.reload()
     for url in urls {
       do {
@@ -100,7 +102,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       rule.fileExtension = fileExtension
       rule.editor = editor
       settings.rules.insert(rule, at: 0)
-    } else { settings.defaultEditor = editor }
+    } else {
+      settings.defaultEditor = editor
+    }
     return store.saveSetup(settings, base: base)
   }
 
@@ -134,5 +138,4 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     panel.allowsMultipleSelection = false
     return panel.runModal() == .OK ? panel.url : nil
   }
-
 }

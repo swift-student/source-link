@@ -2,8 +2,13 @@ import Foundation
 
 public struct ConfigurationError: LocalizedError, Sendable {
   public let message: String
-  public init(_ message: String) { self.message = message }
-  public var errorDescription: String? { message }
+  public init(_ message: String) {
+    self.message = message
+  }
+
+  public var errorDescription: String? {
+    message
+  }
 }
 
 /// Retains the original bytes for optimistic concurrency checks; saves use canonical JSON.
@@ -22,8 +27,8 @@ public struct ConfigurationDocument: Sendable {
 }
 
 /// IDs are presentation state, not part of the on-disk schema or conflict comparison.
-extension SourceSettings {
-  public func hasSameConfiguration(as other: Self) -> Bool {
+public extension SourceSettings {
+  func hasSameConfiguration(as other: Self) -> Bool {
     defaultEditor == other.defaultEditor && executablePaths == other.executablePaths
       && checkouts.map { CheckoutFields($0) } == other.checkouts.map { CheckoutFields($0) }
       && rules.map { RuleFields($0) } == other.rules.map { RuleFields($0) }
@@ -42,18 +47,19 @@ struct CheckoutFields: Equatable {
 struct RuleFields: Equatable {
   let fileExtension: String
   let editor: Editor
-  init(_ rule: FileRule) { fileExtension = rule.fileExtension; editor = rule.editor }
+  init(_ rule: FileRule) {
+    fileExtension = rule.fileExtension; editor = rule.editor
+  }
 }
 
 /// Paths are expanded only when used, so portable spelling survives UI edits.
 public enum ConfigurationPaths {
   public static func file(environment: [String: String] = ProcessInfo.processInfo.environment,
                           home: URL = FileManager.default.homeDirectoryForCurrentUser) -> URL {
-    let directory: URL
-    if let configured = environment["XDG_CONFIG_HOME"], configured.hasPrefix("/") {
-      directory = URL(fileURLWithPath: configured, isDirectory: true)
+    let directory: URL = if let configured = environment["XDG_CONFIG_HOME"], configured.hasPrefix("/") {
+      URL(fileURLWithPath: configured, isDirectory: true)
     } else {
-      directory = home.appendingPathComponent(".config", isDirectory: true)
+      home.appendingPathComponent(".config", isDirectory: true)
     }
     return directory.appendingPathComponent("source-link/config.json")
   }

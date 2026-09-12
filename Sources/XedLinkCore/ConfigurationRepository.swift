@@ -21,7 +21,7 @@ public struct ConfigurationRepository: Sendable {
         let document = try ConfigurationDocument(text: String(contentsOf: file, encoding: .utf8))
         return ConfigurationSnapshot(document: document, target: target, exists: true)
       }
-      return ConfigurationSnapshot(document: try .initial(), target: target, exists: false)
+      return try ConfigurationSnapshot(document: .initial(), target: target, exists: false)
     } catch { throw ConfigurationError("\(file.path): \(error.localizedDescription)") }
   }
 
@@ -58,7 +58,8 @@ public struct ConfigurationRepository: Sendable {
     // Detect changes made since the merge, immediately before committing. An unrelated writer is not locked out.
     let current = try load()
     guard current.target == expected.target, current.exists == expected.exists,
-          current.document.text == expected.document.text else {
+          current.document.text == expected.document.text
+    else {
       throw ConfigurationError("\(file.path): changed again during saving. Try Apply again.")
     }
     // rename replaces the destination atomically without replacing the user's symlink.

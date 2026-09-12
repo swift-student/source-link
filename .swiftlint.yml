@@ -3,5 +3,7 @@ included:
   - Tests
   - app/Sources
   - app/Tests
+  - scripts
+  - Package.swift
 
 strict: true

@@ -10,32 +10,37 @@ struct EditorsSettingsView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: SettingsStyle.Spacing.section) {
         SettingsHeading(title: "Editors", subtitle: "Set a default, then configure only the editors you use.") {}
-        HStack {
-          Text("Default editor").fontWeight(.medium)
-          Spacer()
-          Picker("Default editor", selection: $store.settings.defaultEditor) {
-            ForEach(Editor.allCases) { Text($0.title).tag($0) }
-          }
-          .labelsHidden().frame(width: SettingsStyle.Layout.editorPicker)
-        }
-        .padding(.vertical, SettingsStyle.Spacing.medium)
-        Divider()
         SettingsCard {
           ForEach(Editor.allCases) { editor in
-            if editor != Editor.allCases.first { Divider() }
+            if editor != Editor.allCases.first {
+              Divider()
+            }
             DisclosureGroup(isExpanded: Binding(
               get: { expanded.contains(editor) },
-              set: { if $0 { expanded.insert(editor) } else { expanded.remove(editor) } }
+              set: {
+                if $0 {
+                  expanded.insert(editor)
+                } else {
+                  expanded.remove(editor)
+                }
+              }
             )) {
               editorConfiguration(editor)
             } label: {
               HStack {
                 Text(editor.title).fontWeight(.medium)
                 Spacer()
-                if editor == store.settings.defaultEditor { DefaultBadge() }
+                if editor == store.settings.defaultEditor {
+                  Text("Default editor").foregroundStyle(SettingsStyle.actionForeground)
+                } else {
+                  Button("Make Default") { store.settings.defaultEditor = editor }
+                    .buttonStyle(SettingsLinkButtonStyle())
+                    .accessibilityIdentifier("editors.makeDefault.\(editor.rawValue)")
+                }
               }
               .padding(.vertical, SettingsStyle.Spacing.large)
             }
+            .disclosureGroupStyle(SettingsDisclosureGroupStyle(title: editor.title))
             .padding(.horizontal, SettingsStyle.Spacing.large)
           }
         }
@@ -57,15 +62,15 @@ struct EditorsSettingsView: View {
         Button("Choose…") { chooseExecutable(editor) }
       }
       Text(editor == .xcode
-           ? "Opens files at the requested line. Column positions aren’t supported."
-           : "Opens files at the requested line and column. Install the editor before using it.")
+        ? "Opens files at the requested line. Column positions aren’t supported."
+        : "Opens files at the requested line and column. Install the editor before using it.")
         .font(.callout).foregroundStyle(.secondary)
       if let path = store.settings.executablePaths[editor.rawValue], path != editor.defaultExecutable {
         Button("Use Default Path") { store.settings.executablePaths.removeValue(forKey: editor.rawValue) }
-          .buttonStyle(.link)
+          .buttonStyle(SettingsLinkButtonStyle())
       }
     }
-    .padding(.leading, SettingsStyle.Spacing.large).padding(.bottom, SettingsStyle.Spacing.extraLarge)
+    .padding(.leading, 36).padding(.bottom, SettingsStyle.Spacing.extraLarge)
   }
 
   private func chooseExecutable(_ editor: Editor) {

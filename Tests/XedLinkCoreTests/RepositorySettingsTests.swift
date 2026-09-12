@@ -2,9 +2,8 @@ import Foundation
 import Testing
 @testable import XedLinkCore
 
-@Suite
 struct RepositorySettingsTests {
-  @Test func worktreesKeepTheSharedRootName() throws {
+  @Test func `worktrees keep the shared root name`() throws {
     var settings = SourceSettings()
     settings.addCheckout(root: URL(fileURLWithPath: "/workspace/source-link"))
     settings.addCheckout(root: URL(fileURLWithPath: "/worktrees/settings-redesign"), repository: "source-link")
@@ -18,7 +17,7 @@ struct RepositorySettingsTests {
     #expect(settings.checkout(for: "settings-redesign") == nil)
   }
 
-  @Test func removingDefaultPromotesAnotherCheckout() {
+  @Test func `removing default promotes another checkout`() {
     var settings = SourceSettings()
     settings.addCheckout(root: URL(fileURLWithPath: "/workspace/repo"))
     settings.addCheckout(root: URL(fileURLWithPath: "/worktrees/feature"), repository: "repo")
@@ -31,7 +30,7 @@ struct RepositorySettingsTests {
     #expect(settings.repositoryNames == ["other"])
   }
 
-  @Test func normalizesDefaultsWithoutRenamingRepositories() throws {
+  @Test func `normalizes defaults without renaming repositories`() throws {
     var settings = SourceSettings()
     settings.checkouts = [
       Checkout(name: "ExistingAlias", path: "/one"),
@@ -48,7 +47,7 @@ struct RepositorySettingsTests {
     #expect(try JSONDecoder().decode(SourceSettings.self, from: JSONEncoder().encode(settings)) == normalized)
   }
 
-  @Test func addingDuplicateDoesNotChangeDefault() {
+  @Test func `adding duplicate does not change default`() {
     var settings = SourceSettings()
     settings.addCheckout(root: URL(fileURLWithPath: "/workspace/repo"))
     settings.addCheckout(root: URL(fileURLWithPath: "/worktrees/feature"), repository: "repo")
@@ -58,7 +57,7 @@ struct RepositorySettingsTests {
     #expect(settings.checkout(for: "repo")?.folderName == "feature")
   }
 
-  @Test func reorderedRulesChangePrecedenceAndPersist() throws {
+  @Test func `reordered rules change precedence and persist`() throws {
     var settings = SourceSettings()
     var first = FileRule()
     first.fileExtension = ".SWIFT"

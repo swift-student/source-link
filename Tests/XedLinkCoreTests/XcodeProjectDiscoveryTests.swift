@@ -2,7 +2,6 @@ import Foundation
 import Testing
 @testable import XedLinkCore
 
-@Suite
 struct XcodeProjectDiscoveryTests {
   @Test(arguments: [
     (["App.xcworkspace", "App.xcodeproj", "Package.swift"], "App.xcworkspace"),
@@ -13,7 +12,7 @@ struct XcodeProjectDiscoveryTests {
     (["One.xcodeproj", "Two.xcodeproj", "Package.swift"], nil),
     (["Nested/App.xcworkspace"], nil)
   ] as [([String], String?)])
-  func routesXcodeThroughPreferredRootContext(entries: [String], expected: String?) throws {
+  func `routes xcode through preferred root context`(entries: [String], expected: String?) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -43,7 +42,7 @@ struct XcodeProjectDiscoveryTests {
     ])
   }
 
-  @Test func ignoresInvalidProjectTypes() throws {
+  @Test func `ignores invalid project types`() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }

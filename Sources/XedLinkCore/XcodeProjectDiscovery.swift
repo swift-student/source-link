@@ -14,7 +14,9 @@ enum XcodeProjectDiscovery {
           && (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
       }
       // Do not silently select an arbitrary project, or a lower-priority context.
-      if !matches.isEmpty { return matches.count == 1 ? matches.first : nil }
+      if !matches.isEmpty {
+        return matches.count == 1 ? matches.first : nil
+      }
     }
 
     return children.first {

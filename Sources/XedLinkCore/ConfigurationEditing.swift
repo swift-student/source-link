@@ -8,14 +8,18 @@ extension ConfigurationDocument {
     for editor in Editor.allCases {
       let key = editor.rawValue
       merged.executablePaths[key] = try merge(base.executablePaths[key], draft.executablePaths[key],
-                                               settings.executablePaths[key], "executables.\(key)")
+                                              settings.executablePaths[key], "executables.\(key)")
     }
     let checkouts = try merge(base.checkouts.map { CheckoutFields($0) }, draft.checkouts.map { CheckoutFields($0) },
                               settings.checkouts.map { CheckoutFields($0) }, "checkouts")
-    if checkouts != settings.checkouts.map({ CheckoutFields($0) }) { merged.checkouts = draft.checkouts }
+    if checkouts != settings.checkouts.map({ CheckoutFields($0) }) {
+      merged.checkouts = draft.checkouts
+    }
     let rules = try merge(base.rules.map { RuleFields($0) }, draft.rules.map { RuleFields($0) },
                           settings.rules.map { RuleFields($0) }, "rules")
-    if rules != settings.rules.map({ RuleFields($0) }) { merged.rules = draft.rules }
+    if rules != settings.rules.map({ RuleFields($0) }) {
+      merged.rules = draft.rules
+    }
     return try updating(to: merged)
   }
 

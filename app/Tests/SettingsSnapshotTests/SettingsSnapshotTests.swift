@@ -8,17 +8,17 @@ import XedLinkCore
 @MainActor
 struct SettingsSnapshotTests {
   @Test(arguments: SettingsPage.allCases, [false, true])
-  func settingsWindow(page: SettingsPage, dark: Bool) async throws {
+  func `settings window`(page: SettingsPage, dark: Bool) async throws {
     try await snapshot(page: page, dark: dark, size: SettingsStyle.Layout.window)
   }
 
   @Test(arguments: SettingsPage.allCases, [false, true])
-  func populatedSettingsWindow(page: SettingsPage, dark: Bool) async throws {
+  func `populated settings window`(page: SettingsPage, dark: Bool) async throws {
     try await snapshot(page: page, dark: dark, size: SettingsStyle.Layout.window, populated: true)
   }
 
   @Test(arguments: [false, true])
-  func minimumWindow(dark: Bool) async throws {
+  func `minimum window`(dark: Bool) async throws {
     try await snapshot(page: .rules, dark: dark, size: SettingsStyle.Layout.minimumWindow)
   }
 
@@ -28,7 +28,9 @@ struct SettingsSnapshotTests {
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: directory) }
     let file = directory.appendingPathComponent("settings.json")
-    if populated { try writePopulatedFixture(to: file) }
+    if populated {
+      try writePopulatedFixture(to: file)
+    }
     let store = SettingsStore(repository: ConfigurationRepository(file: file))
     #expect(store.errorMessage == nil)
     NSApplication.shared.setActivationPolicy(.regular)

@@ -2,7 +2,10 @@ import SwiftUI
 
 enum SettingsPage: String, CaseIterable, Identifiable {
   case repositories = "Repositories", editors = "Editors", rules = "File Rules"
-  var id: String { rawValue }
+  var id: String {
+    rawValue
+  }
+
   var symbol: String {
     switch self {
     case .repositories: "folder"
@@ -38,7 +41,17 @@ struct SettingsView: View {
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
       .background(SettingsStyle.pageBackground)
-      .safeAreaInset(edge: .bottom, spacing: 0) { ConfigurationSettingsFooter(store: store) }
+      .safeAreaInset(edge: .top, spacing: 0) {
+        if let message = store.errorMessage ?? store.saveError {
+          Text(message)
+            .font(.callout)
+            .foregroundStyle(.red)
+            .textSelection(.enabled)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(SettingsStyle.Spacing.extraLarge)
+            .accessibilityIdentifier("settings.configuration.error")
+        }
+      }
     }
     .frame(minWidth: SettingsStyle.Layout.minimumWindow.width,
            minHeight: SettingsStyle.Layout.minimumWindow.height)

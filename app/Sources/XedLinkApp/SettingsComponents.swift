@@ -29,11 +29,62 @@ struct SettingsCard<Content: View>: View {
   }
 }
 
+/// Keeps the disclosure button separate from row actions, with a generous hit area.
+struct SettingsDisclosureGroupStyle: DisclosureGroupStyle {
+  let title: String
+
+  func makeBody(configuration: Configuration) -> some View {
+    VStack(spacing: 0) {
+      HStack(spacing: 0) {
+        Button {
+          configuration.isExpanded.toggle()
+        } label: {
+          Image(systemName: configuration.isExpanded ? "chevron.down" : "chevron.right")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .frame(width: 36, height: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(configuration.isExpanded ? "Collapse" : "Expand") \(title)")
+        .accessibilityValue(configuration.isExpanded ? "Expanded" : "Collapsed")
+        configuration.label
+      }
+      if configuration.isExpanded {
+        configuration.content
+      }
+    }
+  }
+}
+
 struct DefaultBadge: View {
+  @Environment(\.colorScheme) private var colorScheme
+
   var body: some View {
-    Text("Default").font(.caption).foregroundStyle(Color.accentColor)
-      .padding(.horizontal, SettingsStyle.Spacing.small).padding(.vertical, SettingsStyle.Spacing.extraSmall)
-      .background(SettingsStyle.badgeBackground, in: RoundedRectangle(cornerRadius: SettingsStyle.badgeRadius))
+    Text("Default")
+      .font(.body)
+      .foregroundStyle(SettingsStyle.actionForeground)
+      .padding(.horizontal, SettingsStyle.Spacing.medium)
+      .padding(.vertical, SettingsStyle.Spacing.small)
+      .background(
+        SettingsStyle.selectionBackground(for: colorScheme),
+        in: RoundedRectangle(cornerRadius: SettingsStyle.badgeRadius)
+      )
+  }
+}
+
+/// A single appearance-aware foreground for inline settings actions.
+struct SettingsLinkButtonStyle: ButtonStyle {
+  @Environment(\.isEnabled) private var isEnabled
+  @State private var isHovered = false
+
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .foregroundStyle(isEnabled ? SettingsStyle.actionForeground : Color.secondary)
+      .opacity(configuration.isPressed ? 0.65 : 1)
+      .brightness(isHovered && isEnabled ? 0.06 : 0)
+      .contentShape(Rectangle())
+      .onHover { isHovered = $0 }
   }
 }
 

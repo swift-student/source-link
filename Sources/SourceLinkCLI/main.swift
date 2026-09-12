@@ -5,7 +5,7 @@ let arguments = Array(CommandLine.arguments.dropFirst())
 do {
   if arguments == ["config", "path"] {
     print(ConfigurationPaths.file().path)
-  } else if (arguments.count == 2 || arguments.count == 3) && Array(arguments.prefix(2)) == ["config", "validate"] {
+  } else if arguments.count == 2 || arguments.count == 3, Array(arguments.prefix(2)) == ["config", "validate"] {
     let file = arguments.count == 3
       ? URL(fileURLWithPath: ConfigurationPaths.expand(arguments[2])) : ConfigurationPaths.file()
     do {

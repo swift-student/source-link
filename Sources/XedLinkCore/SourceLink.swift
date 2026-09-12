@@ -8,16 +8,16 @@ public struct SourceLink: Equatable, Sendable {
 
   public init(_ url: URL) throws {
     guard let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
-      parts.scheme?.lowercased() == "source-link",
-      let host = parts.host, !host.isEmpty,
-      parts.user == nil, parts.password == nil, parts.port == nil, parts.fragment == nil
+          parts.scheme?.lowercased() == "source-link",
+          let host = parts.host, !host.isEmpty,
+          parts.user == nil, parts.password == nil, parts.port == nil, parts.fragment == nil
     else { throw SourceLinkError.invalidLink }
     let path = String(parts.path.dropFirst())
     guard parts.path.hasPrefix("/"), !path.isEmpty,
-      !path.hasPrefix("/"), !path.contains("\0"),
-      !path.split(separator: "/", omittingEmptySubsequences: false).contains(where: {
-        $0 == ".." || $0 == "." || $0.isEmpty
-      })
+          !path.hasPrefix("/"), !path.contains("\0"),
+          !path.split(separator: "/", omittingEmptySubsequences: false).contains(where: {
+            $0 == ".." || $0 == "." || $0.isEmpty
+          })
     else { throw SourceLinkError.invalidLink }
     let items = parts.queryItems ?? []
     guard items.allSatisfy({ $0.name == "line" || $0.name == "column" }) else {
@@ -34,8 +34,8 @@ public struct SourceLink: Equatable, Sendable {
     let matches = items.filter { $0.name == name }
     guard !matches.isEmpty else { return nil }
     guard matches.count == 1, let text = matches[0].value,
-      !text.isEmpty, text.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }),
-      let value = Int(text), value > 0
+          !text.isEmpty, text.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }),
+          let value = Int(text), value > 0
     else { throw SourceLinkError.invalidLink }
     return value
   }
@@ -44,10 +44,10 @@ public struct SourceLink: Equatable, Sendable {
     let base = root.standardizedFileURL.resolvingSymlinksInPath()
     let file = base.appendingPathComponent(path).standardizedFileURL.resolvingSymlinksInPath()
     guard file.path.hasPrefix(base.path.hasSuffix("/") ? base.path : base.path + "/"),
-      file.path != base.path else { throw SourceLinkError.outsideRepository }
+          file.path != base.path else { throw SourceLinkError.outsideRepository }
     var isDirectory: ObjCBool = false
     guard FileManager.default.fileExists(atPath: file.path, isDirectory: &isDirectory),
-      !isDirectory.boolValue else { throw SourceLinkError.missingFile }
+          !isDirectory.boolValue else { throw SourceLinkError.missingFile }
     return file
   }
 }
@@ -80,7 +80,10 @@ public struct Checkout: Codable, Identifiable, Equatable, Sendable {
 
 public enum Editor: String, Codable, CaseIterable, Identifiable, Sendable {
   case xcode, vscode, cursor, zed
-  public var id: String { rawValue }
+  public var id: String {
+    rawValue
+  }
+
   public var title: String {
     switch self {
     case .xcode: "Xcode"
@@ -89,6 +92,7 @@ public enum Editor: String, Codable, CaseIterable, Identifiable, Sendable {
     case .zed: "Zed"
     }
   }
+
   public var defaultExecutable: String {
     switch self {
     case .xcode: "/usr/bin/xed"
@@ -115,7 +119,9 @@ public struct SourceSettings: Codable, Equatable, Sendable {
 
   public func checkout(for name: String) -> Checkout? {
     let matches = checkouts.filter { $0.name.caseInsensitiveCompare(name) == .orderedSame }
-    if matches.count == 1 { return matches.first }
+    if matches.count == 1 {
+      return matches.first
+    }
     let defaults = matches.filter(\.isDefault)
     return defaults.count == 1 ? defaults.first : nil
   }

@@ -10,6 +10,7 @@ final class SettingsStore: ObservableObject {
       scheduleAutoSave()
     }
   }
+
   @Published private(set) var activeSettings = SourceSettings()
   @Published private(set) var errorMessage: String?
   @Published private(set) var saveError: String?
@@ -20,16 +21,24 @@ final class SettingsStore: ObservableObject {
   private var autoSave: Task<Void, Never>?
   private var isAcceptingSnapshot = false
 
-  var isDirty: Bool { base.map { !settings.hasSameConfiguration(as: $0.document.settings) } ?? false }
-  var canSave: Bool { base != nil && errorMessage == nil }
-  var setupSnapshot: ConfigurationSnapshot? { active }
+  var isDirty: Bool {
+    base.map { !settings.hasSameConfiguration(as: $0.document.settings) } ?? false
+  }
+
+  var canSave: Bool {
+    base != nil && errorMessage == nil
+  }
+
+  var setupSnapshot: ConfigurationSnapshot? {
+    active
+  }
 
   private static func defaultRepository() -> ConfigurationRepository {
     #if DEBUG
-    if let path = ProcessInfo.processInfo.environment["SOURCE_LINK_TEST_SETTINGS_PATH"] {
-      let file = URL(fileURLWithPath: path)
-      return ConfigurationRepository(file: file)
-    }
+      if let path = ProcessInfo.processInfo.environment["SOURCE_LINK_TEST_SETTINGS_PATH"] {
+        let file = URL(fileURLWithPath: path)
+        return ConfigurationRepository(file: file)
+      }
     #endif
     return ConfigurationRepository()
   }
@@ -37,7 +46,7 @@ final class SettingsStore: ObservableObject {
   init(repository: ConfigurationRepository? = nil) {
     let repository = repository ?? Self.defaultRepository()
     self.repository = repository
-    do { accept(try repository.load(), discardDraft: true) } catch {
+    do { try accept(repository.load(), discardDraft: true) } catch {
       errorMessage = error.localizedDescription
     }
     // Reopen the path each time: this also catches atomic replacements, parent-directory
@@ -99,7 +108,9 @@ final class SettingsStore: ObservableObject {
         || snapshot.exists != active?.exists {
         let wasBlocked = errorMessage != nil
         accept(snapshot)
-        if wasBlocked && isDirty && saveError == nil { scheduleAutoSave() }
+        if wasBlocked, isDirty, saveError == nil {
+          scheduleAutoSave()
+        }
       }
     } catch { errorMessage = error.localizedDescription }
   }
@@ -117,7 +128,7 @@ final class SettingsStore: ObservableObject {
       }
     }
     do {
-      accept(try repository.save(base: base, draft: settings), discardDraft: true)
+      try accept(repository.save(base: base, draft: settings), discardDraft: true)
       saveError = nil
     } catch { saveError = error.localizedDescription }
   }
@@ -125,7 +136,7 @@ final class SettingsStore: ObservableObject {
   func saveSetup(_ settings: SourceSettings, base: ConfigurationSnapshot) -> Bool {
     guard errorMessage == nil else { return false }
     do {
-      accept(try repository.save(base: base, draft: settings))
+      try accept(repository.save(base: base, draft: settings))
       return true
     } catch { Self.show(error); return false }
   }

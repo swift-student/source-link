@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import XedLinkCore
 
-@Suite struct ConfigurationRepositoryTests {
+struct ConfigurationRepositoryTests {
   func withDirectory(_ body: (URL) throws -> Void) throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -10,7 +10,7 @@ import Testing
     try body(root)
   }
 
-  @Test func missingConfigurationUsesDefaultsWithoutCreatingFile() throws {
+  @Test func `missing configuration uses defaults without creating file`() throws {
     try withDirectory { root in
       let file = root.appendingPathComponent("config.json")
       let snapshot = try ConfigurationRepository(file: file).load()
@@ -20,7 +20,7 @@ import Testing
     }
   }
 
-  @Test func savesThroughSymlinkAndDetectsRetargeting() throws {
+  @Test func `saves through symlink and detects retargeting`() throws {
     try withDirectory { root in
       let target = root.appendingPathComponent("dotfiles.json")
       let link = root.appendingPathComponent("config.json")
@@ -43,7 +43,7 @@ import Testing
     }
   }
 
-  @Test func mergesExternalReplacementAndDoesNotOverwriteBrokenOrDeletedFile() throws {
+  @Test func `merges external replacement and does not overwrite broken or deleted file`() throws {
     try withDirectory { root in
       let repository = ConfigurationRepository(file: root.appendingPathComponent("config.json"))
       let initial = try repository.load()
@@ -66,7 +66,7 @@ import Testing
     }
   }
 
-  @Test func rejectsBrokenJSONAndDanglingSymlink() throws {
+  @Test func `rejects broken JSON and dangling symlink`() throws {
     try withDirectory { root in
       let file = root.appendingPathComponent("config.json")
       let repository = ConfigurationRepository(file: file)
