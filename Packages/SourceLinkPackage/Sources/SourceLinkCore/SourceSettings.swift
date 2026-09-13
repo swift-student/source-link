@@ -32,14 +32,15 @@ public struct SourceSettings: Codable, Equatable, Sendable {
     }?.editor ?? defaultEditor
   }
 
-  public func command(for link: SourceLink) throws -> EditorCommand? {
+  public func command(for link: SourceLink, symbol: SwiftSymbol? = nil) throws -> EditorCommand? {
+    guard link.symbol == nil || symbol != nil else { throw SourceLinkError.unresolvedSymbol }
     guard let checkout = checkout(for: link.repository) else { return nil }
     let root = URL(fileURLWithPath: ConfigurationPaths.expand(checkout.path))
     let file = try link.resolve(root: root)
     let editor = editor(for: file)
     guard let profile = editors[editor.rawValue] else { throw SourceLinkError.invalidEditor }
     return EditorCommand(profile: profile,
-                         file: file, line: link.line, column: link.column,
+                         file: file, line: symbol?.line ?? link.line, column: symbol?.column ?? link.column,
                          project: editor == .xcode
                            ? XcodeProjectDiscovery.project(in: root)?.resolvingSymlinksInPath() : nil)
   }

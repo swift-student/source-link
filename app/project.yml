@@ -109,6 +109,7 @@ targets:
     deploymentTarget: "15.0"
     sources:
       - Sources/SourceLinkApp/SettingsStore.swift
+      - Sources/SourceLinkApp/SymbolPicker.swift
       - Tests/SourceLinkAppTests
     dependencies:
       - package: SourceLinkPackage

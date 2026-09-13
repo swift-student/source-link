@@ -37,7 +37,10 @@ public struct EditorProfile: Codable, Equatable, Sendable {
   public static let defaults: [String: EditorProfile] = {
     do {
       #if SWIFT_PACKAGE
-        let url = Bundle.module.url(forResource: "editors", withExtension: "json")
+        // Native SwiftPM builds search the app root; signed macOS apps keep bundles in Resources.
+        let resources = Bundle.main.url(forResource: "SourceLinkPackage_SourceLinkCore", withExtension: "bundle")
+          .flatMap(Bundle.init(url:)) ?? Bundle.module
+        let url = resources.url(forResource: "editors", withExtension: "json")
       #else
         // The direct build puts resources in the app bundle and beside the CLI.
         let url = Bundle.main.url(forResource: "editors", withExtension: "json")

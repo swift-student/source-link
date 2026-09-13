@@ -11,6 +11,26 @@ source-link://my-repo/Sources/My%20File.swift?line=42&column=3
 
 Supports Xcode, VS Code, Cursor, Zed, Android Studio, IntelliJ IDEA, Sublime Text, and custom editor profiles. Runs in the menu bar with no Dock icon.
 
+## Swift symbol links
+
+Swift files also support declaration links:
+
+```text
+source-link://my-repo/Sources/Widget.swift?symbol=Widget.refresh(force:)
+```
+
+Use a type or property name (`Widget`, `Widget.title`), a function with argument labels
+(`Widget.refresh(force:)`), or a short name (`refresh`). Qualified names include enclosing
+types; members declared in extensions are supported. One match opens immediately. Multiple
+matches show a selection window with signatures and line numbers; use the arrow keys and
+Enter to open, or Escape to cancel. No matches produce an error.
+
+The file is required, and `symbol` cannot be combined with `line` or `column`. URL-encode
+special characters in symbol names. Lookup uses SourceKitten against the current file on disk,
+without building or indexing the repository. It requires Xcode or a Swift toolchain with SourceKit;
+no separate SourceKitten installation is needed. Links survive line changes, but not declaration
+renames or file moves. Macro-generated declarations are not supported.
+
 ## Build and run
 
 Requires macOS 15+, Xcode with Swift 6.2+, and these development tools:
