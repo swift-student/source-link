@@ -143,6 +143,7 @@ struct SymbolPickerView: View {
             Text("Line \(symbol.line)").font(.caption).foregroundStyle(.secondary)
           }
           .padding(.vertical, 5)
+          .padding(.horizontal, 4)
           .help(symbol.signature)
           .tag(symbol.id)
           .id(symbol.id)
