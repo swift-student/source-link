@@ -122,6 +122,7 @@ struct SymbolPickerView: View {
   @ObservedObject var selection: SymbolPickerSelection
   let file: String
   let completion: (SwiftSymbol?) -> Void
+  @Environment(\.colorScheme) private var colorScheme
   @FocusState private var listFocused: Bool
 
   var body: some View {
@@ -137,17 +138,32 @@ struct SymbolPickerView: View {
       .padding(20)
       Divider()
       ScrollViewReader { proxy in
-        List(selection.symbols, selection: $selection.id) { symbol in
+        List(selection.symbols) { symbol in
           VStack(alignment: .leading, spacing: 4) {
             Text(symbol.signature).font(.system(.body, design: .monospaced)).lineLimit(1)
             Text("Line \(symbol.line)").font(.caption).foregroundStyle(.secondary)
           }
           .padding(.vertical, 5)
           .padding(.horizontal, 4)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .contentShape(Rectangle())
+          .onTapGesture {
+            selection.id = symbol.id
+            listFocused = true
+          }
           .help(symbol.signature)
-          .tag(symbol.id)
           .id(symbol.id)
+          .accessibilityElement(children: .combine)
+          .accessibilityAddTraits(selection.id == symbol.id ? .isSelected : [])
+          .accessibilityAction { selection.id = symbol.id }
+          // Match Settings without the native list selection painting over the tint.
+          .selectionDisabled()
           .listRowSeparator(.hidden)
+          .listRowBackground(
+            RoundedRectangle(cornerRadius: SettingsStyle.cardRadius)
+              .fill(selection.id == symbol.id ? SettingsStyle.selectionBackground(for: colorScheme) : .clear)
+              .padding(.horizontal, 10)
+          )
         }
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
