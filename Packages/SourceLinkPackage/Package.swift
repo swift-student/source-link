@@ -8,11 +8,17 @@ let package = Package(
     .macOS(.v15)
   ],
   products: [
-    .library(name: "SourceLinkCore", targets: ["SourceLinkCore"]),
+    .library(name: "SourceLinkCore", type: .static, targets: ["SourceLinkCore"]),
     .executable(name: "source-link", targets: ["SourceLinkCLI"])
   ],
+  dependencies: [
+    .package(url: "https://github.com/swift-student/swift-source-symbols.git",
+             revision: "45806930ed38d81167a45cb8681e00dfa8e2aabb")
+  ],
   targets: [
-    .target(name: "SourceLinkCore", resources: [.process("Resources")]),
+    .target(name: "SourceLinkCore", dependencies: [
+      .product(name: "SourceSymbols", package: "swift-source-symbols")
+    ], resources: [.process("Resources")]),
     .executableTarget(name: "SourceLinkCLI", dependencies: ["SourceLinkCore"]),
     .testTarget(
       name: "SourceLinkCoreTests",

@@ -1,0 +1,23 @@
+{
+  "originHash" : "11811132d00522f1fd5bdf1f1991a5edc57c1d0320bd5c80985c476af341c948",
+  "pins" : [
+    {
+      "identity" : "swift-source-symbols",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swift-student/swift-source-symbols.git",
+      "state" : {
+        "revision" : "45806930ed38d81167a45cb8681e00dfa8e2aabb"
+      }
+    },
+    {
+      "identity" : "tree-sitter",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tree-sitter/tree-sitter",
+      "state" : {
+        "revision" : "da6fe9beb4f7f67beb75914ca8e0d48ae48d6406",
+        "version" : "0.25.10"
+      }
+    }
+  ],
+  "version" : 3
+}

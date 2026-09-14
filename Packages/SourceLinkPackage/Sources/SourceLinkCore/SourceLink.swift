@@ -5,6 +5,7 @@ public struct SourceLink: Equatable, Sendable {
   public let path: String
   public let line: Int?
   public let column: Int?
+  public let symbol: String?
 
   public init(_ url: URL) throws {
     guard let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
@@ -20,8 +21,20 @@ public struct SourceLink: Equatable, Sendable {
           })
     else { throw SourceLinkError.invalidLink }
     let items = parts.queryItems ?? []
-    guard items.allSatisfy({ $0.name == "line" || $0.name == "column" }) else {
+    guard items.allSatisfy({ $0.name == "line" || $0.name == "column" || $0.name == "symbol" }) else {
       throw SourceLinkError.invalidLink
+    }
+    let symbols = items.filter { $0.name == "symbol" }
+    if let item = symbols.first {
+      guard symbols.count == 1, let value = item.value,
+            !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            !value.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }),
+            path.hasSuffix(".swift"),
+            !items.contains(where: { $0.name == "line" || $0.name == "column" })
+      else { throw SourceLinkError.invalidLink }
+      symbol = value
+    } else {
+      symbol = nil
     }
     repository = host
     self.path = path

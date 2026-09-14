@@ -4,18 +4,27 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 output_dir="$PWD/.build/direct"
 mkdir -p "$output_dir/modules" "$output_dir/source-link.app/Contents/MacOS" "$output_dir/cache"
+# SwiftPM links SourceSymbols and its bundled parsers into the static library.
+swift build --package-path Packages/SourceLinkPackage --build-system native --product SourceLinkCore
+package_bin="$(swift build --package-path Packages/SourceLinkPackage --build-system native --show-bin-path)"
+cp "$package_bin/libSourceLinkCore.a" "$output_dir/modules/"
+mkdir -p "$output_dir/source-link.app/Contents/Resources"
+cp -R "$package_bin/SourceLinkPackage_SourceLinkCore.bundle" "$output_dir/source-link.app/Contents/Resources/"
+cp -R "$package_bin/SourceLinkPackage_SourceLinkCore.bundle" "$output_dir/"
+dependency_flags=(
+  -I "$package_bin/Modules"
+  -Xcc "-fmodule-map-file=$package_bin/TreeSitter.build/module.modulemap"
+  -Xcc "-fmodule-map-file=$package_bin/TreeSitterSwiftGrammar.build/module.modulemap"
+  -Xcc "-fmodule-map-file=$package_bin/TreeSitterRubyGrammar.build/module.modulemap"
+)
 xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
-  -module-cache-path "$output_dir/cache" -emit-library -static -emit-module \
-  -module-name SourceLinkCore -emit-module-path "$output_dir/modules/SourceLinkCore.swiftmodule" \
-  Packages/SourceLinkPackage/Sources/SourceLinkCore/*.swift -o "$output_dir/modules/libSourceLinkCore.a"
-xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
-  -module-cache-path "$output_dir/cache" -I "$output_dir/modules" -L "$output_dir/modules" \
-  -lSourceLinkCore \
+  -module-cache-path "$output_dir/cache" -L "$output_dir/modules" \
+  "${dependency_flags[@]}" -lSourceLinkCore \
   app/Sources/SourceLinkApp/*.swift \
   -o "$output_dir/source-link.app/Contents/MacOS/source-link"
 xcrun swiftc -swift-version 6 -target arm64-apple-macos15.0 \
-  -module-cache-path "$output_dir/cache" -I "$output_dir/modules" -L "$output_dir/modules" \
-  -lSourceLinkCore \
+  -module-cache-path "$output_dir/cache" -L "$output_dir/modules" \
+  "${dependency_flags[@]}" -lSourceLinkCore \
   Packages/SourceLinkPackage/Sources/SourceLinkCLI/main.swift -o "$output_dir/source-link"
 mkdir -p "$output_dir/source-link.app/Contents/Resources"
 xcrun actool app/Sources/SourceLinkApp/Assets.xcassets \

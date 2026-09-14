@@ -1,5 +1,5 @@
 {
-  "originHash" : "f3908f94f1348bcdadee711c33e675fb6bc5081a5fb2e8b82fc24bad8c8aa030",
+  "originHash" : "d07662ec02396a6f584e04d1a6c43faca3f202c72ac85921117eabfb022b3329",
   "pins" : [
     {
       "identity" : "swift-custom-dump",
@@ -29,12 +29,29 @@
       }
     },
     {
+      "identity" : "swift-source-symbols",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swift-student/swift-source-symbols.git",
+      "state" : {
+        "revision" : "45806930ed38d81167a45cb8681e00dfa8e2aabb"
+      }
+    },
+    {
       "identity" : "swift-syntax",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-syntax",
       "state" : {
         "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
         "version" : "603.0.2"
+      }
+    },
+    {
+      "identity" : "tree-sitter",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tree-sitter/tree-sitter",
+      "state" : {
+        "revision" : "da6fe9beb4f7f67beb75914ca8e0d48ae48d6406",
+        "version" : "0.25.10"
       }
     }
   ],

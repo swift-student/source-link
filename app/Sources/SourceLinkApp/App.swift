@@ -23,6 +23,7 @@ struct SourceLinkApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private let store = SettingsStore()
   private var settingsWindow: NSWindow?
+  private var symbolPickers: [UUID: SymbolPicker] = [:]
 
   func applicationWillFinishLaunching(_: Notification) {
     NSApplication.shared.setActivationPolicy(.accessory)
@@ -58,12 +59,45 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if store.activeSettings.checkout(for: link.repository) == nil {
           guard configure(link) else { continue }
         }
-        guard let command = try store.activeSettings.command(for: link) else { continue }
+        let settings = store.activeSettings
         Task {
-          do { try await Task.detached { try command.run() }.value } catch { SettingsStore.show(error) }
+          do {
+            if let query = link.symbol,
+               let checkout = settings.checkout(for: link.repository) {
+              let file = try link.resolve(root: URL(fileURLWithPath: ConfigurationPaths.expand(checkout.path)))
+              let matches = try await Task.detached {
+                try SwiftSymbolResolver.matches(in: file, named: query)
+              }.value
+              guard let first = matches.first else { throw SourceLinkError.missingSymbol }
+              if matches.count == 1 {
+                open(link, settings: settings, symbol: first)
+              } else {
+                let id = UUID()
+                let picker = SymbolPicker()
+                symbolPickers[id] = picker
+                picker.choose(matches, file: link.path) { [weak self = self] symbol in
+                  self?.symbolPickers[id] = nil
+                  if let symbol {
+                    self?.open(link, settings: settings, symbol: symbol)
+                  }
+                }
+              }
+            } else {
+              open(link, settings: settings)
+            }
+          } catch { SettingsStore.show(error) }
         }
       } catch { SettingsStore.show(error) }
     }
+  }
+
+  private func open(_ link: SourceLink, settings: SourceSettings, symbol: SwiftSymbol? = nil) {
+    do {
+      guard let command = try settings.command(for: link, symbol: symbol) else { return }
+      Task {
+        do { try await Task.detached { try command.run() }.value } catch { SettingsStore.show(error) }
+      }
+    } catch { SettingsStore.show(error) }
   }
 
   private func configure(_ link: SourceLink) -> Bool {

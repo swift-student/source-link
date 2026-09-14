@@ -11,6 +11,36 @@ source-link://my-repo/Sources/My%20File.swift?line=42&column=3
 
 Supports Xcode, VS Code, Cursor, Zed, Android Studio, IntelliJ IDEA, Sublime Text, and custom editor profiles. Runs in the menu bar with no Dock icon.
 
+## Swift symbol links
+
+Swift files also support declaration links:
+
+```text
+source-link://my-repo/Sources/Widget.swift?symbol=Widget.refresh(force:)
+```
+
+Use a type or property name (`Widget`, `Widget.title`), a function with argument labels
+(`Widget.refresh(force:)`), or a short name (`refresh`). Qualified names include enclosing
+types and callable argument labels (`Host.outer(value:).inner()`). Members declared in
+extensions and associated-value enum cases (`Event.payload(value:)`) are supported.
+One match opens immediately. Multiple matches show a borderless floating picker with signatures
+and line numbers. Use ↓ or j to move down, ↑ or k to move up, and Enter to open. Escape or
+moving focus away dismisses the picker. No matches produce an error.
+
+The file is required, and `symbol` cannot be combined with `line` or `column`. URL-encode
+special characters in symbol names. Lookup uses
+[SourceSymbols](https://github.com/swift-student/swift-source-symbols) and its bundled
+Tree-sitter Swift parser against the current file on disk, without building or indexing the
+repository. Symbol lookup needs no installed Swift toolchain or separate parser executable.
+Links survive line changes, but not declaration renames or file moves. Parameter names are
+metadata, not link targets; separately declared local variables are supported. Macros and
+generated declarations are not supported.
+
+Lookup is syntactic: declarations from all conditional-compilation branches can appear.
+Incomplete or unrecognized syntax may yield partial results; recovered declarations remain
+navigable even when parsing reports diagnostics. The picker shows declaration headers when
+available, otherwise qualified names, alongside line numbers.
+
 ## Build and run
 
 Requires macOS 15+, Xcode with Swift 6.2+, and these development tools:
