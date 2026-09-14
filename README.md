@@ -23,9 +23,9 @@ Use a type or property name (`Widget`, `Widget.title`), a function with argument
 (`Widget.refresh(force:)`), or a short name (`refresh`). Qualified names include enclosing
 types and callable argument labels (`Host.outer(value:).inner()`). Members declared in
 extensions and associated-value enum cases (`Event.payload(value:)`) are supported.
-One match opens immediately. Multiple matches show a selection window with signatures and
-line numbers; use the arrow keys and
-Enter to open, or Escape to cancel. No matches produce an error.
+One match opens immediately. Multiple matches show a borderless floating picker with signatures
+and line numbers. Use ↓ or j to move down, ↑ or k to move up, and Enter to open. Escape or
+moving focus away dismisses the picker. No matches produce an error.
 
 The file is required, and `symbol` cannot be combined with `line` or `column`. URL-encode
 special characters in symbol names. Lookup uses
