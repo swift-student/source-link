@@ -1,40 +1,21 @@
 {
-  "originHash" : "1db06daaf34d8405638514ec02a84056606b563023eaf5b40491cb0fb17de151",
+  "originHash" : "11811132d00522f1fd5bdf1f1991a5edc57c1d0320bd5c80985c476af341c948",
   "pins" : [
     {
-      "identity" : "sourcekitten",
+      "identity" : "swift-source-symbols",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/jpsim/SourceKitten.git",
+      "location" : "https://github.com/swift-student/swift-source-symbols.git",
       "state" : {
-        "revision" : "821fc0eaa7c07fc98df1e9d3d43371cace697644",
-        "version" : "0.38.0"
+        "revision" : "45806930ed38d81167a45cb8681e00dfa8e2aabb"
       }
     },
     {
-      "identity" : "swift-argument-parser",
+      "identity" : "tree-sitter",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "location" : "https://github.com/tree-sitter/tree-sitter",
       "state" : {
-        "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
-        "version" : "1.8.2"
-      }
-    },
-    {
-      "identity" : "swxmlhash",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/drmohundro/SWXMLHash.git",
-      "state" : {
-        "revision" : "a853604c9e9a83ad9954c7e3d2a565273982471f",
-        "version" : "7.0.2"
-      }
-    },
-    {
-      "identity" : "yams",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/jpsim/Yams.git",
-      "state" : {
-        "revision" : "a27b21e0c81c5bf42049b897a62aaf387e80f279",
-        "version" : "6.2.2"
+        "revision" : "da6fe9beb4f7f67beb75914ca8e0d48ae48d6406",
+        "version" : "0.25.10"
       }
     }
   ],

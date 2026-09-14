@@ -12,11 +12,12 @@ let package = Package(
     .executable(name: "source-link", targets: ["SourceLinkCLI"])
   ],
   dependencies: [
-    .package(url: "https://github.com/jpsim/SourceKitten.git", from: "0.38.0")
+    .package(url: "https://github.com/swift-student/swift-source-symbols.git",
+             revision: "45806930ed38d81167a45cb8681e00dfa8e2aabb")
   ],
   targets: [
     .target(name: "SourceLinkCore", dependencies: [
-      .product(name: "SourceKittenFramework", package: "SourceKitten")
+      .product(name: "SourceSymbols", package: "swift-source-symbols")
     ], resources: [.process("Resources")]),
     .executableTarget(name: "SourceLinkCLI", dependencies: ["SourceLinkCore"]),
     .testTarget(

@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 output_dir="$PWD/.build/direct"
 mkdir -p "$output_dir/modules" "$output_dir/source-link.app/Contents/MacOS" "$output_dir/cache"
-# SwiftPM links SourceKitten and its transitive dependencies into the static library.
+# SwiftPM links SourceSymbols and its bundled parsers into the static library.
 swift build --package-path Packages/SourceLinkPackage --build-system native --product SourceLinkCore
 package_bin="$(swift build --package-path Packages/SourceLinkPackage --build-system native --show-bin-path)"
 cp "$package_bin/libSourceLinkCore.a" "$output_dir/modules/"
@@ -13,9 +13,9 @@ cp -R "$package_bin/SourceLinkPackage_SourceLinkCore.bundle" "$output_dir/source
 cp -R "$package_bin/SourceLinkPackage_SourceLinkCore.bundle" "$output_dir/"
 dependency_flags=(
   -I "$package_bin/Modules"
-  -Xcc "-fmodule-map-file=$package_bin/SourceKit.build/module.modulemap"
-  -Xcc "-fmodule-map-file=$package_bin/Clang_C.build/module.modulemap"
-  -Xcc "-fmodule-map-file=$PWD/Packages/SourceLinkPackage/.build/checkouts/Yams/Sources/CYaml/include/module.modulemap"
+  -Xcc "-fmodule-map-file=$package_bin/TreeSitter.build/module.modulemap"
+  -Xcc "-fmodule-map-file=$package_bin/TreeSitterSwiftGrammar.build/module.modulemap"
+  -Xcc "-fmodule-map-file=$package_bin/TreeSitterRubyGrammar.build/module.modulemap"
 )
 xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
   -module-cache-path "$output_dir/cache" -L "$output_dir/modules" \

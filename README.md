@@ -21,15 +21,25 @@ source-link://my-repo/Sources/Widget.swift?symbol=Widget.refresh(force:)
 
 Use a type or property name (`Widget`, `Widget.title`), a function with argument labels
 (`Widget.refresh(force:)`), or a short name (`refresh`). Qualified names include enclosing
-types; members declared in extensions are supported. One match opens immediately. Multiple
-matches show a selection window with signatures and line numbers; use the arrow keys and
+types and callable argument labels (`Host.outer(value:).inner()`). Members declared in
+extensions and associated-value enum cases (`Event.payload(value:)`) are supported.
+One match opens immediately. Multiple matches show a selection window with signatures and
+line numbers; use the arrow keys and
 Enter to open, or Escape to cancel. No matches produce an error.
 
 The file is required, and `symbol` cannot be combined with `line` or `column`. URL-encode
-special characters in symbol names. Lookup uses SourceKitten against the current file on disk,
-without building or indexing the repository. It requires Xcode or a Swift toolchain with SourceKit;
-no separate SourceKitten installation is needed. Links survive line changes, but not declaration
-renames or file moves. Macro-generated declarations are not supported.
+special characters in symbol names. Lookup uses
+[SourceSymbols](https://github.com/swift-student/swift-source-symbols) and its bundled
+Tree-sitter Swift parser against the current file on disk, without building or indexing the
+repository. Symbol lookup needs no installed Swift toolchain or separate parser executable.
+Links survive line changes, but not declaration renames or file moves. Parameter names are
+metadata, not link targets; separately declared local variables are supported. Macros and
+generated declarations are not supported.
+
+Lookup is syntactic: declarations from all conditional-compilation branches can appear.
+Incomplete or unrecognized syntax may yield partial results; recovered declarations remain
+navigable even when parsing reports diagnostics. The picker shows declaration headers when
+available, otherwise qualified names, alongside line numbers.
 
 ## Build and run
 
