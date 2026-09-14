@@ -5,9 +5,9 @@ import SwiftUI
 @MainActor
 final class SymbolPicker: NSObject, NSWindowDelegate {
   private var window: NSWindow?
-  private var completion: ((SwiftSymbol?) -> Void)?
+  private var completion: ((SourceSymbol?) -> Void)?
 
-  func choose(_ symbols: [SwiftSymbol], file: String, completion: @escaping (SwiftSymbol?) -> Void) {
+  func choose(_ symbols: [SourceSymbol], file: String, completion: @escaping (SourceSymbol?) -> Void) {
     self.completion = completion
     let window = SymbolPickerPanel(symbols: symbols, file: file) { [weak self] in
       self?.finish($0)
@@ -26,7 +26,7 @@ final class SymbolPicker: NSObject, NSWindowDelegate {
     finish(nil)
   }
 
-  private func finish(_ symbol: SwiftSymbol?) {
+  private func finish(_ symbol: SourceSymbol?) {
     guard let completion else { return }
     self.completion = nil
     window?.close()
@@ -37,15 +37,15 @@ final class SymbolPicker: NSObject, NSWindowDelegate {
 
 @MainActor
 final class SymbolPickerSelection: ObservableObject {
-  let symbols: [SwiftSymbol]
-  @Published var id: SwiftSymbol.ID?
+  let symbols: [SourceSymbol]
+  @Published var id: SourceSymbol.ID?
 
-  init(symbols: [SwiftSymbol]) {
+  init(symbols: [SourceSymbol]) {
     self.symbols = symbols
     id = symbols.first?.id
   }
 
-  var symbol: SwiftSymbol? {
+  var symbol: SourceSymbol? {
     symbols.first { $0.id == id }
   }
 
@@ -59,7 +59,7 @@ final class SymbolPickerSelection: ObservableObject {
 @MainActor
 final class SymbolPickerPanel: NSPanel {
   private let selection: SymbolPickerSelection
-  private let completion: (SwiftSymbol?) -> Void
+  private let completion: (SourceSymbol?) -> Void
 
   override var canBecomeKey: Bool {
     true
@@ -69,7 +69,7 @@ final class SymbolPickerPanel: NSPanel {
     false
   }
 
-  init(symbols: [SwiftSymbol], file: String, completion: @escaping (SwiftSymbol?) -> Void) {
+  init(symbols: [SourceSymbol], file: String, completion: @escaping (SourceSymbol?) -> Void) {
     selection = SymbolPickerSelection(symbols: symbols)
     self.completion = completion
     super.init(
@@ -121,7 +121,7 @@ final class SymbolPickerPanel: NSPanel {
 struct SymbolPickerView: View {
   @ObservedObject var selection: SymbolPickerSelection
   let file: String
-  let completion: (SwiftSymbol?) -> Void
+  let completion: (SourceSymbol?) -> Void
   @Environment(\.colorScheme) private var colorScheme
   @FocusState private var listFocused: Bool
 

@@ -1,7 +1,7 @@
 internal import SourceSymbols
 import Foundation
 
-public struct SwiftSymbol: Equatable, Sendable, Identifiable {
+public struct SourceSymbol: Equatable, Sendable, Identifiable {
   public let name: String
   public let signature: String
   public let line: Int
@@ -21,12 +21,13 @@ public struct SwiftSymbol: Equatable, Sendable, Identifiable {
   }
 }
 
-/// Resolves declarations written in a Swift file without building or indexing its project.
-public enum SwiftSymbolResolver {
-  public static func matches(in file: URL, named query: String) throws -> [SwiftSymbol] {
+/// Resolves declarations in supported source files without building or indexing their project.
+public enum SourceSymbolResolver {
+  public static func matches(in file: URL, named query: String) throws -> [SourceSymbol] {
+    guard let language = language(for: file.path) else { throw SourceLinkError.invalidLink }
     let contents = try String(contentsOf: file, encoding: .utf8)
-    let snapshot = SourceSnapshot(text: contents, language: .swift)
-    let result = try TreeSitterSwiftExtractor().extract(from: snapshot)
+    let snapshot = SourceSnapshot(text: contents, language: language)
+    let result = try extractor(for: language).extract(from: snapshot)
     // Navigation uses recovered declarations even when unrelated syntax has diagnostics.
     // Try both spellings: dots can also belong to an operator's short name.
     let names: [DeclarationQuery.Name] = [.short(query), .qualified(query)]
@@ -47,11 +48,35 @@ public enum SwiftSymbolResolver {
       guard let position = positions.position(in: declaration.identifierRange, columnEncoding: .utf16) else {
         throw ExtractionError.invalidRanges
       }
-      return SwiftSymbol(
+      return SourceSymbol(
         name: declaration.qualifiedCallableName ?? declaration.qualifiedName,
         signature: signature(for: declaration, in: snapshot),
         line: position.line, column: position.column, offset: offset
       )
+    }
+  }
+
+  static func supports(path: String) -> Bool {
+    language(for: path) != nil
+  }
+
+  private static func language(for path: String) -> SourceLanguage? {
+    switch (path as NSString).pathExtension.lowercased() {
+    case "swift": .swift
+    case "rb": .ruby
+    case "kt", "kts": .kotlin
+    case "ts", "mts", "cts": .typescript
+    case "tsx": .tsx
+    default: nil
+    }
+  }
+
+  private static func extractor(for language: SourceLanguage) -> any DeclarationExtractor {
+    switch language {
+    case .swift: TreeSitterSwiftExtractor()
+    case .ruby: TreeSitterRubyExtractor()
+    case .kotlin: TreeSitterKotlinExtractor()
+    case .typescript, .tsx: TreeSitterTypeScriptExtractor()
     }
   }
 
@@ -60,7 +85,8 @@ public enum SwiftSymbolResolver {
       return declaration.qualifiedCallableName ?? declaration.qualifiedName
     }
     let title = header.split(whereSeparator: \.isWhitespace).joined(separator: " ")
-    let context = declaration.qualifiedName.dropLast(declaration.name.count).dropLast()
+    let prefix = declaration.qualifiedName.dropLast(declaration.name.count)
+    let context = prefix.dropLast(prefix.hasSuffix("::") ? 2 : 1)
     return context.isEmpty ? title : "\(context): \(title)"
   }
 }

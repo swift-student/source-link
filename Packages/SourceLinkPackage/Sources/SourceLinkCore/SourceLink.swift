@@ -29,7 +29,7 @@ public struct SourceLink: Equatable, Sendable {
       guard symbols.count == 1, let value = item.value,
             !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
             !value.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }),
-            path.hasSuffix(".swift"),
+            SourceSymbolResolver.supports(path: path),
             !items.contains(where: { $0.name == "line" || $0.name == "column" })
       else { throw SourceLinkError.invalidLink }
       symbol = value

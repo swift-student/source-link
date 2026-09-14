@@ -32,7 +32,7 @@ public struct SourceSettings: Codable, Equatable, Sendable {
     }?.editor ?? defaultEditor
   }
 
-  public func command(for link: SourceLink, symbol: SwiftSymbol? = nil) throws -> EditorCommand? {
+  public func command(for link: SourceLink, symbol: SourceSymbol? = nil) throws -> EditorCommand? {
     guard link.symbol == nil || symbol != nil else { throw SourceLinkError.unresolvedSymbol }
     guard let checkout = checkout(for: link.repository) else { return nil }
     let root = URL(fileURLWithPath: ConfigurationPaths.expand(checkout.path))
