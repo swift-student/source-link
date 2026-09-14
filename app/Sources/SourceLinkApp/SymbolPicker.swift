@@ -127,9 +127,6 @@ struct SymbolPickerView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       HStack(spacing: 12) {
-        Image(systemName: "curlybraces")
-          .font(.system(size: 22, weight: .medium))
-          .foregroundStyle(.secondary)
         VStack(alignment: .leading, spacing: 4) {
           Text("Choose a declaration").font(.headline)
           Text(file).font(.subheadline).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
