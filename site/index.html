@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="See how Source Link turns stack traces and diagrams into shortcuts to your local code.">
+  <title>Source Link — Follow the code</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="masthead"><a class="wordmark" href="#">Source Link <span>↗</span></a><a href="https://github.com/swift-student/source-link">GitHub ↗</a></header>
+<main id="main">
+  <section class="intro">
+    <p class="eyebrow">From explanation to implementation</p>
+    <h1>Follow the code.</h1>
+    <p class="lead">A diagram can explain what happens. A source link takes you to where it happens—in your own checkout, in your own editor.</p>
+    <a class="text-link" href="#setup">Set up the examples <span>↓</span></a>
+  </section>
+  <section class="chapter" id="stack">
+    <div class="section-heading"><p class="eyebrow">01 / Trace a call</p><h2>A stack you can step into.</h2><p>Click a frame to open its Swift declaration. Frame 0 is the innermost call, just like a debugger.</p></div>
+    <figure class="stack-panel">
+      <figcaption><span>CALL STACK</span><span>Swift / simulated</span></figcaption>
+      <div class="diagram stack" role="group" aria-label="Simulated call stack with three source-linked frames"><!-- diagram:stack-trace --></div>
+    </figure>
+    <p class="caption">A snapshot of the synchronous path that prepares an editor command. Task closures and framework frames are omitted. <a href="diagrams/stack-trace.d2">D2 source ↗</a></p>
+  </section>
+  <section class="chapter" id="flow">
+    <div class="section-heading"><p class="eyebrow">02 / Follow the flow</p><h2>One link. Your local code.</h2><p>This is the successful path for a Swift symbol link. Each step links to the code responsible for it.</p></div>
+    <div class="flow-layout">
+      <figure class="flow-panel"><div class="diagram flow" role="group" aria-label="Five source-linked steps from parsing a URL to opening the editor"><!-- diagram:open-source --></div><figcaption><a href="diagrams/open-source.d2">D2 source ↗</a></figcaption></figure>
+      <div class="flow-notes">
+        <article><span class="number">01–02</span><h3>Portable names, personal paths.</h3><p>The link names a repository and a file. Source Link maps that repository to the folder you chose, so nobody needs your absolute path.</p></article>
+        <article><span class="number">03</span><h3>A declaration, not a line number.</h3><p>For Swift, <code>?symbol=</code> finds a declaration in the current file without building or indexing. Line changes are fine; renames and file moves need updated links.</p><p>If several declarations match, you choose one. If none match, Source Link reports an error.</p></article>
+        <article><span class="number">04–05</span><h3>Continue in your editor.</h3><p>Your editor profile turns the file and position into a command. Xcode, VS Code, Cursor, Zed, and other editors are supported.</p></article>
+      </div>
+    </div>
+  </section>
+  <section class="chapter anatomy" id="links">
+    <div class="section-heading"><p class="eyebrow">03 / Make your own</p><h2>A URL with a destination.</h2><p>Use a line link for any text file, or a symbol link for a Swift declaration.</p></div>
+    <a class="url-example" href="source-link://source-link/README.md?line=1"><span>source-link://</span><strong>source-link</strong><span>/README.md</span><em>?line=1</em><b aria-hidden="true">↗</b></a>
+    <div class="anatomy-notes"><p><strong>Repository alias</strong><br><code>source-link</code> maps to your checkout.</p><p><strong>Relative file path</strong><br><code>README.md</code> lives inside that folder.</p><p><strong>Position or symbol</strong><br><code>?line=1</code> opens the first line.</p></div>
+    <p>In D2, add a <code>link</code> to a node. Render to SVG and embed it inline on a web page to keep the links active.</p>
+    <pre><code>resolve: "Resolve the file" {
+  link: "source-link://source-link/Packages/SourceLinkPackage/Sources/SourceLinkCore/SourceLink.swift?symbol=SourceLink.resolve%28root%3A%29"
+}</code></pre>
+    <p class="caption">GitHub and Slack can show static previews. Share this page when you want readers to click through to source.</p>
+  </section>
+  <section class="setup chapter" id="setup">
+    <p class="eyebrow">Try it on your Mac</p><h2>Connect your checkout once.</h2>
+    <ol><li><strong>Build and open Source Link.</strong> Requires macOS 15+; follow the <a href="https://github.com/swift-student/source-link#build-and-run">build instructions</a>. The first Homebrew release is still forthcoming.</li><li><strong>Keep a local checkout of this repository.</strong> The diagrams above open files from <a href="https://github.com/swift-student/source-link">swift-student/source-link</a>.</li><li><strong><a href="source-link://source-link/README.md?line=1">Open the README in your editor ↗</a></strong> Allow your browser to open Source Link. On first use, choose your repository folder and editor.</li></ol>
+    <p>Then click any stack frame or flow step above. Each reader uses their own mapping for the <code>source-link</code> alias.</p>
+  </section>
+</main>
+<footer><span>Source Link · A macOS menu-bar utility</span><a href="https://github.com/swift-student/source-link/tree/main/docs">Documentation ↗</a></footer>
+</body>
+</html>

@@ -61,6 +61,22 @@ Incomplete or unrecognized syntax may yield partial results; recovered declarati
 navigable even when parsing reports diagnostics. The picker shows declaration headers when
 available, otherwise qualified names, alongside line numbers.
 
+## Source-linked call stacks
+
+The [interactive explainer](https://swiftstudent.com/source-link/) uses clickable
+stack frames and a D2 flow to explain how Source Link opens local code.
+See [site development and deployment](site/README.md).
+
+Use Source Link to turn diagrams and debugging notes into shortcuts to local code.
+This simulated call stack links each frame to its Swift declaration using `?symbol=`,
+so the links keep working when line numbers change.
+
+![Simulated call stack: SourceLink.resolve, SourceSettings.command, AppDelegate.open](examples/diagrams/stack-trace.png)
+
+[Download the clickable SVG](examples/diagrams/stack-trace.svg?raw=1) and open it as a document,
+then click a frame to jump into your editor. Map `source-link` to your local checkout.
+The preview above is static. [Editable D2 source](examples/diagrams/stack-trace.d2).
+
 ## Build and run
 
 Requires macOS 15+, Xcode with Swift 6.2+, and these development tools:
