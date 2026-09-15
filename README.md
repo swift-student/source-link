@@ -16,6 +16,8 @@ Supports Xcode, VS Code, Cursor, Zed, Android Studio, IntelliJ IDEA, Sublime Tex
 Follow source links from a terminal agent response and a D2 graph into their Swift
 declarations in Xcode. The graph and terminal are on the left; Xcode is on the right.
 
+https://github.com/user-attachments/assets/84a7f6d4-dab8-4bf4-96a8-aa9d60a1deb6
+
 ## Homebrew installation
 
 Homebrew is the supported distribution route. The cask installs the app and links its bundled
