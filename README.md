@@ -11,6 +11,11 @@ source-link://my-repo/Sources/My%20File.swift?line=42&column=3
 
 Supports Xcode, VS Code, Cursor, Zed, Android Studio, IntelliJ IDEA, Sublime Text, and custom editor profiles. Runs in the menu bar with no Dock icon.
 
+## Demo
+
+Follow source links from a terminal agent response and a D2 graph into their Swift
+declarations in Xcode. The graph and terminal are on the left; Xcode is on the right.
+
 ## Homebrew installation
 
 Homebrew is the supported distribution route. The cask installs the app and links its bundled
