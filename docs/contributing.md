@@ -38,9 +38,37 @@ Run `make generate` once, then `xed .` from the repository root to open
 leaving the workspace as the root Xcode entry point.
 
 For an Apple Silicon build without Xcode workspace services, run `bash scripts/build-direct.sh`.
-The ad-hoc signed app is written to `.build/direct/source-link.app`, and the separate CLI to
-`.build/direct/source-link`. This does not install or launch either executable.
+The ad-hoc signed app is written to `.build/direct/source-link.app`, with the CLI at
+`Contents/Helpers/source-link` inside the bundle and a standalone copy at `.build/direct/source-link`.
+Xcode builds also bundle the CLI at `Contents/Helpers/source-link`. These builds do not install
+or launch either executable.
 
+
+## Prepare a Homebrew release
+
+```sh
+make release
+```
+
+This builds a Release app and bundled CLI for Apple Silicon and Intel, then writes
+`.build/release/source-link-VERSION.zip` and `.build/release/source-link.rb`.
+The cask is generated from [homebrew/source-link.rb.in](../homebrew/source-link.rb.in), with
+the app's `CFBundleShortVersionString` and the ZIP's SHA-256 checksum. Its `app` and `binary`
+entries let Homebrew install the app and expose the bundled CLI in its own command directory.
+Preparing these artifacts does not install the app or change the local Homebrew installation.
+
+The local build uses ad-hoc signing. For public distribution, sign the app and bundled CLI
+with a Developer ID Application identity, notarize the app and staple its ticket, then generate
+the final archive and cask from that app:
+
+```sh
+bash scripts/prepare-homebrew.sh /path/to/signed/source-link.app .build/release
+```
+
+The script preserves the app's signature and stapled ticket. Upload the generated ZIP to the
+`vVERSION` GitHub release in `swift-student/source-link`, then publish the matching `source-link.rb`
+under `Casks/` in the Homebrew tap. Generate the checksum after signing and stapling; it must
+match the exact uploaded archive. Neither releases nor tap updates are published automatically.
 
 ## Checks and visual review
 

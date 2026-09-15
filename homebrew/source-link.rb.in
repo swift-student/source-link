@@ -1,0 +1,14 @@
+cask "source-link" do
+  version "@VERSION@"
+  sha256 "@SHA256@"
+
+  url "https://github.com/swift-student/source-link/releases/download/v#{version}/source-link-#{version}.zip"
+  name "Source Link"
+  desc "Open and validate portable links to local source files"
+  homepage "https://github.com/swift-student/source-link"
+
+  depends_on macos: :sequoia
+
+  app "source-link.app"
+  binary "#{appdir}/source-link.app/Contents/Helpers/source-link"
+end

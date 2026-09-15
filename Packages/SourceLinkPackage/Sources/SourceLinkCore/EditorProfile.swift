@@ -39,7 +39,7 @@ public struct EditorProfile: Codable, Equatable, Sendable {
       #if SWIFT_PACKAGE
         // Native SwiftPM builds search the app root; signed macOS apps keep bundles in Resources.
         let resources = Bundle.main.url(forResource: "SourceLinkPackage_SourceLinkCore", withExtension: "bundle")
-          .flatMap(Bundle.init(url:)) ?? Bundle.module
+          .flatMap(Bundle.init(url:)) ?? helperResourceBundle(executable: Bundle.main.executableURL) ?? Bundle.module
         let url = resources.url(forResource: "editors", withExtension: "json")
       #else
         // The direct build puts resources in the app bundle and beside the CLI.
@@ -52,4 +52,14 @@ public struct EditorProfile: Codable, Equatable, Sendable {
       preconditionFailure("Unable to load bundled editor profiles: \(error)")
     }
   }()
+
+  /// A CLI in Contents/Helpers has its own main bundle; follow Homebrew's symlink back to the app's Resources.
+  static func helperResourceBundle(executable: URL?) -> Bundle? {
+    guard let directory = executable?.resolvingSymlinksInPath().deletingLastPathComponent(),
+          directory.lastPathComponent == "Helpers",
+          directory.deletingLastPathComponent().lastPathComponent == "Contents"
+    else { return nil }
+    return Bundle(url: directory.deletingLastPathComponent()
+      .appendingPathComponent("Resources/SourceLinkPackage_SourceLinkCore.bundle"))
+  }
 }
