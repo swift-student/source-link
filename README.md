@@ -11,6 +11,23 @@ source-link://my-repo/Sources/My%20File.swift?line=42&column=3
 
 Supports Xcode, VS Code, Cursor, Zed, Android Studio, IntelliJ IDEA, Sublime Text, and custom editor profiles. Runs in the menu bar with no Dock icon.
 
+## Homebrew installation
+
+Homebrew is the supported distribution route. The cask installs the app and links its bundled
+`source-link` command into `$(brew --prefix)/bin`. Open **Source Link** from Applications
+to configure your repositories and editor, then use the command in your terminal.
+End users do not need Swift, Xcode, or a checkout of Source Link itself to run the CLI.
+
+The first release and Homebrew cask still need to be published; see the
+[release workflow](docs/contributing.md#prepare-a-homebrew-release).
+
+```sh
+source-link validate document.md
+```
+
+The command uses the app's saved repository mappings. Homebrew manages the app and command
+together, including upgrades and removal.
+
 ## Swift symbol links
 
 Swift files also support declaration links:
@@ -70,6 +87,7 @@ and editors in Settings later.
 ## Guides
 
 - [Usage and link format](docs/usage.md): repositories, worktrees, editor routing, and path rules.
+- [Document validation](docs/validation.md): check every Source Link URL from the terminal.
 - [Configuration](docs/configuration.md): JSON reference, dotfiles, external edits, and CLI validation.
 - [Troubleshooting](docs/troubleshooting.md): setup, editor failures, and save recovery.
 - [Contributing](docs/contributing.md): build tools, tests, formatting, and visual review.

@@ -7,7 +7,7 @@ XCODEBUILD = xcodebuild \
 	-derivedDataPath .build/xcode
 TEST_SIGNING = CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual
 
-.PHONY: build check format format-check generate lint run test ui-test snapshot-test app-test
+.PHONY: build check format format-check generate lint release run test ui-test snapshot-test app-test
 
 build: generate
 	$(XCODEBUILD) -scheme SourceLink \
@@ -15,6 +15,19 @@ build: generate
 		build
 
 check: test lint format-check build app-test
+
+# Local universal app archive and cask. Public releases need Developer ID signing and notarization.
+release: generate
+	xcodebuild \
+		-workspace SourceLink.xcworkspace \
+		-scheme SourceLink \
+		-configuration Release \
+		-destination 'generic/platform=macOS' \
+		-derivedDataPath .build/xcode \
+		ARCHS='arm64 x86_64' ONLY_ACTIVE_ARCH=NO \
+		CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
+		build
+	bash scripts/prepare-homebrew.sh .build/xcode/Build/Products/Release/source-link.app .build/release
 
 generate:
 	cd app && xcodegen generate

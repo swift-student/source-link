@@ -112,12 +112,12 @@ created when you save settings or complete first-link setup.
 
 ### Agent workflow and CLI
 
-The package includes a separate `source-link` command-line executable:
+The app bundles a compiled `source-link` command-line executable. With the Homebrew cask installed:
 
 ```sh
-swift run --package-path Packages/SourceLinkPackage source-link config path
-swift run --package-path Packages/SourceLinkPackage source-link config validate
-swift run --package-path Packages/SourceLinkPackage source-link config validate /path/to/proposed-config.json
+source-link config path
+source-link config validate
+source-link config validate /path/to/proposed-config.json
 ```
 
 `config path` prints the resolved configuration location. `config validate` reads and checks
@@ -131,3 +131,5 @@ Preserve unrelated settings. No `config set` API or UI automation is required.
 For a standalone CLI binary, build with `swift build --package-path Packages/SourceLinkPackage -c release --product source-link`;
 `swift build --package-path Packages/SourceLinkPackage -c release --show-bin-path` prints its containing directory.
 
+For development, prefix the command with `swift run --package-path Packages/SourceLinkPackage`.
+See [document validation](validation.md) for `source-link validate DOCUMENT`.

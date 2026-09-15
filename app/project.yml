@@ -51,6 +51,13 @@ targets:
     dependencies:
       - package: SourceLinkPackage
         product: SourceLinkCore
+      - target: SourceLinkCLI
+        link: false
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Helpers
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.shawngee.SourceLink
@@ -61,6 +68,22 @@ targets:
         Debug:
           CODE_SIGN_STYLE: Automatic
           ENABLE_HARDENED_RUNTIME: NO
+
+  SourceLinkCLI:
+    type: tool
+    platform: macOS
+    deploymentTarget: "15.0"
+    sources:
+      - ../Packages/SourceLinkPackage/Sources/SourceLinkCLI
+    dependencies:
+      - package: SourceLinkPackage
+        product: SourceLinkCore
+    settings:
+      base:
+        PRODUCT_NAME: source-link
+        PRODUCT_MODULE_NAME: SourceLinkCLI
+        SWIFT_VERSION: 6.0
+        SKIP_INSTALL: YES
 
   SettingsSnapshotTests:
     type: bundle.unit-test

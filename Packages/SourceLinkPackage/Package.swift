@@ -20,6 +20,7 @@ let package = Package(
       .product(name: "SourceSymbols", package: "swift-source-symbols")
     ], resources: [.process("Resources")]),
     .executableTarget(name: "SourceLinkCLI", dependencies: ["SourceLinkCore"]),
+    .testTarget(name: "SourceLinkCLITests", dependencies: ["SourceLinkCLI"]),
     .testTarget(
       name: "SourceLinkCoreTests",
       dependencies: [
