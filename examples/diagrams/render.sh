@@ -5,3 +5,5 @@ cd "$(dirname "$0")"
 for name in source-link click-dispatch click-parameters; do
   "${D2:-d2}" --layout elk --elk-nodeNodeBetweenLayers 35 --pad 30 "$name.d2" "$name.svg"
 done
+
+"${D2:-d2}" --pad 24 stack-trace.d2 stack-trace.svg

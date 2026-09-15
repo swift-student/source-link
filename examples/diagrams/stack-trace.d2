@@ -1,0 +1,37 @@
+grid-columns: 1
+grid-gap: 8
+style.fill: "#0F172A"
+
+classes: {
+  frame: {
+    shape: rectangle
+    width: 680
+    height: 44
+    label.near: center-left
+    style: {
+      fill: "#172238"
+      stroke: "#33445D"
+      stroke-width: 1
+      border-radius: 4
+      font-color: "#E5EDF9"
+      font: mono
+      font-size: 18
+      bold: false
+    }
+  }
+}
+
+frame0: "0   SourceLink.resolve(root:)" {
+  class: frame
+  link: "source-link://source-link/Packages/SourceLinkPackage/Sources/SourceLinkCore/SourceLink.swift?symbol=SourceLink.resolve%28root%3A%29"
+}
+
+frame1: "1   SourceSettings.command(for:symbol:)" {
+  class: frame
+  link: "source-link://source-link/Packages/SourceLinkPackage/Sources/SourceLinkCore/SourceSettings.swift?symbol=SourceSettings.command%28for%3Asymbol%3A%29"
+}
+
+frame2: "2   AppDelegate.open(_:settings:symbol:)" {
+  class: frame
+  link: "source-link://source-link/app/Sources/SourceLinkApp/App.swift?symbol=AppDelegate.open%28_%3Asettings%3Asymbol%3A%29"
+}

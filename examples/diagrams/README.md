@@ -4,6 +4,7 @@ Open the SVG files directly in a browser that allows external URL schemes. Click
 
 | Diagram | What it demonstrates |
 | --- | --- |
+| [Call stack](stack-trace.svg) · [PNG](stack-trace.png) · [D2](stack-trace.d2) | Compact IDE-style stack with Swift symbol links. |
 | [Source Link](source-link.svg) · [D2](source-link.d2) | Seven linked nodes, checkout setup branch, URL-to-editor flow. |
 | [Click dispatch](click-dispatch.svg) · [D2](click-dispatch.d2) | Thirteen linked nodes, two containers, single versus chained subcommands, shared result handling. |
 | [Click parameters](click-parameters.svg) · [D2](click-parameters.d2) | Seven linked nodes in a separate detail view used by context creation. |
@@ -41,7 +42,7 @@ bash examples/diagrams/render.sh
 D2=/path/to/d2 bash examples/diagrams/render.sh
 ```
 
-The script selects ELK and tighter layer spacing. It preserves the authored D2 structure and regenerates all three SVGs. It does **not** refresh source line numbers.
+The script selects ELK and tighter layer spacing. It preserves the authored D2 structure and regenerates all four SVGs. It does **not** refresh source line numbers.
 
 `source-map.json` records the source anchors and line numbers used for this snapshot. Swift anchors use unique declaration text; Click anchors use class-qualified method names. A future refresh tool can resolve these anchors, fail on missing or ambiguous declarations, update only links, and then invoke the renderer. The map is currently a review aid, not an implemented refresh system.
 
@@ -56,3 +57,14 @@ The script selects ELK and tighter layer spacing. It preserves the authored D2 s
 The browser tool blocked local-file navigation, so browser-to-editor clicking remains a manual check. Offline image inspection does not prove external URL handoff. Open an SVG in your browser and click a badge after configuring the mappings above.
 
 The required `make check` passed on an isolated PR checkout based on `545ea4d` (Swift Testing, strict SwiftLint, and the Xcode build). No application or package files are changed for these examples.
+
+## Call stack example
+
+The call stack models a pause inside `SourceLink.resolve(root:)`, called synchronously
+by `SourceSettings.command(for:symbol:)`, called by `AppDelegate.open(_:settings:symbol:)`.
+Frame 0 is at the top. Task closures and framework frames are omitted. It is illustrative,
+not a captured debugger stack. The implementation was inspected at main `6f2e94b`.
+
+Each row links to its declaration using a URL-encoded symbol. Shared row styling lives
+in the `frame` class. Regenerate the SVG with `d2 --pad 24 stack-trace.d2 stack-trace.svg`
+from this directory. The PNG is a static raster preview of that SVG.
