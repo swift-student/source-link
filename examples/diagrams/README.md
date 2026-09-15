@@ -68,3 +68,11 @@ not a captured debugger stack. The implementation was inspected at main `6f2e94b
 Each row links to its declaration using a URL-encoded symbol. Shared row styling lives
 in the `frame` class. Regenerate the SVG with `d2 --pad 24 stack-trace.d2 stack-trace.svg`
 from this directory. The PNG is a static raster preview of that SVG.
+
+## Source Link opening flow
+
+[open-source.d2](open-source.d2) and [SVG](open-source.svg) summarize the successful
+unique-symbol path from URL parsing to editor launch. Blue nodes are execution steps;
+arrows indicate order. Links use Swift symbols in the reader’s `source-link` checkout.
+Inspected main `6f2e94b`. The [explainer site](../../site/README.md) embeds this flow
+and the stack inline so their links stay active.

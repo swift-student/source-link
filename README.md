@@ -63,6 +63,10 @@ available, otherwise qualified names, alongside line numbers.
 
 ## Source-linked call stacks
 
+The [interactive explainer](https://swiftstudent.com/source-link/) uses clickable
+stack frames and a D2 flow to explain how Source Link opens local code.
+See [site development and deployment](site/README.md).
+
 Use Source Link to turn diagrams and debugging notes into shortcuts to local code.
 This simulated call stack links each frame to its Swift declaration using `?symbol=`,
 so the links keep working when line numbers change.

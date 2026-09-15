@@ -1,0 +1,32 @@
+# Successful symbol-link path; setup, ambiguity, and failures are explained by the page.
+direction: down
+classes: {
+  step: {
+    shape: rectangle
+    width: 430
+    height: 64
+    label.near: center-left
+    style: {fill: "#EFF6FF"; stroke: "#7897BA"; border-radius: 8; font-color: "#172D48"; font-size: 20; bold: false}
+  }
+}
+receive: "01   Parse the incoming URL" {
+  class: step
+  link: "source-link://source-link/Packages/SourceLinkPackage/Sources/SourceLinkCore/SourceLink.swift?symbol=SourceLink"
+}
+checkout: "02   Find your local checkout" {
+  class: step
+  link: "source-link://source-link/Packages/SourceLinkPackage/Sources/SourceLinkCore/SourceSettings.swift?symbol=SourceSettings.checkout%28for%3A%29"
+}
+symbol: "03   Find the Swift declaration" {
+  class: step
+  link: "source-link://source-link/Packages/SourceLinkPackage/Sources/SourceLinkCore/SwiftSymbol.swift?symbol=SwiftSymbolResolver.matches%28in%3Anamed%3A%29"
+}
+command: "04   Build the editor command" {
+  class: step
+  link: "source-link://source-link/Packages/SourceLinkPackage/Sources/SourceLinkCore/SourceSettings.swift?symbol=SourceSettings.command%28for%3Asymbol%3A%29"
+}
+launch: "05   Open your editor" {
+  class: step
+  link: "source-link://source-link/Packages/SourceLinkPackage/Sources/SourceLinkCore/EditorCommand.swift?symbol=EditorCommand.run%28%29"
+}
+receive -> checkout -> symbol -> command -> launch: {style.stroke: "#7897BA"}
