@@ -2,7 +2,13 @@ import Foundation
 
 public struct DocumentLinkValidation: Sendable {
   public let link: DocumentLink
+  public let resolvedFile: URL?
+  public let symbolMatches: [SwiftSymbol]
   public let error: String?
+
+  public var isAmbiguous: Bool {
+    symbolMatches.count > 1
+  }
 
   public static func validate(_ links: [DocumentLink], settings: SourceSettings) -> [Self] {
     // Repeated SVG href/xlink:href attributes still get individual results, but share file reads.
@@ -20,8 +26,10 @@ public struct DocumentLinkValidation: Sendable {
             : "Repository '\(link.repository)' is not configured. Add a checkout to the configuration.")
         }
         let file = try link.resolve(root: URL(fileURLWithPath: ConfigurationPaths.expand(checkout.path)))
-        if let symbol = link.symbol, try SwiftSymbolResolver.matches(in: file, named: symbol).isEmpty {
-          throw SourceLinkError.missingSymbol
+        var matches: [SwiftSymbol] = []
+        if let symbol = link.symbol {
+          matches = try SwiftSymbolResolver.matches(in: file, named: symbol)
+          guard !matches.isEmpty else { throw SourceLinkError.missingSymbol }
         }
         if let line = link.line {
           if contents[file] == nil {
@@ -41,9 +49,9 @@ public struct DocumentLinkValidation: Sendable {
               + "(maximum \(lines[line - 1].count + 1)).")
           }
         }
-        return Self(link: occurrence, error: nil)
+        return Self(link: occurrence, resolvedFile: file, symbolMatches: matches, error: nil)
       } catch {
-        return Self(link: occurrence, error: error.localizedDescription)
+        return Self(link: occurrence, resolvedFile: nil, symbolMatches: [], error: error.localizedDescription)
       }
     }
   }

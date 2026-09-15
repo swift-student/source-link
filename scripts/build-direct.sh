@@ -22,10 +22,8 @@ xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
   "${dependency_flags[@]}" -lSourceLinkCore \
   app/Sources/SourceLinkApp/*.swift \
   -o "$output_dir/source-link.app/Contents/MacOS/source-link"
-xcrun swiftc -swift-version 6 -target arm64-apple-macos15.0 \
-  -module-cache-path "$output_dir/cache" -L "$output_dir/modules" \
-  "${dependency_flags[@]}" -lSourceLinkCore \
-  Packages/SourceLinkPackage/Sources/SourceLinkCLI/*.swift -o "$output_dir/source-link"
+swift build --package-path Packages/SourceLinkPackage --build-system native --product source-link
+cp "$package_bin/source-link" "$output_dir/source-link"
 mkdir -p "$output_dir/source-link.app/Contents/Helpers"
 cp "$output_dir/source-link" "$output_dir/source-link.app/Contents/Helpers/source-link"
 codesign --force --sign - "$output_dir/source-link.app/Contents/Helpers/source-link"

@@ -12,6 +12,7 @@ let package = Package(
     .executable(name: "source-link", targets: ["SourceLinkCLI"])
   ],
   dependencies: [
+    .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.8.2"),
     .package(url: "https://github.com/swift-student/swift-source-symbols.git",
              revision: "45806930ed38d81167a45cb8681e00dfa8e2aabb")
   ],
@@ -19,7 +20,10 @@ let package = Package(
     .target(name: "SourceLinkCore", dependencies: [
       .product(name: "SourceSymbols", package: "swift-source-symbols")
     ], resources: [.process("Resources")]),
-    .executableTarget(name: "SourceLinkCLI", dependencies: ["SourceLinkCore"]),
+    .executableTarget(name: "SourceLinkCLI", dependencies: [
+      "SourceLinkCore",
+      .product(name: "ArgumentParser", package: "swift-argument-parser")
+    ]),
     .testTarget(name: "SourceLinkCLITests", dependencies: ["SourceLinkCLI"]),
     .testTarget(
       name: "SourceLinkCoreTests",

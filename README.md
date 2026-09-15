@@ -25,6 +25,9 @@ The first release and Homebrew cask still need to be published; see the
 source-link validate document.md
 ```
 
+Validation reports ambiguous symbol links with their matching declarations. Use
+`source-link validate --require-unique-symbols document.md` to reject ambiguity in CI.
+
 The command uses the app's saved repository mappings. Homebrew manages the app and command
 together, including upgrades and removal.
 

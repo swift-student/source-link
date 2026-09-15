@@ -21,7 +21,7 @@ struct CommandTests {
       let before = try Data(contentsOf: config)
       let result = Command.run(["validate", document.path, "--config", config.path])
       #expect(result.status == 0)
-      #expect(result.output == "\(document.path): 1 source links checked, 0 invalid\n")
+      #expect(result.output == "\(document.path): 1 source links checked, 0 invalid, 0 ambiguous\n")
       #expect(result.diagnostics.isEmpty)
       #expect(try Data(contentsOf: config) == before)
       #expect(try FileManager.default.contentsOfDirectory(atPath: root.path).count == 3)
@@ -33,7 +33,7 @@ struct CommandTests {
       let input = "source-link://repo/missing\nsource-link://repo/file.swift?line=99\nsource-link://repo/file.swift"
       let result = Command.run(["validate", "-", "--config", config.path]) { Data(input.utf8) }
       #expect(result.status == 1)
-      #expect(result.output == "<stdin>: 3 source links checked, 2 invalid\n")
+      #expect(result.output == "<stdin>: 3 source links checked, 2 invalid, 0 ambiguous\n")
       #expect(result.diagnostics.contains("<stdin>:1:1:"))
       #expect(result.diagnostics.contains("<stdin>:2:1:"))
       #expect(!result.diagnostics.contains("<stdin>:3:1:"))
@@ -67,14 +67,15 @@ struct CommandTests {
   }
 
   @Test(arguments: [
-    [], ["validate"], ["links"], ["links", "validate"], ["validate", "--bad"],
+    ["validate"], ["links", "validate"], ["validate", "--bad"],
     ["validate", "file", "--config"], ["validate", "file", "--unknown", "config"],
     ["validate", "one", "two"], ["config", "validate", "one", "two"]
   ])
   func `usage errors return status two`(_ arguments: [String]) {
     let result = Command.run(arguments)
     #expect(result.status == 2)
-    #expect(result.diagnostics.contains("source-link validate DOCUMENT"))
+    #expect(result.diagnostics.contains("Usage: source-link"))
+    #expect(result.output.isEmpty)
   }
 
   @Test func `existing config commands and help remain available`() throws {
@@ -83,7 +84,7 @@ struct CommandTests {
       let result = Command.run(["config", "validate", config.path])
       #expect(result.status == 0)
       #expect(result.output == "\(config.path): valid\n")
-      #expect(Command.run(["--help"]).output.contains("source-link validate DOCUMENT"))
+      #expect(Command.run(["--help"]).output.contains("USAGE: source-link"))
     }
   }
 
@@ -96,5 +97,65 @@ struct CommandTests {
       #expect(alias.output == primary.output)
       #expect(alias.diagnostics == primary.diagnostics)
     }
+  }
+
+  @Test func `options may precede the document`() throws {
+    try withFiles { _, config, document in
+      let result = Command.run(["validate", "--require-unique-symbols", "--config", config.path, document.path])
+      #expect(result.status == 0)
+      #expect(result.output.contains("1 source links checked, 0 invalid, 0 ambiguous"))
+      #expect(result.diagnostics.isEmpty)
+    }
+  }
+
+  @Test(arguments: [
+    ["validate", "--help"], ["help", "validate"], ["links", "validate", "-h"]
+  ])
+  func `document help describes the options without reading input`(_ arguments: [String]) {
+    let result = Command.run(arguments) {
+      Issue.record("Help must not read standard input.")
+      return Data()
+    }
+    #expect(result.status == 0)
+    #expect(result.output.contains("--require-unique-symbols"))
+    #expect(result.output.contains("--config"))
+    #expect(result.output.contains("standard input"))
+    #expect(result.diagnostics.isEmpty)
+  }
+
+  @Test(arguments: [["config", "--help"], ["config", "validate", "--help"], ["config", "path", "-h"]])
+  func `config subcommands support help`(_ arguments: [String]) {
+    let result = Command.run(arguments)
+    #expect(result.status == 0)
+    #expect(result.output.contains("USAGE: source-link config"))
+    #expect(result.diagnostics.isEmpty)
+  }
+
+  @Test(arguments: [[], ["config"], ["links"]])
+  func `command groups without a subcommand display help`(_ arguments: [String]) {
+    let result = Command.run(arguments)
+    #expect(result.status == 0)
+    #expect(result.output.contains("USAGE: source-link"))
+    #expect(result.diagnostics.isEmpty)
+  }
+
+  @Test func `usage errors explain missing values and unknown options`() {
+    let missing = Command.run(["validate", "document.md", "--config"])
+    #expect(missing.diagnostics.contains("Missing value for '--config"))
+    let unknown = Command.run(["validate", "document.md", "--unknown"])
+    #expect(unknown.diagnostics.contains("Unknown option '--unknown'"))
+  }
+
+  @Test func `argument separator supports document names beginning with a dash`() throws {
+    let parsed = try ValidateDocument.parse(["--config", "config.json", "--", "-notes.md"])
+    #expect(parsed.document == "-notes.md")
+    #expect(parsed.config == "config.json")
+  }
+
+  @Test func `generates shell completion without running validation`() {
+    let result = Command.run(["--generate-completion-script", "zsh"])
+    #expect(result.status == 0)
+    #expect(result.output.contains("--require-unique-symbols"))
+    #expect(result.diagnostics.isEmpty)
   }
 }

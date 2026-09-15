@@ -2,6 +2,9 @@ name: SourceLink
 options:
   bundleIdPrefix: com.shawngee
 packages:
+  ArgumentParser:
+    url: https://github.com/apple/swift-argument-parser.git
+    from: 1.8.2
   SnapshotTesting:
     url: https://github.com/pointfreeco/swift-snapshot-testing
     from: 1.18.0
@@ -78,6 +81,8 @@ targets:
     dependencies:
       - package: SourceLinkPackage
         product: SourceLinkCore
+      - package: ArgumentParser
+        product: ArgumentParser
     settings:
       base:
         PRODUCT_NAME: source-link

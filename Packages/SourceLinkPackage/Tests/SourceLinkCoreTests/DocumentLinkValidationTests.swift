@@ -87,7 +87,12 @@ struct DocumentLinkValidationTests {
 
   @Test func `validates symbol matches without opening a picker`() throws {
     try withCheckout { root, settings in
-      try Data("struct Widget { func refresh(force: Bool) {}; func refresh(force: Int) {} }".utf8)
+      try Data("""
+      struct Widget {
+        func refresh(force: Bool) {}
+        func refresh(force: Int) {}
+      }
+      """.utf8)
         .write(to: root.appendingPathComponent("Widget.swift"))
       let links = try DocumentLinks.extract(from: """
       [overloads](source-link://repo/Widget.swift?symbol=Widget.refresh(force:))
@@ -96,8 +101,19 @@ struct DocumentLinkValidationTests {
       """)
       let results = DocumentLinkValidation.validate(links, settings: settings)
       #expect(results[0].error == nil)
+      #expect(results[0].isAmbiguous)
+      #expect(results[0].resolvedFile == root.appendingPathComponent("Widget.swift"))
+      #expect(results[0].symbolMatches.map(\.line) == [2, 3])
+      #expect(results[0].symbolMatches.map(\.column) == [8, 8])
+      #expect(results[0].symbolMatches.map(\.signature) == [
+        "Widget: func refresh(force: Bool)", "Widget: func refresh(force: Int)"
+      ])
       #expect(results[1].error == nil)
+      #expect(!results[1].isAmbiguous)
+      #expect(results[1].symbolMatches.count == 1)
       #expect(results[2].error == SourceLinkError.missingSymbol.localizedDescription)
+      #expect(!results[2].isAmbiguous)
+      #expect(results[2].symbolMatches.isEmpty)
     }
   }
 }
