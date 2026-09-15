@@ -13,10 +13,11 @@ Supports Xcode, VS Code, Cursor, Zed, Android Studio, IntelliJ IDEA, Sublime Tex
 
 ## Demo
 
-Follow source links from a terminal agent response and a D2 graph into their Swift
-declarations in Xcode. The graph and terminal are on the left; Xcode is on the right.
+Watch all three terminal links and all three D2 graph links open their Swift
+declarations in Xcode in this 24-second demo. The graph and terminal are on the left;
+Xcode is on the right.
 
-https://github.com/user-attachments/assets/84a7f6d4-dab8-4bf4-96a8-aa9d60a1deb6
+https://github.com/user-attachments/assets/2fc71909-127a-4938-9d0c-16b8aa728b77
 
 ## Homebrew installation
 
