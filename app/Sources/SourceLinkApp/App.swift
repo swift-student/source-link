@@ -66,7 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                let checkout = settings.checkout(for: link.repository) {
               let file = try link.resolve(root: URL(fileURLWithPath: ConfigurationPaths.expand(checkout.path)))
               let matches = try await Task.detached {
-                try SwiftSymbolResolver.matches(in: file, named: query)
+                try SourceSymbolResolver.matches(in: file, named: query)
               }.value
               guard let first = matches.first else { throw SourceLinkError.missingSymbol }
               if matches.count == 1 {
@@ -91,7 +91,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
   }
 
-  private func open(_ link: SourceLink, settings: SourceSettings, symbol: SwiftSymbol? = nil) {
+  private func open(_ link: SourceLink, settings: SourceSettings, symbol: SourceSymbol? = nil) {
     do {
       guard let command = try settings.command(for: link, symbol: symbol) else { return }
       Task {

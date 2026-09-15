@@ -21,7 +21,8 @@ missing files, directories, and escaping symlinks fail validation. The configura
 must exist and be valid; `--config FILE` selects a different configuration without changing settings.
 Validation only reads files and never launches an editor or opens setup windows.
 
-Swift symbol links must match at least one declaration using the app's symbol resolver.
+Swift, Ruby, Kotlin, and TypeScript/TSX symbol links must match at least one declaration
+using the app's symbol resolver.
 When a link matches multiple declarations, validation prints a warning with the match
 count and each candidate's signature and source file, line, and column. These links
 pass by default because the app offers a picker when opening them. Missing symbols fail

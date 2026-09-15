@@ -3,7 +3,7 @@ import Foundation
 public struct DocumentLinkValidation: Sendable {
   public let link: DocumentLink
   public let resolvedFile: URL?
-  public let symbolMatches: [SwiftSymbol]
+  public let symbolMatches: [SourceSymbol]
   public let error: String?
 
   public var isAmbiguous: Bool {
@@ -26,9 +26,9 @@ public struct DocumentLinkValidation: Sendable {
             : "Repository '\(link.repository)' is not configured. Add a checkout to the configuration.")
         }
         let file = try link.resolve(root: URL(fileURLWithPath: ConfigurationPaths.expand(checkout.path)))
-        var matches: [SwiftSymbol] = []
+        var matches: [SourceSymbol] = []
         if let symbol = link.symbol {
-          matches = try SwiftSymbolResolver.matches(in: file, named: symbol)
+          matches = try SourceSymbolResolver.matches(in: file, named: symbol)
           guard !matches.isEmpty else { throw SourceLinkError.missingSymbol }
         }
         if let line = link.line {

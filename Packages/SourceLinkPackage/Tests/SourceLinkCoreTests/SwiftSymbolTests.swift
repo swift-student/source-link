@@ -41,16 +41,16 @@ struct SwiftSymbolTests {
     // func missing() {}
     """
     try source.replacingOccurrences(of: "\n", with: newline).write(to: file, atomically: true, encoding: .utf8)
-    let overloads = try SwiftSymbolResolver.matches(in: file, named: "Widget.refresh(force:)")
+    let overloads = try SourceSymbolResolver.matches(in: file, named: "Widget.refresh(force:)")
     #expect(overloads.map(\.line) == [3, 4])
     #expect(overloads.map(\.signature) == ["Widget: func refresh(force: Bool)", "Widget: func refresh(force: Int)"])
-    #expect(try SwiftSymbolResolver.matches(in: file, named: "Widget").map(\.line) == [1, 7])
-    #expect(try SwiftSymbolResolver.matches(in: file, named: "refresh").map(\.line) == [3, 4, 8, 10])
-    #expect(try SwiftSymbolResolver.matches(in: file, named: "Widget.refresh()").map(\.line) == [8])
-    #expect(try SwiftSymbolResolver.matches(in: file, named: "Widget.Nested.go()").map(\.line) == [5])
-    #expect(try SwiftSymbolResolver.matches(in: file, named: "Widget.title").map(\.line) == [2])
-    #expect(try SwiftSymbolResolver.matches(in: file, named: "missing").isEmpty)
-    let unicode = try #require(SwiftSymbolResolver.matches(in: file, named: "Café").first)
+    #expect(try SourceSymbolResolver.matches(in: file, named: "Widget").map(\.line) == [1, 7])
+    #expect(try SourceSymbolResolver.matches(in: file, named: "refresh").map(\.line) == [3, 4, 8, 10])
+    #expect(try SourceSymbolResolver.matches(in: file, named: "Widget.refresh()").map(\.line) == [8])
+    #expect(try SourceSymbolResolver.matches(in: file, named: "Widget.Nested.go()").map(\.line) == [5])
+    #expect(try SourceSymbolResolver.matches(in: file, named: "Widget.title").map(\.line) == [2])
+    #expect(try SourceSymbolResolver.matches(in: file, named: "missing").isEmpty)
+    let unicode = try #require(SourceSymbolResolver.matches(in: file, named: "Café").first)
     #expect(unicode.line == 11)
     #expect(unicode.column == 17)
 
@@ -75,17 +75,17 @@ struct SwiftSymbolTests {
       func outer(value: String) { func inner() {} }
     }
     """) { file in
-      let payload = try SwiftSymbolResolver.matches(in: file, named: "Event.payload(value:)")
+      let payload = try SourceSymbolResolver.matches(in: file, named: "Event.payload(value:)")
       #expect(payload.map(\.name) == ["Event.payload(value:)"])
       #expect(payload.map(\.line) == [2])
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "payload").map(\.line) == [2, 3])
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "Event.ready()").isEmpty)
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "Host.outer(value:).inner()").map(\.line) == [6, 8])
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "Host.outer(text:).inner").map(\.line) == [7])
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "inner()").map(\.line) == [6, 7, 8])
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "Host.outer(value:).local").count == 1)
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "value").isEmpty)
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "Host.outer(value:).value").isEmpty)
+      #expect(try SourceSymbolResolver.matches(in: file, named: "payload").map(\.line) == [2, 3])
+      #expect(try SourceSymbolResolver.matches(in: file, named: "Event.ready()").isEmpty)
+      #expect(try SourceSymbolResolver.matches(in: file, named: "Host.outer(value:).inner()").map(\.line) == [6, 8])
+      #expect(try SourceSymbolResolver.matches(in: file, named: "Host.outer(text:).inner").map(\.line) == [7])
+      #expect(try SourceSymbolResolver.matches(in: file, named: "inner()").map(\.line) == [6, 7, 8])
+      #expect(try SourceSymbolResolver.matches(in: file, named: "Host.outer(value:).local").count == 1)
+      #expect(try SourceSymbolResolver.matches(in: file, named: "value").isEmpty)
+      #expect(try SourceSymbolResolver.matches(in: file, named: "Host.outer(value:).value").isEmpty)
     }
   }
 
@@ -101,16 +101,16 @@ struct SwiftSymbolTests {
       var computed: Int { 42 }
     }
     """) { file in
-      let function = try #require(SwiftSymbolResolver.matches(in: file, named: "Store.transform(_:using:)").first)
+      let function = try #require(SourceSymbolResolver.matches(in: file, named: "Store.transform(_:using:)").first)
       #expect(function.signature == "Store: @available(*, deprecated) public func transform<T>( "
         + "_ value: T, using callback: (T) -> String = { _ in \"{}\" } "
         + ") async throws -> String where T: Equatable")
       #expect(function.line == 3)
-      let initializer = try #require(SwiftSymbolResolver.matches(in: file, named: "Store.init(value:)").first)
+      let initializer = try #require(SourceSymbolResolver.matches(in: file, named: "Store.init(value:)").first)
       #expect(initializer.signature == "Store: init?(value: Int)")
-      let subscriptSymbol = try #require(SwiftSymbolResolver.matches(in: file, named: "Store.subscript(_:)").first)
+      let subscriptSymbol = try #require(SourceSymbolResolver.matches(in: file, named: "Store.subscript(_:)").first)
       #expect(subscriptSymbol.signature == "Store: subscript(index: Int) -> Int")
-      let property = try #require(SwiftSymbolResolver.matches(in: file, named: "Store.computed").first)
+      let property = try #require(SourceSymbolResolver.matches(in: file, named: "Store.computed").first)
       #expect(property.signature == "Store: var computed: Int")
     }
   }
@@ -123,14 +123,14 @@ struct SwiftSymbolTests {
       func sound(value: Int) { let unfinished = }
     }
     """) { file in
-      let first = try #require(SwiftSymbolResolver.matches(in: file, named: "Host.first").first)
+      let first = try #require(SourceSymbolResolver.matches(in: file, named: "Host.first").first)
       #expect(first.signature == "Host.first")
-      let second = try #require(SwiftSymbolResolver.matches(in: file, named: "Host.second").first)
+      let second = try #require(SourceSymbolResolver.matches(in: file, named: "Host.second").first)
       #expect(second.signature == "Host.second")
-      let broken = try #require(SwiftSymbolResolver.matches(in: file, named: "Host.broken").first)
+      let broken = try #require(SourceSymbolResolver.matches(in: file, named: "Host.broken").first)
       #expect(broken.signature == "Host.broken")
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "Host.broken(value:)").isEmpty)
-      let sound = try #require(SwiftSymbolResolver.matches(in: file, named: "Host.sound(value:)").first)
+      #expect(try SourceSymbolResolver.matches(in: file, named: "Host.broken(value:)").isEmpty)
+      let sound = try #require(SourceSymbolResolver.matches(in: file, named: "Host.sound(value:)").first)
       #expect(sound.signature == "Host: func sound(value: Int)")
     }
   }
@@ -141,11 +141,11 @@ struct SwiftSymbolTests {
     struct Second { static func + (lhs: Second, rhs: Second) -> Second { lhs } }
     func top() {}
     """) { file in
-      let operators = try SwiftSymbolResolver.matches(in: file, named: "+(_:_:)")
+      let operators = try SourceSymbolResolver.matches(in: file, named: "+(_:_:)")
       #expect(operators.map(\.line) == [1, 2])
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "First.+(_:_:)").map(\.line) == [1])
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "top()").map(\.line) == [3])
-      #expect(try SwiftSymbolResolver.matches(in: file, named: "top").map(\.line) == [3])
+      #expect(try SourceSymbolResolver.matches(in: file, named: "First.+(_:_:)").map(\.line) == [1])
+      #expect(try SourceSymbolResolver.matches(in: file, named: "top()").map(\.line) == [3])
+      #expect(try SourceSymbolResolver.matches(in: file, named: "top").map(\.line) == [3])
     }
   }
 

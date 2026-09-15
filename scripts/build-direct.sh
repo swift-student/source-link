@@ -11,12 +11,11 @@ cp "$package_bin/libSourceLinkCore.a" "$output_dir/modules/"
 mkdir -p "$output_dir/source-link.app/Contents/Resources"
 cp -R "$package_bin/SourceLinkPackage_SourceLinkCore.bundle" "$output_dir/source-link.app/Contents/Resources/"
 cp -R "$package_bin/SourceLinkPackage_SourceLinkCore.bundle" "$output_dir/"
-dependency_flags=(
-  -I "$package_bin/Modules"
-  -Xcc "-fmodule-map-file=$package_bin/TreeSitter.build/module.modulemap"
-  -Xcc "-fmodule-map-file=$package_bin/TreeSitterSwiftGrammar.build/module.modulemap"
-  -Xcc "-fmodule-map-file=$package_bin/TreeSitterRubyGrammar.build/module.modulemap"
-)
+dependency_flags=(-I "$package_bin/Modules")
+# Include all bundled grammar modules, including both TypeScript dialects.
+for module_map in "$package_bin"/*.build/module.modulemap; do
+  dependency_flags+=(-Xcc "-fmodule-map-file=$module_map")
+done
 xcrun swiftc -swift-version 6 -parse-as-library -target arm64-apple-macos15.0 \
   -module-cache-path "$output_dir/cache" -L "$output_dir/modules" \
   "${dependency_flags[@]}" -lSourceLinkCore \

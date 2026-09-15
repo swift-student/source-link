@@ -73,4 +73,31 @@ struct SymbolValidationCommandTests {
       #expect(result.diagnostics.isEmpty)
     }
   }
+
+  @Test(arguments: [
+    ("rb", "class Widget\n  def refresh(value); end\n  def refresh(value, force: false); end\nend"),
+    ("kt", "class Widget {\n  fun refresh(value: Int) {}\n  fun refresh(value: String) {}\n}"),
+    ("ts", "class Widget {\n  refresh(value: number): void;\n  refresh(value: number | string): void {}\n}"),
+    ("tsx", "class Widget {\n  refresh(): unknown;\n  refresh() { return <section />; }\n}")
+  ], [false, true])
+  func `validates new languages and applies symbol ambiguity policy`(fixture: (String, String), strict: Bool) throws {
+    try withSymbols { root, config in
+      let file = root.appendingPathComponent("Widget.\(fixture.0)")
+      try fixture.1.write(to: file, atomically: true, encoding: .utf8)
+      let url = "source-link://repo/Widget.\(fixture.0)?symbol="
+      let arguments = ["validate", "-", "--config", config.path] + (strict ? ["--require-unique-symbols"] : [])
+      let result = Command.run(arguments) { Data((url + "refresh").utf8) }
+      #expect(result.status == (strict ? 1 : 0))
+      #expect(result.output == "<stdin>: 1 source links checked, \(strict ? 1 : 0) invalid, 1 ambiguous\n")
+      #expect(result.diagnostics.contains("\(strict ? "error" : "warning"): symbol link matches 2 declarations"))
+      #expect(result.diagnostics.contains(file.path + ":2:"))
+      #expect(result.diagnostics.contains(file.path + ":3:"))
+      let unique = Command.run(arguments) { Data((url + "Widget").utf8) }
+      #expect(unique.status == 0)
+      #expect(unique.diagnostics.isEmpty)
+      let missing = Command.run(arguments) { Data((url + "missing").utf8) }
+      #expect(missing.status == 1)
+      #expect(missing.diagnostics.contains("No matching declaration was found"))
+    }
+  }
 }

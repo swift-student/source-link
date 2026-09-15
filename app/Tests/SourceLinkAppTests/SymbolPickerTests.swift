@@ -63,7 +63,7 @@ struct SymbolPickerTests {
   func `navigation opens the selected declaration`(navigation: (String, Int), keyEquivalent: Bool) throws {
     let matches = try symbols()
     let picker = SymbolPicker()
-    var chosen: SwiftSymbol?
+    var chosen: SourceSymbol?
     var completions = 0
     picker.choose(matches, file: "Sources/Widget.swift") {
       chosen = $0
@@ -90,7 +90,7 @@ struct SymbolPickerTests {
   func `modified navigation keys remain available for shortcuts`() throws {
     let matches = try symbols()
     let picker = SymbolPicker()
-    var chosen: SwiftSymbol?
+    var chosen: SourceSymbol?
     picker.choose(matches, file: "Sources/Widget.swift") { chosen = $0 }
     let window = try #require(NSApp.windows.first { $0.title == "Choose Symbol" && $0.isVisible })
     defer { window.close() }
@@ -105,7 +105,7 @@ struct SymbolPickerTests {
   func `navigation scrolls through a long list`() async throws {
     let matches = try symbols(count: 12)
     let picker = SymbolPicker()
-    var chosen: SwiftSymbol?
+    var chosen: SourceSymbol?
     picker.choose(matches, file: "Sources/Widget.swift") { chosen = $0 }
     let window = try #require(NSApp.windows.first { $0.title == "Choose Symbol" && $0.isVisible })
     defer { window.close() }
@@ -122,12 +122,55 @@ struct SymbolPickerTests {
     #expect(chosen == matches.last)
   }
 
-  private func symbols(count: Int = 3) throws -> [SwiftSymbol] {
+  @Test(arguments: [
+    LanguageFixture(
+      file: "Cart.rb",
+      source: "class Cart\n  def add(value); end\n  def add(value, force: false); end\nend",
+      query: "Cart#add"
+    ),
+    LanguageFixture(file: "Cart.kt", source: "class Cart {\n  fun add(value: Int) {}\n  fun add(value: String) {}\n}",
+                    query: "Cart.add"),
+    LanguageFixture(file: "Cart.ts",
+                    source: "class Cart {\n  add(value: number): void;\n  add(value: number | string): void {}\n}",
+                    query: "Cart.add"),
+    LanguageFixture(file: "View.tsx", source: "function View(): unknown;\nfunction View() { return <section />; }",
+                    query: "View")
+  ])
+  func `picker opens declarations from each new language`(fixture: LanguageFixture) async throws {
+    let file = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString + "-" + fixture.file)
+    try fixture.source.write(to: file, atomically: true, encoding: .utf8)
+    defer { try? FileManager.default.removeItem(at: file) }
+    let matches = try SourceSymbolResolver.matches(in: file, named: fixture.query)
+    #expect(matches.count == 2)
+    let picker = SymbolPicker()
+    var chosen: SourceSymbol?
+    picker.choose(matches, file: fixture.file) { chosen = $0 }
+    let window = try #require(NSApp.windows.first { $0.title == "Choose Symbol" && $0.isVisible })
+    defer { window.close() }
+    try window.sendEvent(event("j", window: window))
+    if let directory = ProcessInfo.processInfo.environment["SOURCE_LINK_SCREENSHOT_DIR"] {
+      window.appearance = NSAppearance(named: .aqua)
+      try await Task.sleep(for: .milliseconds(500))
+      try await screenshot(window, directory: directory, name: "symbol-picker-\(file.pathExtension)")
+    }
+    try window.sendEvent(event("\r", window: window))
+    #expect(chosen == matches.last)
+    #expect(!window.isVisible)
+  }
+
+  struct LanguageFixture: Sendable {
+    let file: String
+    let source: String
+    let query: String
+  }
+
+  private func symbols(count: Int = 3) throws -> [SourceSymbol] {
     let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".swift")
     let declarations = (0 ..< count).map { "func refresh(value\($0): Int) {}" }.joined(separator: "\n")
     try "struct Widget {\n\(declarations)\n}".write(to: file, atomically: true, encoding: .utf8)
     defer { try? FileManager.default.removeItem(at: file) }
-    return try SwiftSymbolResolver.matches(in: file, named: "refresh")
+    return try SourceSymbolResolver.matches(in: file, named: "refresh")
   }
 
   private func event(_ key: String, window: NSWindow, modifiers: NSEvent.ModifierFlags = [],
