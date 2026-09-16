@@ -35,6 +35,44 @@ public struct ConfigurationRepository: Sendable {
     return try write(merged, replacing: latest)
   }
 
+  /// Preserve the original beside its resolved target before installing defaults.
+  /// Neither an existing backup nor a concurrently created configuration is overwritten.
+  public func backUpAndReset() throws -> ConfigurationSnapshot {
+    let manager = FileManager.default
+    let target = file.resolvingSymlinksInPath().standardizedFileURL
+    if try !exists(file) {
+      let snapshot = try load()
+      guard !snapshot.exists else {
+        throw ConfigurationError("\(file.path): the file appeared during reset. Please try again.")
+      }
+      return try save(base: snapshot, draft: SourceSettings())
+    }
+    let attributes = try manager.attributesOfItem(atPath: target.path)
+    guard attributes[.type] as? FileAttributeType == .typeRegular else {
+      throw ConfigurationError("\(file.path): only a regular configuration file can be backed up and reset.")
+    }
+    let document = try ConfigurationDocument.initial()
+    let stamp = Date().ISO8601Format().replacingOccurrences(of: ":", with: "-")
+    let backup = target.deletingLastPathComponent().appendingPathComponent(
+      "\(target.deletingPathExtension().lastPathComponent).backup-\(stamp)-\(UUID()).json"
+    )
+    let temporary = target.deletingLastPathComponent().appendingPathComponent(".source-link-\(UUID()).tmp")
+    defer { try? manager.removeItem(at: temporary) }
+    try Data(document.text.utf8).write(to: temporary, options: .withoutOverwriting)
+    try manager.setAttributes([.posixPermissions: attributes[.posixPermissions] ?? NSNumber(value: 0o600)],
+                              ofItemAtPath: temporary.path)
+    // A failed backup leaves the original untouched. Symlinks remain pointed at the same target.
+    try manager.moveItem(at: target, to: backup)
+    guard link(temporary.path, target.path) == 0 else {
+      let error = POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+      // Restore the original if the path is still free; always retain the backup.
+      _ = link(backup.path, target.path)
+      throw ConfigurationError("Could not create default settings: \(error.localizedDescription) "
+        + "Your original configuration is preserved at \(backup.path).")
+    }
+    return try load()
+  }
+
   private func exists(_ url: URL) throws -> Bool {
     do {
       _ = try FileManager.default.attributesOfItem(atPath: url.path)

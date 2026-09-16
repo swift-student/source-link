@@ -18,11 +18,14 @@ struct EditorsSettingsView: View {
             .padding(.leading, SettingsStyle.Layout.ruleHeaderInset)
             .frame(maxWidth: .infinity, alignment: .leading)
           Text("Open in")
-            // The macOS picker bezel extends beyond its layout frame.
-            .padding(.leading, -SettingsStyle.Spacing.small)
+            // Match the title inset inside the native popup button.
+            .padding(.leading, SettingsStyle.Spacing.medium)
             .frame(width: SettingsStyle.Layout.editorPicker, alignment: .leading)
         }
-        .font(.caption).foregroundStyle(.secondary).padding(SettingsStyle.Spacing.large)
+        .font(.caption).foregroundStyle(.secondary)
+        .padding(.vertical, SettingsStyle.Spacing.large)
+        .padding(.leading, SettingsStyle.Layout.ruleColumnLeadingInset)
+        .padding(.trailing, SettingsStyle.Layout.ruleColumnTrailingInset)
         .background(SettingsStyle.tableHeaderBackground)
         Divider()
         if store.settings.rules.isEmpty {
@@ -70,23 +73,30 @@ struct EditorsSettingsView: View {
         Picker("Default editor", selection: $store.settings.defaultEditor) {
           ForEach(store.settings.availableEditors) { Text(store.settings.title(for: $0)).tag($0) }
         }
-        .labelsHidden().frame(width: SettingsStyle.Layout.editorPicker)
+        .labelsHidden().frame(width: SettingsStyle.Layout.editorPicker, alignment: .leading)
       }
+      .padding(.trailing, SettingsStyle.Layout.ruleColumnTrailingInset)
       Divider()
       HStack {
         Text("Add or customize editors in the configuration file.")
           .font(.callout).foregroundStyle(.secondary)
         Spacer()
-        Button("Edit Configuration…") {
+        Button {
           do {
             let file = try store.prepareConfigurationForEditing()
             if !NSWorkspace.shared.open(file) {
               NSWorkspace.shared.activateFileViewerSelecting([file])
             }
           } catch { store.reportSettingsError(error) }
+        } label: {
+          Text("Edit Configuration…")
+            .frame(width: SettingsStyle.Layout.editorPicker - SettingsStyle.Layout.editorConfigurationInset,
+                   alignment: .leading)
         }
+        .frame(width: SettingsStyle.Layout.editorPicker, alignment: .leading)
         .disabled(store.setupSnapshot == nil && store.errorMessage == nil)
       }
+      .padding(.trailing, SettingsStyle.Layout.ruleColumnTrailingInset)
     }
     .padding(SettingsStyle.Spacing.page)
     .onChange(of: focusedRule) { _, id in

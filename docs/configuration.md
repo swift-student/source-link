@@ -68,6 +68,13 @@ Executable paths and arguments are edited together in that file, manually or wit
 Invalid configuration is opened for repair without overwriting it.
 The `executables` field is not supported and is rejected.
 
+If settings cannot load, **Open Configuration…** opens the file for repair; valid changes
+reload automatically. **Back Up & Reset Settings** renames the original to a unique
+`config.backup-<timestamp>-<identifier>.json` alongside it, then creates and loads defaults,
+discarding unsaved edits. For a symlink, the target is backed up and replaced while the link
+is preserved. Reset stops if the backup fails; it never overwrites an existing backup.
+If the configuration has been deleted, reset creates defaults without a backup.
+
 Unknown keys, incorrect types, unsupported versions, and multiple defaults for the same
 repository are errors. Names and extensions must not be empty. Paths must be absolute or
 start with `~/`; `~` expands to the current user's home directory only when used. Shell

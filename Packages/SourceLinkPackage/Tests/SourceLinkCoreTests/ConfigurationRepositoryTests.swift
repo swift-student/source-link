@@ -10,6 +10,54 @@ struct ConfigurationRepositoryTests {
     try body(root)
   }
 
+  @Test func `reset preserves invalid bytes and permissions through a symlink`() throws {
+    try withDirectory { root in
+      let target = root.appendingPathComponent("dotfiles.json")
+      let file = root.appendingPathComponent("config.json")
+      let broken = Data("{invalid legacy config".utf8)
+      try broken.write(to: target)
+      try FileManager.default.setAttributes([.posixPermissions: 0o640], ofItemAtPath: target.path)
+      try FileManager.default.createSymbolicLink(at: file, withDestinationURL: target)
+      let repository = ConfigurationRepository(file: file)
+      let reset = try repository.backUpAndReset()
+      #expect(reset.exists)
+      #expect(reset.document.settings.hasSameConfiguration(as: SourceSettings()))
+      #expect(try FileManager.default.destinationOfSymbolicLink(atPath: file.path) == target.path)
+      #expect(try FileManager.default.attributesOfItem(atPath: target.path)[.posixPermissions] as? Int == 0o640)
+      let backups = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
+        .filter { $0.lastPathComponent.contains(".backup-") }
+      #expect(backups.count == 1)
+      let backup = try #require(backups.first)
+      #expect(try Data(contentsOf: backup) == broken)
+      _ = try repository.backUpAndReset()
+      #expect(try Data(contentsOf: backup) == broken)
+      #expect(try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
+        .filter { $0.lastPathComponent.contains(".backup-") }.count == 2)
+    }
+  }
+
+  @Test func `reset refuses directories without moving their contents`() throws {
+    try withDirectory { root in
+      let file = root.appendingPathComponent("config.json")
+      try FileManager.default.createDirectory(at: file, withIntermediateDirectories: true)
+      let child = file.appendingPathComponent("keep")
+      try Data("original".utf8).write(to: child)
+      #expect(throws: ConfigurationError.self) { try ConfigurationRepository(file: file).backUpAndReset() }
+      #expect(try String(contentsOf: child, encoding: .utf8) == "original")
+      #expect(try FileManager.default.contentsOfDirectory(atPath: root.path) == ["config.json"])
+    }
+  }
+
+  @Test func `reset recreates a missing configuration`() throws {
+    try withDirectory { root in
+      let repository = ConfigurationRepository(file: root.appendingPathComponent("config.json"))
+      let snapshot = try repository.backUpAndReset()
+      #expect(snapshot.exists)
+      #expect(snapshot.document.settings.hasSameConfiguration(as: SourceSettings()))
+      #expect(try FileManager.default.contentsOfDirectory(atPath: root.path) == ["config.json"])
+    }
+  }
+
   @Test func `missing configuration uses defaults without creating file`() throws {
     try withDirectory { root in
       let file = root.appendingPathComponent("config.json")

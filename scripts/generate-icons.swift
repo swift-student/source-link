@@ -1,11 +1,43 @@
 // Run from the repository root: swift scripts/generate-icons.swift
-// The approved three-dash mark is preserved as a masked SVG in docs/assets.
+// The approved artwork is preserved in docs/assets/source-link.png.
 import AppKit
 
 let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 let assets = root.appendingPathComponent("app/Sources/SourceLinkApp/Assets.xcassets")
-guard let mark = NSImage(contentsOf: root.appendingPathComponent("docs/assets/source-link.svg")) else {
-  fatalError("Unable to load the Source Link master SVG")
+let sourceData = try Data(contentsOf: root.appendingPathComponent("docs/assets/source-link.png"))
+guard let source = NSBitmapImageRep(data: sourceData) else {
+  fatalError("Unable to load the Source Link master artwork")
+}
+
+/// Turn the monochrome artwork into a black alpha mask so the menu-bar template
+/// has no white background. Remove the generated image's surrounding whitespace.
+let mask = NSBitmapImageRep(
+  bitmapDataPlanes: nil, pixelsWide: source.pixelsWide, pixelsHigh: source.pixelsHigh,
+  bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+  colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+)!
+var bounds = NSRect.null
+for row in 0 ..< source.pixelsHigh {
+  for column in 0 ..< source.pixelsWide {
+    let color = source.colorAt(x: column, y: row)!.usingColorSpace(.deviceRGB)!
+    let luminance = (color.redComponent + color.greenComponent + color.blueComponent) / 3
+    // Suppress near-white background noise while retaining antialiased edges.
+    let alpha = max(0, min(1, (0.95 - luminance) / 0.95)) * color.alphaComponent
+    mask.setColor(NSColor(deviceRed: 0, green: 0, blue: 0, alpha: alpha), atX: column, y: row)
+    if alpha > 0.5 {
+      bounds = bounds.union(NSRect(x: column, y: row, width: 1, height: 1))
+    }
+  }
+}
+
+guard !bounds.isNull, let maskImage = mask.cgImage else {
+  fatalError("The Source Link artwork contains no visible mark")
+}
+
+let side = max(bounds.width, bounds.height)
+let crop = NSRect(x: bounds.midX - side / 2, y: bounds.midY - side / 2, width: side, height: side).integral
+guard let cropped = maskImage.cropping(to: crop) else {
+  fatalError("Unable to crop the Source Link artwork")
 }
 
 func writeJSON(_ value: [String: Any], to url: URL) throws {
@@ -31,9 +63,9 @@ func render(pixels: Int, appIcon: Bool, to url: URL) throws {
     let tile = canvas.insetBy(dx: size * 0.08, dy: size * 0.08)
     NSColor(calibratedWhite: 0.98, alpha: 1).setFill()
     NSBezierPath(roundedRect: tile, xRadius: size * 0.18, yRadius: size * 0.18).fill()
-    mark.draw(in: canvas.insetBy(dx: size * 0.16, dy: size * 0.16))
+    NSGraphicsContext.current?.cgContext.draw(cropped, in: canvas.insetBy(dx: size * 0.16, dy: size * 0.16))
   } else {
-    mark.draw(in: canvas)
+    NSGraphicsContext.current?.cgContext.draw(cropped, in: canvas)
   }
   NSGraphicsContext.restoreGraphicsState()
   guard let png = bitmap.representation(using: .png, properties: [:]) else {

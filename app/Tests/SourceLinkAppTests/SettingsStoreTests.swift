@@ -21,6 +21,32 @@ struct SettingsStoreTests {
     #expect(fixture.store.presentedError != nil)
   }
 
+  @Test func `reset recovers startup errors and permits saving`() async throws {
+    let fixture = try StoreFixture()
+    try Data("invalid JSON".utf8).write(to: fixture.repository.file)
+    fixture.store.reload()
+    fixture.store.backUpAndResetSettings()
+    #expect(fixture.store.errorMessage == nil)
+    #expect(fixture.store.presentedError == nil)
+    #expect(fixture.store.canSave)
+    #expect(fixture.store.settings.hasSameConfiguration(as: SourceSettings()))
+    fixture.store.settings.defaultEditor = .cursor
+    try await fixture.finishSave()
+    #expect(try fixture.repository.load().document.settings.defaultEditor == .cursor)
+  }
+
+  @Test func `failed reset retains draft and reports an error`() throws {
+    let fixture = try StoreFixture()
+    fixture.store.settings.defaultEditor = .cursor
+    try FileManager.default.removeItem(at: fixture.repository.file)
+    try FileManager.default.createDirectory(at: fixture.repository.file, withIntermediateDirectories: true)
+    fixture.store.backUpAndResetSettings()
+    #expect(fixture.store.presentedError != nil)
+    #expect(fixture.store.settings.defaultEditor == .cursor)
+    #expect(fixture.store.activeSettings.defaultEditor == .xcode)
+    #expect(fixture.store.autoSave == nil)
+  }
+
   @Test func `startup errors are available for an alert`() throws {
     let fixture = try StoreFixture()
     try Data("invalid JSON".utf8).write(to: fixture.repository.file)

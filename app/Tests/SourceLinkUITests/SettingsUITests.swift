@@ -49,34 +49,24 @@ final class SettingsUITests: XCTestCase {
     XCTAssertFalse(window.buttons["settings.discard"].exists)
     let file = directory.appendingPathComponent("config.json")
     try Data("invalid JSON".utf8).write(to: file)
-    let keepEditing = window.sheets.buttons.matching(identifier: "Keep Editing").firstMatch
-    XCTAssertTrue(keepEditing.waitForExistence(timeout: 5))
+    let reset = window.sheets.buttons.matching(identifier: "Back Up & Reset Settings").firstMatch
+    XCTAssertTrue(reset.waitForExistence(timeout: 5))
+    XCTAssertTrue(window.sheets.buttons["Open Configuration…"].exists)
     let screenshot = XCTAttachment(screenshot: window.screenshot())
-    screenshot.name = "Settings error alert"
+    screenshot.name = "Settings recovery alert"
     screenshot.lifetime = .keepAlways
     add(screenshot)
-    keepEditing.click()
-    // An inverted expectation spans multiple watcher polls without a blocking sleep.
-    let repeated = expectation(for: NSPredicate { _, _ in keepEditing.exists }, evaluatedWith: nil)
-    repeated.isInverted = true
-    wait(for: [repeated], timeout: 2.5)
-    // A distinct error presents again and offers explicit reload recovery.
-    try FileManager.default.removeItem(at: file)
-    let valid = try ConfigurationDocument.initial().text
-    try Data(valid.utf8).write(to: file)
-    let editorPage = window.descendants(matching: .any)["settings.page.Editors"].firstMatch
-    editorPage.click()
-    let picker = window.popUpButtons["Default editor"]
-    picker.click()
-    app.menuItems["Cursor"].click()
-    waitForSavedSettings { $0.defaultEditor == .cursor }
-    try FileManager.default.removeItem(at: file)
-    let reload = window.sheets.buttons.matching(identifier: "Reload from File").firstMatch
-    XCTAssertTrue(reload.waitForExistence(timeout: 5))
-    reload.click()
-    XCTAssertTrue(picker.waitForExistence(timeout: 5))
-    XCTAssertFalse(window.sheets.buttons.matching(identifier: "Keep Editing").firstMatch.exists)
-    XCTAssertFalse(FileManager.default.fileExists(atPath: file.path))
+    reset.click()
+    waitForSavedSettings { $0.hasSameConfiguration(as: SourceSettings()) }
+    XCTAssertTrue(reset.waitForNonExistence(timeout: 5))
+    let backups = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+      .filter { $0.lastPathComponent.contains(".backup-") }
+    XCTAssertEqual(backups.count, 1)
+    XCTAssertEqual(try String(contentsOf: XCTUnwrap(backups.first), encoding: .utf8), "invalid JSON")
+    app.terminate()
+    app.launch()
+    XCTAssertTrue(window.waitForExistence(timeout: 10))
+    XCTAssertFalse(reset.exists)
   }
 
   func testSettingsNavigationAndRulePersistence() {

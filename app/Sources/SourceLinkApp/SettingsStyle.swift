@@ -26,9 +26,13 @@ enum SettingsStyle {
     static let ruleToolbarButtonWidth: CGFloat = 32
     static let ruleToolbarHeight: CGFloat = 28
     static let ruleHeaderInset: CGFloat = 6
+    // Plain macOS lists add asymmetric insets outside the row's 16-point padding.
+    static let ruleColumnLeadingInset: CGFloat = 23
+    static let ruleColumnTrailingInset: CGFloat = 25
     static let repositoryPageInset: CGFloat = 40
     static let checkoutIconWidth: CGFloat = 20
-    static let editorConfigurationInset: CGFloat = 36
+    // Match the popup bezel width, accounting for native button title padding.
+    static let editorConfigurationInset: CGFloat = 62
     static let emptyRulesHeight: CGFloat = 180
   }
 
