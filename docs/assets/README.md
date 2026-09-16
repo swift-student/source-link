@@ -1,6 +1,6 @@
 # Source Link icon
 
-`source-link.svg` is the approved three-dash, forward-leaning black mark. It keeps the complete links underneath an SVG mask, with three progressively shorter segments per arc.
+`source-link.png` is the current approved artwork: a forward-leaning S with two dashed pieces on each return, wider cuts between segments, and rounded chain-like bends. The generator crops the surrounding whitespace and converts luminance to transparency, preserving the black mark for template rendering. `source-link.svg` retains the previous three-dash design as a reference; it is no longer used to generate icons.
 
 Regenerate the checked-in app icon and template menu-bar images from the repository root:
 

@@ -160,6 +160,18 @@ final class SettingsStore: ObservableObject {
     } catch { errorMessage = error.localizedDescription }
   }
 
+  func backUpAndResetSettings() {
+    autoSave?.cancel()
+    autoSave = nil
+    do {
+      try accept(repository.backUpAndReset(), discardDraft: true)
+      saveError = nil
+    } catch {
+      errorMessage = error.localizedDescription
+      presentedError = error.localizedDescription
+    }
+  }
+
   /// Cancel pending writes; only discard the draft after successfully reading the current file.
   func discardChangesAndReload() {
     autoSave?.cancel()

@@ -40,7 +40,7 @@ struct SettingsView: View {
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
       .background(SettingsStyle.pageBackground)
     }
-    .alert("Settings Error", isPresented: Binding(
+    .alert(store.errorMessage != nil ? "Couldn’t Load Settings" : "Settings Error", isPresented: Binding(
       get: { store.presentedError != nil },
       set: {
         if !$0 {
@@ -48,14 +48,34 @@ struct SettingsView: View {
         }
       }
     )) {
-      Button("Keep Editing", role: .cancel) { store.presentedError = nil }
-      Button("Reload from File", role: .destructive) { store.discardChangesAndReload() }
+      if store.errorMessage != nil {
+        Button("Open Configuration…") { openConfigurationTapped() }
+        Button("Back Up & Reset Settings", role: .destructive) { store.backUpAndResetSettings() }
+        Button("Cancel", role: .cancel) { store.presentedError = nil }
+      } else {
+        Button("Keep Editing", role: .cancel) { store.presentedError = nil }
+        Button("Reload from File", role: .destructive) { store.discardChangesAndReload() }
+      }
     } message: {
-      Text((store.presentedError ?? "") + "\n\nReloading from file discards unsaved edits. "
-        + "If the file cannot be read, your edits are kept.")
+      if store.errorMessage != nil {
+        Text((store.presentedError ?? "")
+          + "\n\nOpen the configuration to fix it; settings reload automatically once it’s valid. "
+          + "Saving is disabled until then.\n\nStarting fresh renames the original file as a backup "
+          + "in the same folder and creates default settings. Unsaved edits will be discarded.")
+      } else {
+        Text((store.presentedError ?? "") + "\n\nReloading from file discards unsaved edits. "
+          + "If the file cannot be read, your edits are kept.")
+      }
     }
     .frame(minWidth: SettingsStyle.Layout.minimumWindow.width,
            minHeight: SettingsStyle.Layout.minimumWindow.height)
+  }
+
+  private func openConfigurationTapped() {
+    let file = store.repository.file
+    if !NSWorkspace.shared.open(file) {
+      NSWorkspace.shared.activateFileViewerSelecting([file])
+    }
   }
 }
 
