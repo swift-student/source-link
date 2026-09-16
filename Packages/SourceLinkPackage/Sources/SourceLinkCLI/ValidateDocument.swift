@@ -6,7 +6,8 @@ struct ValidateDocument: CommandOperation {
   static let configuration = CommandConfiguration(
     commandName: "validate",
     abstract: "Validate source-link: URLs in a document without launching an editor.",
-    discussion: "Ambiguous symbols produce warnings by default. Use --require-unique-symbols to reject them."
+    discussion: "Ambiguous symbol or text matches produce warnings by default. "
+      + "Use --require-unique-symbols to reject them."
   )
 
   @Argument(help: "UTF-8 text, Markdown, D2, SVG, or HTML file. Use - for standard input.", completion: .file())
@@ -15,7 +16,7 @@ struct ValidateDocument: CommandOperation {
   @Option(help: "Configuration file; defaults to the app's saved configuration.", completion: .file())
   var config: String?
 
-  @Flag(help: "Fail validation when a symbol link matches multiple declarations.")
+  @Flag(help: "Fail when a symbol link resolves to multiple destinations, after any find filtering.")
   var requireUniqueSymbols = false
 
   func execute(standardInput: () throws -> Data) throws -> CommandResult {
@@ -57,8 +58,10 @@ struct ValidateDocument: CommandOperation {
     let severity = requireUniqueSymbols ? "error" : "warning"
     let candidates = result.symbolMatches.map { symbol in
       "  \(file.path):\(symbol.line):\(symbol.column): \(symbol.signature)\n"
+        + (symbol.matchedLine.map { "    \($0)\n" } ?? "")
     }.joined()
-    return "\(location): \(severity): symbol link matches \(result.symbolMatches.count) declarations "
+    let kind = result.symbolMatches.first?.matchedLine == nil ? "declarations" : "locations"
+    return "\(location): \(severity): symbol link matches \(result.symbolMatches.count) \(kind) "
       + "[\(result.link.text)]\n" + candidates
   }
 }

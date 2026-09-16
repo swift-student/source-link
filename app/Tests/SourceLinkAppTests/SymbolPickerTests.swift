@@ -159,6 +159,42 @@ struct SymbolPickerTests {
     #expect(!window.isVisible)
   }
 
+  @Test
+  func `picker distinguishes text occurrences within and across overloads`() async throws {
+    let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".swift")
+    try """
+    struct Store {
+      func commit(_ value: Int) {
+        outbox.append(value)
+        outbox.append(value + 1)
+      }
+      func commit(_ value: String) {
+        outbox.append(value.uppercased())
+      }
+    }
+    """.write(to: file, atomically: true, encoding: .utf8)
+    defer { try? FileManager.default.removeItem(at: file) }
+    let matches = try SourceSymbolResolver.matches(in: file, named: "Store.commit(_:)", find: "outbox.append")
+    #expect(matches.map(\.line) == [3, 4, 7])
+    let picker = SymbolPicker()
+    var chosen: SourceSymbol?
+    picker.choose(matches, file: "Sources/Store.swift") { chosen = $0 }
+    let window = try #require(NSApp.windows.first { $0.title == "Choose Symbol" && $0.isVisible })
+    defer { window.close() }
+    try window.sendEvent(event("j", window: window))
+    if let directory = ProcessInfo.processInfo.environment["SOURCE_LINK_SCREENSHOT_DIR"] {
+      for dark in [false, true] {
+        window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+        try await Task.sleep(for: .milliseconds(500))
+        try await screenshot(window, directory: directory, name: "text-picker-\(dark ? "dark" : "light")")
+      }
+    }
+    try window.sendEvent(event("\r", window: window))
+    #expect(chosen == matches[1])
+    #expect(chosen?.matchedLine == "outbox.append(value + 1)")
+    #expect(!window.isVisible)
+  }
+
   struct LanguageFixture: Sendable {
     let file: String
     let source: String

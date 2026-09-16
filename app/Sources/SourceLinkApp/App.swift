@@ -66,7 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                let checkout = settings.checkout(for: link.repository) {
               let file = try link.resolve(root: URL(fileURLWithPath: ConfigurationPaths.expand(checkout.path)))
               let matches = try await Task.detached {
-                try SourceSymbolResolver.matches(in: file, named: query)
+                try SourceSymbolResolver.matches(in: file, named: query, find: link.find)
               }.value
               guard let first = matches.first else { throw SourceLinkError.missingSymbol }
               if matches.count == 1 {
