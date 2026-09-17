@@ -37,6 +37,10 @@ Run `make generate` once, then `xed .` from the repository root to open
 `SourceLink.xcworkspace`. The Swift package lives in `Packages/SourceLinkPackage`,
 leaving the workspace as the root Xcode entry point.
 
+Xcode Cloud uses the committed workspace and runs `ci_scripts/ci_post_clone.sh` to
+install XcodeGen if needed and generate the project before building. Make project
+changes in `app/project.yml`; generated projects and Info.plist remain ignored.
+
 For an Apple Silicon build without Xcode workspace services, run `bash scripts/build-direct.sh`.
 The ad-hoc signed app is written to `.build/direct/source-link.app`, with the CLI at
 `Contents/Helpers/source-link` inside the bundle and a standalone copy at `.build/direct/source-link`.
@@ -45,6 +49,9 @@ or launch either executable.
 
 
 ## Prepare a Homebrew release
+
+For a signed and notarized public release, follow [Xcode Cloud releases](releasing.md).
+The command below produces a local, ad-hoc signed build for packaging checks.
 
 ```sh
 make release
