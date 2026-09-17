@@ -75,7 +75,8 @@ bash scripts/prepare-homebrew.sh /path/to/signed/source-link.app .build/release
 The script preserves the app's signature and stapled ticket. Upload the generated ZIP to the
 `vVERSION` GitHub release in `swift-student/source-link`, then publish the matching `source-link.rb`
 under `Casks/` in the Homebrew tap. Generate the checksum after signing and stapling; it must
-match the exact uploaded archive. Neither releases nor tap updates are published automatically.
+match the exact uploaded archive. These local packaging commands do not publish releases or tap
+updates. The tag-triggered Release workflow described in [releasing](releasing.md) publishes both.
 
 ## Checks and visual review
 
