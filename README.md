@@ -20,20 +20,16 @@ ignores the column.
 
 ## Try it
 
-Until the first Homebrew release is published, build from source. You'll need
-Xcode with Swift 6.2 or later and XcodeGen:
+Install the signed and notarized app with Homebrew:
 
 ```sh
-brew install xcodegen
-git clone https://github.com/swift-student/source-link.git
-cd source-link
-make run
+brew install --cask swift-student/tap/source-link
 ```
 
-This builds and opens `.build/xcode/Build/Products/Debug/source-link.app`.
-You can copy it to Applications to keep it. Install your preferred editor separately.
+Open **Source Link** from Applications once to register its link handler. The cask
+also installs the `source-link` CLI. Install your preferred editor separately.
 
-Now open a link to this repository's README:
+With a local checkout of this repository, try opening its README:
 
 ```sh
 open 'source-link://source-link/README.md?line=1'
@@ -101,10 +97,10 @@ rules. Changes save automatically to `~/.config/source-link/config.json`. You ca
 also edit that file directly or symlink it into your dotfiles; valid changes
 reload automatically.
 
-The CLI checks links in documents without opening an editor. From this repository:
+The bundled CLI checks links in documents without opening an editor:
 
 ```sh
-swift run --package-path Packages/SourceLinkPackage source-link validate notes.md
+source-link validate notes.md
 ```
 
 Add `--require-unique-symbols` to reject ambiguous matches in CI. See the
@@ -114,10 +110,17 @@ config locations, and external edits.
 
 ## Development
 
+Building from source requires Xcode with Swift 6.2 or later:
+
 ```sh
-brew install swiftlint swiftformat
+brew install xcodegen swiftlint swiftformat
+git clone https://github.com/swift-student/source-link.git
+cd source-link
 make check
+make run
 ```
+
+`make run` builds and opens `.build/xcode/Build/Products/Debug/source-link.app`.
 
 `make check` runs core and app unit tests, strict lint, formatting checks, and an
 app build. Run `make format` to format the Swift sources.
