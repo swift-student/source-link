@@ -50,7 +50,7 @@ or launch either executable.
 
 ## Prepare a Homebrew release
 
-For a signed and notarized public release, follow [Xcode Cloud releases](releasing.md).
+For a signed and notarized public release, follow [automated GitHub releases](releasing.md).
 The command below produces a local, ad-hoc signed build for packaging checks.
 
 ```sh
