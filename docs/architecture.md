@@ -12,6 +12,14 @@ Source Link has three boundaries:
 
 `SourceLink.resolve(root:)` resolves symlinks and requires an existing non-directory file inside the configured root. Shared links contain repository identity and a relative path, so local absolute paths and worktree names do not leak into link identity.
 
+For symbol links, the app runs `SourceSymbolResolver.matches(in:named:find:)` off the main
+actor before constructing the editor command. Parsing, optional literal search within all
+matching declaration ranges, and UTF-16 position conversion use one immutable source snapshot.
+The resolver returns declaration positions or text occurrences in source order, deduplicated
+by byte offset. For overlapping declaration ranges, text matches use the innermost matching
+declaration's context. The app opens one result or presents multiple results in `SymbolPicker`;
+document validation calls the same resolver without UI or process invocation.
+
 `SourceSettings.command(for:)` returns `nil` when the repository has no unambiguous checkout. An unknown repository or multiple checkouts without a default requires setup. Invalid or missing files throw errors. Xcode project discovery prefers the discovered project/workspace for that checkout.
 
 `EditorCommand` constructs argument arrays and invokes `Process` directly. There is no shell interpolation. Tests cover routing, arguments, missing executables, and exit status.

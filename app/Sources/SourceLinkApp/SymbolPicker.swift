@@ -49,6 +49,10 @@ final class SymbolPickerSelection: ObservableObject {
     symbols.first { $0.id == id }
   }
 
+  var hasTextMatches: Bool {
+    symbols.first?.matchedLine != nil
+  }
+
   func move(by distance: Int) {
     guard !symbols.isEmpty else { return }
     let index = symbols.firstIndex { $0.id == id } ?? 0
@@ -70,10 +74,13 @@ final class SymbolPickerPanel: NSPanel {
   }
 
   init(symbols: [SourceSymbol], file: String, completion: @escaping (SourceSymbol?) -> Void) {
-    selection = SymbolPickerSelection(symbols: symbols)
+    let selection = SymbolPickerSelection(symbols: symbols)
+    self.selection = selection
     self.completion = completion
     super.init(
-      contentRect: NSRect(x: 0, y: 0, width: 640, height: 136 + CGFloat(min(max(symbols.count, 1), 6)) * 52),
+      contentRect: NSRect(x: 0, y: 0, width: 640,
+                          height: 136 + CGFloat(min(max(symbols.count, 1), 6))
+                            * (selection.hasTextMatches ? 76 : 52)),
       styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false
     )
     title = "Choose Symbol"
@@ -129,7 +136,7 @@ struct SymbolPickerView: View {
     VStack(alignment: .leading, spacing: 0) {
       HStack(spacing: 12) {
         VStack(alignment: .leading, spacing: 4) {
-          Text("Choose a declaration").font(.headline)
+          Text(selection.hasTextMatches ? "Choose a matching location" : "Choose a declaration").font(.headline)
           Text(file).font(.subheadline).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
         }
         Spacer(minLength: 0)
@@ -140,8 +147,14 @@ struct SymbolPickerView: View {
       ScrollViewReader { proxy in
         List(selection.symbols) { symbol in
           VStack(alignment: .leading, spacing: 4) {
+            if let line = symbol.matchedLine {
+              Text(line.isEmpty ? "Blank line" : line)
+                .font(.system(.body, design: .monospaced)).lineLimit(1).truncationMode(.middle)
+            }
             Text(symbol.signature).font(.system(.body, design: .monospaced)).lineLimit(1)
-            Text("Line \(symbol.line)").font(.caption).foregroundStyle(.secondary)
+              .foregroundStyle(symbol.matchedLine == nil ? .primary : .secondary)
+            Text(symbol.matchedLine == nil ? "Line \(symbol.line)" : "Line \(symbol.line), column \(symbol.column)")
+              .font(.caption).foregroundStyle(.secondary)
           }
           .padding(.vertical, 5)
           .padding(.horizontal, 4)
@@ -151,7 +164,7 @@ struct SymbolPickerView: View {
             selection.id = symbol.id
             listFocused = true
           }
-          .help(symbol.signature)
+          .help([symbol.signature, symbol.matchedLine].compactMap(\.self).joined(separator: "\n"))
           .id(symbol.id)
           .accessibilityElement(children: .combine)
           .accessibilityAddTraits(selection.id == symbol.id ? .isSelected : [])
@@ -167,7 +180,7 @@ struct SymbolPickerView: View {
         }
         .listStyle(.inset)
         .scrollContentBackground(.hidden)
-        .accessibilityLabel("Matching declarations")
+        .accessibilityLabel(selection.hasTextMatches ? "Matching locations" : "Matching declarations")
         .focused($listFocused)
         .onChange(of: selection.id) { _, id in
           if let id {

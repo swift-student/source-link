@@ -28,8 +28,18 @@ count and each candidate's signature and source file, line, and column. These li
 pass by default because the app offers a picker when opening them. Missing symbols fail
 validation without opening a picker.
 
+For `symbol` links with `find`, the resolver searches the literal text across all matching
+declarations first. A snippet can select one overload even when the symbol alone is
+ambiguous. Missing snippets fail validation. Multiple text locations produce warnings
+listing each declaration signature, matched line preview, and the match's line/column;
+repeated snippets within one declaration remain separate candidates. Identical locations
+from overlapping declaration ranges are listed once. The app uses the same resolution
+rules and offers a picker for these locations.
+
 Use `--require-unique-symbols` to treat ambiguous symbol links as errors, for example in
-CI. Ambiguous links then count as invalid and cause exit status `1`. The summary always
+CI. For links with `find`, uniqueness is checked after text filtering, so a single final
+location passes even when several declarations matched the symbol. Ambiguous links then
+count as invalid and cause exit status `1`. The summary always
 includes the number of ambiguous links, counting repeated occurrences separately.
 
 For example, a link to two overloads produces a diagnostic like this:
@@ -42,7 +52,7 @@ docs/architecture.md: 1 source links checked, 0 invalid, 1 ambiguous
 ```
 
 The diagnostic's first location points into the document; indented locations point to
-candidate declarations. Candidate columns use the resolver's one-based UTF-16 positions.
+candidate declarations or text matches. Candidate columns use the resolver's one-based UTF-16 positions.
 
 Links with positions also require a UTF-8 target and an in-range line and column.
 Positions are one-based; columns count Unicode characters, with a tab counting as one.

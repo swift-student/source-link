@@ -6,25 +6,29 @@ public struct SourceSymbol: Equatable, Sendable, Identifiable {
   public let signature: String
   public let line: Int
   public let column: Int
+  /// The source line containing a literal match; nil for declaration-only navigation.
+  public let matchedLine: String?
   public var id: Int {
     offset
   }
 
   private let offset: Int
 
-  init(name: String, signature: String, line: Int, column: Int, offset: Int) {
+  init(name: String, signature: String, line: Int, column: Int, offset: Int, matchedLine: String? = nil) {
     self.name = name
     self.signature = signature
     self.line = line
     self.column = column
     self.offset = offset
+    self.matchedLine = matchedLine
   }
 }
 
 /// Resolves declarations in supported source files without building or indexing their project.
 public enum SourceSymbolResolver {
-  public static func matches(in file: URL, named query: String) throws -> [SourceSymbol] {
+  public static func matches(in file: URL, named query: String, find: String? = nil) throws -> [SourceSymbol] {
     guard let language = language(for: file.path) else { throw SourceLinkError.invalidLink }
+    guard find == nil || find?.isEmpty == false else { throw SourceLinkError.invalidLink }
     let contents = try String(contentsOf: file, encoding: .utf8)
     let snapshot = SourceSnapshot(text: contents, language: language)
     let result = try extractor(for: language).extract(from: snapshot)
@@ -38,22 +42,41 @@ public enum SourceSymbolResolver {
       case let .ambiguous(declarations): declarations
       }
     }
+    return try locations(for: matches, in: snapshot, find: find)
+  }
+
+  private static func locations(for declarations: [Declaration], in snapshot: SourceSnapshot,
+                                find: String?) throws -> [SourceSymbol] {
     let positions = SourcePositionIndex(snapshot: snapshot)
+    let search = find.map { LiteralSourceSearch(source: snapshot.text, snippet: $0) }
     var seen = Set<Int>()
-    return try matches.sorted {
-      $0.identifierRange.utf8Offsets.lowerBound < $1.identifierRange.utf8Offsets.lowerBound
-    }.compactMap { declaration in
-      let offset = declaration.identifierRange.utf8Offsets.lowerBound
-      guard seen.insert(offset).inserted else { return nil }
-      guard let position = positions.position(in: declaration.identifierRange, columnEncoding: .utf16) else {
-        throw ExtractionError.invalidRanges
+    // Prefer the innermost matching declaration's context when ranges overlap.
+    let ordered = declarations.sorted {
+      if $0.declarationRange.utf8Offsets.count != $1.declarationRange.utf8Offsets.count {
+        return $0.declarationRange.utf8Offsets.count < $1.declarationRange.utf8Offsets.count
       }
-      return SourceSymbol(
-        name: declaration.qualifiedCallableName ?? declaration.qualifiedName,
-        signature: signature(for: declaration, in: snapshot),
-        line: position.line, column: position.column, offset: offset
-      )
+      return $0.identifierRange.utf8Offsets.lowerBound < $1.identifierRange.utf8Offsets.lowerBound
     }
+    let matches = try ordered.flatMap { declaration -> [SourceSymbol] in
+      let offsets = search?.offsets(in: declaration.declarationRange.utf8Offsets)
+        ?? [declaration.identifierRange.utf8Offsets.lowerBound]
+      return try offsets.compactMap { offset in
+        guard seen.insert(offset).inserted else { return nil }
+        guard let position = positions.position(atUTF8Offset: offset, columnEncoding: .utf16) else {
+          throw ExtractionError.invalidRanges
+        }
+        return SourceSymbol(
+          name: declaration.qualifiedCallableName ?? declaration.qualifiedName,
+          signature: signature(for: declaration, in: snapshot),
+          line: position.line, column: position.column, offset: offset,
+          matchedLine: search?.line(at: offset)
+        )
+      }
+    }
+    if find != nil, !declarations.isEmpty, matches.isEmpty {
+      throw SourceLinkError.missingText
+    }
+    return matches.sorted { $0.id < $1.id }
   }
 
   static func supports(path: String) -> Bool {

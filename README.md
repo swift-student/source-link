@@ -87,6 +87,33 @@ Incomplete or unrecognized syntax may yield partial results; recovered declarati
 navigable even when parsing reports diagnostics. The picker shows declaration headers when
 available, otherwise qualified names, alongside line numbers.
 
+### Locations within declarations
+
+Add `find` to target a literal snippet inside a symbol's declaration:
+
+```text
+source-link://my-repo/Sources/Store.swift?symbol=Store.commit(_:)&find=outbox.append
+```
+
+The resolver searches the entire source range of every matching declaration, including
+overloads, headers, comments, strings, and nested declarations. One matching location
+opens immediately at the snippet's start. Multiple occurrences show a picker with source
+line previews, declaration signatures, and line/column positions, including repeated text
+within one method. Overlapping declaration ranges show each physical match only once.
+Missing symbols or snippets produce errors; there is no fallback to a declaration or the rest of the file.
+
+`find` requires `symbol`, must be nonempty, and cannot be combined with `line` or `column`.
+Matching is case-sensitive and byte-exact: no regex, whitespace normalization, or Unicode
+normalization. Spaces, tabs, and newlines are significant; multiline snippets must use the
+file's actual newline sequence. Overlapping occurrences count as separate matches.
+Percent-encode query values, including `&` as `%26`, `#` as `%23`, and `%` as `%25`;
+values are decoded once. SVG/HTML attributes must also escape query separators as `&amp;`.
+
+These links survive inserted lines and moved statements within the selected declaration
+as long as the symbol and snippet remain unchanged. Choose a short, distinctive snippet.
+`source-link validate` warns about multiple final locations by default;
+`--require-unique-symbols` rejects them after `find` filtering.
+
 ## Source-linked call stacks
 
 The [interactive explainer](https://swiftstudent.com/source-link/) uses clickable

@@ -28,7 +28,7 @@ public struct DocumentLinkValidation: Sendable {
         let file = try link.resolve(root: URL(fileURLWithPath: ConfigurationPaths.expand(checkout.path)))
         var matches: [SourceSymbol] = []
         if let symbol = link.symbol {
-          matches = try SourceSymbolResolver.matches(in: file, named: symbol)
+          matches = try SourceSymbolResolver.matches(in: file, named: symbol, find: link.find)
           guard !matches.isEmpty else { throw SourceLinkError.missingSymbol }
         }
         if let line = link.line {
