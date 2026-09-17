@@ -37,9 +37,8 @@ Run `make generate` once, then `xed .` from the repository root to open
 `SourceLink.xcworkspace`. The Swift package lives in `Packages/SourceLinkPackage`,
 leaving the workspace as the root Xcode entry point.
 
-Xcode Cloud uses the committed workspace and runs `ci_scripts/ci_post_clone.sh` to
-install XcodeGen if needed and generate the project before building. Make project
-changes in `app/project.yml`; generated projects and Info.plist remain ignored.
+Make project changes in `app/project.yml`; `make generate` regenerates the Xcode
+project and Info.plist, which remain ignored.
 
 For an Apple Silicon build without Xcode workspace services, run `bash scripts/build-direct.sh`.
 The ad-hoc signed app is written to `.build/direct/source-link.app`, with the CLI at
@@ -47,36 +46,18 @@ The ad-hoc signed app is written to `.build/direct/source-link.app`, with the CL
 Xcode builds also bundle the CLI at `Contents/Helpers/source-link`. These builds do not install
 or launch either executable.
 
+## Release packaging
 
-## Prepare a Homebrew release
-
-For a signed and notarized public release, follow [automated GitHub releases](releasing.md).
-The command below produces a local, ad-hoc signed build for packaging checks.
+For a public release, follow [the release guide](releasing.md).
+To check universal app and CLI packaging locally:
 
 ```sh
 make release
 ```
 
-This builds a Release app and bundled CLI for Apple Silicon and Intel, then writes
-`.build/release/source-link-VERSION.zip` and `.build/release/source-link.rb`.
-The cask is generated from [homebrew/source-link.rb.in](../homebrew/source-link.rb.in), with
-the app's `CFBundleShortVersionString` and the ZIP's SHA-256 checksum. Its `app` and `binary`
-entries let Homebrew install the app and expose the bundled CLI in its own command directory.
-Preparing these artifacts does not install the app or change the local Homebrew installation.
-
-The local build uses ad-hoc signing. For public distribution, sign the app and bundled CLI
-with a Developer ID Application identity, notarize the app and staple its ticket, then generate
-the final archive and cask from that app:
-
-```sh
-bash scripts/prepare-homebrew.sh /path/to/signed/source-link.app .build/release
-```
-
-The script preserves the app's signature and stapled ticket. Upload the generated ZIP to the
-`vVERSION` GitHub release in `swift-student/source-link`, then publish the matching `source-link.rb`
-under `Casks/` in the Homebrew tap. Generate the checksum after signing and stapling; it must
-match the exact uploaded archive. These local packaging commands do not publish releases or tap
-updates. The tag-triggered Release workflow described in [releasing](releasing.md) publishes both.
+This writes an ad-hoc signed app archive and generated Homebrew cask to
+`.build/release/`. It does not notarize, publish, or install anything.
+The cask template lives in [homebrew/source-link.rb.in](../homebrew/source-link.rb.in).
 
 ## Checks and visual review
 
