@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, macOS, ARM64, tart-ci-dedicated, tart-xcode27]
+    timeout-minutes: 60
+    env:
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: url.ssh://git@github.com/swift-student/swift-source-symbols.git.insteadOf
+      GIT_CONFIG_VALUE_0: https://github.com/swift-student/swift-source-symbols.git
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Configure read-only private dependency access
+        env:
+          DEPENDENCY_KEY: ${{ secrets.SOURCE_SYMBOLS_DEPLOY_KEY }}
+        run: |
+          test -n "$DEPENDENCY_KEY"
+          umask 077
+          printf '%s\n' "$DEPENDENCY_KEY" > "$RUNNER_TEMP/source-symbols-key"
+          echo "GIT_SSH_COMMAND=ssh -i $RUNNER_TEMP/source-symbols-key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$GITHUB_WORKSPACE/.github/github_known_hosts" >> "$GITHUB_ENV"
+      - name: Install pinned formatter
+        run: |
+          bash scripts/ci/install-tools.sh
+          echo "$GITHUB_WORKSPACE/.tools/ci/bin" >> "$GITHUB_PATH"
+      - name: Verify toolchain and tools
+        run: |
+          xcodebuild -version
+          swift --version
+          xcodegen --version
+          swiftlint version
+          swiftformat --version
+      - name: Build, test, lint, and check formatting
+        run: make check
+      - name: Remove dependency credential
+        if: always()
+        run: rm -f "$RUNNER_TEMP/source-symbols-key"

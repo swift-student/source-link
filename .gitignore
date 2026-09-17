@@ -6,3 +6,5 @@ app/Info.plist
 app/*.xcodeproj/
 xcuserdata/
 *.xcuserstate
+
+.tools/
