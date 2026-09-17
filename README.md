@@ -20,14 +20,14 @@ ignores the column.
 
 ## Try it
 
-Install the signed and notarized app with Homebrew:
+Install via Homebrew:
 
 ```sh
 brew install --cask swift-student/tap/source-link
 ```
 
 Open **Source Link** from Applications once to register its link handler. The cask
-also installs the `source-link` CLI. Install your preferred editor separately.
+also installs the `source-link` CLI.
 
 With a local checkout of this repository, try opening its README:
 
