@@ -67,17 +67,7 @@ See [usage and path rules](docs/usage.md) and the
 [symbol-link reference](docs/symbol-links.md) for naming conventions, encoding,
 text matching, and lookup limits.
 
-## Diagrams that open the code
-
-A diagram can double as a way into the implementation. This simulated call stack
-links each frame to its Swift declaration:
-
-![Simulated call stack: SourceLink.resolve, SourceSettings.command, AppDelegate.open](examples/diagrams/stack-trace.png)
-
-[Download the clickable SVG](examples/diagrams/stack-trace.svg?raw=1) and open it
-as a document, then click a frame. Map `source-link` to your checkout first.
-The image above is a static preview; the [D2 source](examples/diagrams/stack-trace.d2)
-is editable.
+## Examples
 
 The [interactive explainer](https://swiftstudent.com/source-link/) walks through
 how a link reaches your editor. For more examples and the reusable diagram skill,
