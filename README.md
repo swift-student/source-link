@@ -16,7 +16,7 @@ or later** and supports Xcode, VS Code, Cursor, Zed, Android Studio, IntelliJ ID
 Sublime Text, and custom editor profiles. Xcode opens at the requested line and
 ignores the column.
 
-![Source Link Settings](docs/assets/settings.png)
+https://github.com/user-attachments/assets/2fc71909-127a-4938-9d0c-16b8aa728b77
 
 ## Try it
 
@@ -38,13 +38,6 @@ open 'source-link://source-link/README.md?line=1'
 Source Link asks for the local repository folder and an editor, then opens the
 file. It remembers your choice. To change it later, open Settings from the
 menu-bar icon or reopen the running app from Finder.
-
-## See it in use
-
-The same links work from a terminal or a diagram. This 24-second demo follows
-both kinds of links into Swift declarations in Xcode:
-
-https://github.com/user-attachments/assets/2fc71909-127a-4938-9d0c-16b8aa728b77
 
 ## Writing links
 
