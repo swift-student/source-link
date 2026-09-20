@@ -14,7 +14,7 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.8.2"),
     .package(url: "https://github.com/swift-student/swift-source-symbols.git",
-             revision: "15b37e31f0682015089c194c1846e16aaf7de865")
+             from: "0.1.0")
   ],
   targets: [
     .target(name: "SourceLinkCore", dependencies: [

@@ -159,6 +159,42 @@ struct SymbolTextTests {
     }
   }
 
+  @Test func `resolves symbols and statements after async control flow`() throws {
+    try withSource("""
+    actor Client {
+      func run() async throws {
+        while let packet = try await connection.nextPacket() {
+          switch packet.type {
+          case .pong: continue
+          default: return
+          }
+        }
+      }
+      func subscribe() async throws {
+        switch try await connection.handleControlPacket(packet) {
+        case .ponged: return
+        default: break
+        }
+        let events = await bus.streamEvents()
+      }
+      func close() {}
+    }
+    """) { file in
+      for name in ["Client", "Client.run()", "Client.subscribe()", "Client.close()"] {
+        #expect(try SourceSymbolResolver.matches(in: file, named: name).count == 1)
+      }
+      let matches = try SourceSymbolResolver.matches(in: file, named: "Client.subscribe()",
+                                                     find: "let events = await bus.streamEvents()")
+      #expect(matches.count == 1)
+      #expect(matches.first?.line == 15)
+      #expect(matches.first?.column == 5)
+      #expect(matches.first?.matchedLine == "let events = await bus.streamEvents()")
+      #expect(throws: SourceLinkError.missingText) {
+        try SourceSymbolResolver.matches(in: file, named: "Client.run()", find: "let events")
+      }
+    }
+  }
+
   private func withSource(_ source: String, extension fileExtension: String = "swift",
                           perform: (URL) throws -> Void) throws {
     let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + "." + fileExtension)

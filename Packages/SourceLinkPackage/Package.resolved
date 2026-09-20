@@ -1,5 +1,5 @@
 {
-  "originHash" : "e6f8394d6ed2b77d37612ba9517e44a658d7e8e97a27ba3cb9300c596c786536",
+  "originHash" : "77f89b488b216ae1f9096c6e0a4878b896d18ce533fdfe4931ffdf51b430baff",
   "pins" : [
     {
       "identity" : "swift-argument-parser",
@@ -15,7 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-student/swift-source-symbols.git",
       "state" : {
-        "revision" : "15b37e31f0682015089c194c1846e16aaf7de865"
+        "revision" : "e10bb037ba1a9b6bfc79d1fce3df70f34ca45068",
+        "version" : "0.1.0"
       }
     },
     {
@@ -50,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-student/tree-sitter-swift-spm",
       "state" : {
-        "revision" : "08aaa2537c108e8d6d0963744cdbdc180566856f",
-        "version" : "0.1.0"
+        "revision" : "c2863ed96a54dd4c11de064b16d0318fc190a049",
+        "version" : "0.1.1"
       }
     },
     {
